@@ -52,6 +52,7 @@ public static class Icons
         ["Game install location"] = Folder,
         ["Dalamud"] = Extension,
         ["Run in safe mode"] = Shield,
+        ["In-game helper"] = Chip,
         ["Driver"] = Terrain,
         ["Import a driver"] = Download,
         ["Remove this driver"] = Delete,

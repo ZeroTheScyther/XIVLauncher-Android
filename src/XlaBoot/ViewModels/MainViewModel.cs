@@ -418,6 +418,7 @@ public partial class MainViewModel : ViewModelBase
             {
                 Greeting = "Preparing Dalamud...";
                 await Provisioning.DalamudPrefixFix.EnsureAsync(FilesDir, DalamudHttp);
+                await EnsureHelperPluginAsync();
             }
 
             // Safe mode is for one launch only: consumed here, so the next Log in & Play loads plugins again.
@@ -502,6 +503,29 @@ public partial class MainViewModel : ViewModelBase
         Settings.TabIndex = 0;
         OpenSettings();
         Settings.Status = "Tap Game install location and pick the folder that holds the game's boot and game folders.";
+    }
+
+    /// <summary>
+    /// Settings > Plugins > "In-game helper": installs (or removes) the plugin that shows the device's battery in
+    /// game. It ships from its own repository, so this is a small download rather than part of the app.
+    /// </summary>
+    private async Task EnsureHelperPluginAsync()
+    {
+        if (AppHost.Get("helper_plugin", "ON") != "ON")
+        {
+            try { Provisioning.HelperPlugin.Remove(FilesDir); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            return;
+        }
+        try
+        {
+            AppLog.Note(await Provisioning.HelperPlugin.EnsureAsync(FilesDir, DalamudHttp, default));
+        }
+        catch (Exception ex)
+        {
+            // Never worth failing a launch over: the game runs fine without it.
+            AppLog.Note($"Could not install the in-game helper plugin: {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     // ---- One-time password prompt ------------------------------------------------------------

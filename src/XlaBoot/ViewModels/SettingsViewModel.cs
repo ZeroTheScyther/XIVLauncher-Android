@@ -126,6 +126,10 @@ public partial class SettingsViewModel : ViewModelBase
         };
         Rows.Add(dalamud);
 
+        Rows.Add(Choice("helper_plugin", "In-game helper", OnOff, OnOffLabels,
+            "Installs XIVLauncher Android Helper, a small plugin that shows this device's battery in the game's "
+            + "server info bar. Updated through Dalamud like any other plugin."));
+
         SettingsRow? safeMode = null;
         safeMode = new SettingsRow("Run in safe mode", () =>
         {

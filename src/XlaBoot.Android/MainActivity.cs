@@ -235,6 +235,9 @@ public class MainActivity : AvaloniaMainActivity<App>
                 // keyboard shown over the game must overlay it instead.
                 Window?.SetSoftInputMode(SoftInput.AdjustNothing);
 
+                // The in-game helper plugin gets the device's battery from here for as long as the game runs.
+                _statusSender ??= new DeviceStatusSender(this);
+
                 // The X view is the whole game screen. Paint the window black so the cutout/nav-bar insets
                 // stop showing the theme's white background; XServerHost.Create goes immersive.
                 Window?.SetBackgroundDrawable(
@@ -715,8 +718,13 @@ public class MainActivity : AvaloniaMainActivity<App>
             XServerHost.HideSystemBars();
     }
 
+    /// <summary>Feeds the in-game helper plugin while the game is up; created with the X server.</summary>
+    private DeviceStatusSender? _statusSender;
+
     protected override void OnDestroy()
     {
+        _statusSender?.Dispose();
+        _statusSender = null;
         try { XServerHost.Stop(); } catch { /* the server may never have been started */ }
         base.OnDestroy();
     }
