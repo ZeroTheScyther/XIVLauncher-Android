@@ -22,6 +22,10 @@ namespace XlaBoot.Android;
     // hung on "Waiting for storage permission". The second-instance crash SingleTask was hiding is
     // handled in OnCreate instead. SingleTop keeps a re-launch of an already-resumed activity in OnNewIntent.
     LaunchMode = LaunchMode.SingleTop,
+    // AdjustResize, not the theme's adjustPan: the whole UI is one surface, so Android cannot know where the text
+    // field is and pans the window by a guess, which hid the password box behind the keyboard. Resizing gives
+    // Avalonia a smaller window instead, and MainView scrolls the focused field into what is left.
+    WindowSoftInputMode = SoftInput.StateUnspecified | SoftInput.AdjustResize,
     // The X server lives and dies with this activity (OnDestroy stops it), so any config change
     // that would recreate the activity kills the game. A Bluetooth keyboard disconnecting
     // (CONFIG_KEYBOARD/KEYBOARD_HIDDEN) did exactly that; handle every change that can occur mid-game.
@@ -225,6 +229,11 @@ public class MainActivity : AvaloniaMainActivity<App>
             {
                 Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
                 RequestedOrientation = ScreenOrientation.SensorLandscape;
+
+                // The launcher wants AdjustResize so the keyboard cannot cover a text field, but the game view is
+                // the X screen: resizing it under a running game would change the screen size mid-session. A soft
+                // keyboard shown over the game must overlay it instead.
+                Window?.SetSoftInputMode(SoftInput.AdjustNothing);
 
                 // The X view is the whole game screen. Paint the window black so the cutout/nav-bar insets
                 // stop showing the theme's white background; XServerHost.Create goes immersive.

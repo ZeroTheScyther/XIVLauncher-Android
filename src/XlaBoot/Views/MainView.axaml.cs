@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -14,9 +15,46 @@ public partial class MainView : UserControl
 {
     private MainViewModel? _viewModel;
 
+    /// <summary>The text field the soft keyboard was opened for, kept so a resize can scroll back to it.</summary>
+    private Control? _typingIn;
+
     public MainView()
     {
         InitializeComponent();
+        // The activity uses adjustResize, so the soft keyboard shrinks the window rather than panning it. Whatever
+        // the player is typing in has to be scrolled back into what is left of the page, on focus and on every
+        // resize (the keyboard opens, closes, and changes height when it switches to symbols or a suggestion bar).
+        AddHandler(GotFocusEvent, OnAnyGotFocus, RoutingStrategies.Bubble);
+        AddHandler(LostFocusEvent, OnAnyLostFocus, RoutingStrategies.Bubble);
+        SizeChanged += (_, _) => ScrollToTyping();
+    }
+
+    private void OnAnyGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        if (e.Source is TextBox box)
+        {
+            _typingIn = box;
+            ScrollToTyping();
+        }
+    }
+
+    private void OnAnyLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (ReferenceEquals(e.Source, _typingIn))
+            _typingIn = null;
+    }
+
+    /// <summary>Posted, not immediate: the window is still being resized when focus arrives.</summary>
+    private void ScrollToTyping()
+    {
+        if (_typingIn == null)
+            return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            // A little past the bottom of the field, so it does not sit flush against the keyboard.
+            if (_typingIn is { IsVisible: true } box && box.IsEffectivelyVisible)
+                box.BringIntoView(new Rect(0, 0, box.Bounds.Width, box.Bounds.Height + 28));
+        }, DispatcherPriority.Background);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
