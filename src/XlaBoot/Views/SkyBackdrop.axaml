@@ -1,0 +1,114 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="XlaBoot.Views.SkyBackdrop"
+             ClipToBounds="True">
+  <!-- Night sky over distant peaks: a gradient, a few glows and stars, and two layered ridgelines that fade into
+       the page's navy ground. Original vector art; stretches to any size (the ridges are drawn on a 400x120 box). -->
+  <Grid RowDefinitions="*,Auto">
+    <Border Grid.RowSpan="2">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+          <GradientStop Offset="0" Color="#0B1330"/>
+          <GradientStop Offset="0.55" Color="#17245A"/>
+          <GradientStop Offset="1" Color="#070C19"/>
+        </LinearGradientBrush>
+      </Border.Background>
+    </Border>
+
+    <!-- Aurora-ish glows -->
+    <Border Grid.RowSpan="2">
+      <Border.Background>
+        <RadialGradientBrush Center="75%,35%" GradientOrigin="75%,35%" RadiusX="55%" RadiusY="45%">
+          <GradientStop Offset="0" Color="#554C8DFF"/>
+          <GradientStop Offset="1" Color="#004C8DFF"/>
+        </RadialGradientBrush>
+      </Border.Background>
+    </Border>
+    <Border Grid.RowSpan="2">
+      <Border.Background>
+        <RadialGradientBrush Center="15%,70%" GradientOrigin="15%,70%" RadiusX="50%" RadiusY="35%">
+          <GradientStop Offset="0" Color="#448A5CFF"/>
+          <GradientStop Offset="1" Color="#008A5CFF"/>
+        </RadialGradientBrush>
+      </Border.Background>
+    </Border>
+
+    <!-- Stars, on a phone-shaped 400x900 field: UniformToFill keeps them round and about 1:1 on any page, and a
+         short hero just shows the top of the field. -->
+    <Viewbox Grid.RowSpan="2" Stretch="UniformToFill" VerticalAlignment="Top">
+      <Canvas Width="400" Height="900">
+        <Ellipse Canvas.Left="46" Canvas.Top="203" Width="2.4" Height="2.4" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="373" Canvas.Top="176" Width="1.4" Height="1.4" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="292" Canvas.Top="423" Width="1.4" Height="1.4" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="272" Canvas.Top="115" Width="1.0" Height="1.0" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="92" Canvas.Top="577" Width="1.4" Height="1.4" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="145" Canvas.Top="406" Width="2.0" Height="2.0" Fill="#88FFFFFF"/>
+        <Ellipse Canvas.Left="67" Canvas.Top="192" Width="1.4" Height="1.4" Fill="#88FFFFFF"/>
+        <Ellipse Canvas.Left="8" Canvas.Top="48" Width="2.0" Height="2.0" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="15" Canvas.Top="178" Width="1.6" Height="1.6" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="233" Canvas.Top="269" Width="2.0" Height="2.0" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="346" Canvas.Top="441" Width="1.0" Height="1.0" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="235" Canvas.Top="407" Width="1.2" Height="1.2" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="297" Canvas.Top="141" Width="2.4" Height="2.4" Fill="#88FFFFFF"/>
+        <Ellipse Canvas.Left="110" Canvas.Top="401" Width="1.6" Height="1.6" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="200" Canvas.Top="69" Width="1.0" Height="1.0" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="114" Canvas.Top="10" Width="2.4" Height="2.4" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="49" Canvas.Top="338" Width="1.0" Height="1.0" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="192" Canvas.Top="440" Width="2.0" Height="2.0" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="182" Canvas.Top="141" Width="1.6" Height="1.6" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="237" Canvas.Top="64" Width="1.6" Height="1.6" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="97" Canvas.Top="554" Width="1.6" Height="1.6" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="227" Canvas.Top="142" Width="1.4" Height="1.4" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="177" Canvas.Top="529" Width="1.6" Height="1.6" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="12" Canvas.Top="455" Width="1.4" Height="1.4" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="107" Canvas.Top="88" Width="1.2" Height="1.2" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="250" Canvas.Top="302" Width="1.4" Height="1.4" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="156" Canvas.Top="26" Width="1.4" Height="1.4" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="389" Canvas.Top="170" Width="1.4" Height="1.4" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="371" Canvas.Top="232" Width="1.4" Height="1.4" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="18" Canvas.Top="97" Width="1.2" Height="1.2" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="94" Canvas.Top="252" Width="1.4" Height="1.4" Fill="#88FFFFFF"/>
+        <Ellipse Canvas.Left="101" Canvas.Top="388" Width="1.4" Height="1.4" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="287" Canvas.Top="574" Width="1.0" Height="1.0" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="365" Canvas.Top="214" Width="1.2" Height="1.2" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="257" Canvas.Top="130" Width="1.6" Height="1.6" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="100" Canvas.Top="251" Width="2.0" Height="2.0" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="195" Canvas.Top="274" Width="1.0" Height="1.0" Fill="#88FFFFFF"/>
+        <Ellipse Canvas.Left="256" Canvas.Top="277" Width="1.4" Height="1.4" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="107" Canvas.Top="70" Width="1.2" Height="1.2" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="275" Canvas.Top="42" Width="1.4" Height="1.4" Fill="#CCFFFFFF"/>
+        <Ellipse Canvas.Left="179" Canvas.Top="350" Width="1.6" Height="1.6" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="312" Canvas.Top="167" Width="1.4" Height="1.4" Fill="#EEFFFFFF"/>
+        <Ellipse Canvas.Left="171" Canvas.Top="39" Width="1.2" Height="1.2" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="61" Canvas.Top="465" Width="1.2" Height="1.2" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="266" Canvas.Top="145" Width="2.4" Height="2.4" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="394" Canvas.Top="172" Width="2.0" Height="2.0" Fill="#66FFFFFF"/>
+        <Ellipse Canvas.Left="231" Canvas.Top="302" Width="1.6" Height="1.6" Fill="#AAFFFFFF"/>
+        <Ellipse Canvas.Left="370" Canvas.Top="553" Width="1.0" Height="1.0" Fill="#EEFFFFFF"/>
+      </Canvas>
+    </Viewbox>
+
+    <!-- Ridgelines -->
+    <!-- Width-stretched at the art's own aspect, so a tall page doesn't turn the ridges into spires. -->
+    <Viewbox Grid.Row="1" Stretch="Uniform" VerticalAlignment="Bottom">
+      <Canvas Width="400" Height="120">
+        <Path Data="M0,70 L40,40 L70,58 L110,22 L150,55 L185,35 L230,62 L275,18 L320,52 L360,34 L400,56 L400,120 L0,120 Z">
+          <Path.Fill>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+              <GradientStop Offset="0" Color="#2A3B78"/>
+              <GradientStop Offset="1" Color="#0E1733"/>
+            </LinearGradientBrush>
+          </Path.Fill>
+        </Path>
+        <Path Data="M0,92 L55,62 L95,84 L150,58 L200,86 L250,66 L300,90 L350,70 L400,88 L400,120 L0,120 Z">
+          <Path.Fill>
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+              <GradientStop Offset="0" Color="#16224A"/>
+              <GradientStop Offset="1" Color="#070C19"/>
+            </LinearGradientBrush>
+          </Path.Fill>
+        </Path>
+      </Canvas>
+    </Viewbox>
+  </Grid>
+</UserControl>

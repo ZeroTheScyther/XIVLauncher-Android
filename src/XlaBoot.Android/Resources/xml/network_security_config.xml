@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Square Enix serves the boot version check and every game patch over plain HTTP (patch-bootver,
+     patch-dl), and targetSdk 28 blocks cleartext by default. Allowed for those hosts only; patches are
+     verified by hash/CRC after download, and everything else, the login included, stays HTTPS. -->
+<network-security-config>
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">ffxiv.com</domain>
+  </domain-config>
+</network-security-config>

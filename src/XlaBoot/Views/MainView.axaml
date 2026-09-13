@@ -1,0 +1,415 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:XlaBoot.ViewModels"
+             xmlns:views="using:XlaBoot.Views"
+             mc:Ignorable="d" d:DesignWidth="412" d:DesignHeight="915"
+             x:Class="XlaBoot.Views.MainView"
+             x:DataType="vm:MainViewModel"
+             Foreground="{StaticResource XlaTextBrush}">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+  <!-- The checkboxes are Buttons drawn as checkboxes, not CheckBox controls: Avalonia.Android's
+       ToggleNodeInfoProvider throws when any accessibility client (TalkBack, autofill, uiautomator)
+       reads a toggle control, killing the app. -->
+  <UserControl.Styles>
+    <Style Selector="Button.check">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0,6"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="Button.check:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Button.check:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Border.box">
+      <Setter Property="Width" Value="22"/>
+      <Setter Property="Height" Value="22"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="BorderBrush" Value="{StaticResource XlaTextDimBrush}"/>
+    </Style>
+    <Style Selector="Border.box.checked">
+      <Setter Property="Background" Value="{StaticResource XlaAccentBrush}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource XlaAccentBrush}"/>
+    </Style>
+    <Style Selector="Path.tick">
+      <Setter Property="Data" Value="M 4,11 L 9,16 L 18,6"/>
+      <Setter Property="Stroke" Value="White"/>
+      <Setter Property="StrokeThickness" Value="2.5"/>
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="Height" Value="16"/>
+      <Setter Property="Stretch" Value="Uniform"/>
+    </Style>
+    <Style Selector="TextBlock.caption">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+      <Setter Property="Margin" Value="4,0,0,6"/>
+    </Style>
+    <Style Selector="Button.card.missing Border.tile > PathIcon">
+      <Setter Property="Foreground" Value="#F0B429"/>
+    </Style>
+    <Style Selector="Button.kofi">
+      <Setter Property="Background" Value="#FF5E5B"/>
+      <Setter Property="CornerRadius" Value="20"/>
+      <Setter Property="Padding" Value="16,9"/>
+    </Style>
+    <Style Selector="Button.kofi:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#FF5E5B"/>
+    </Style>
+    <Style Selector="Button.kofi:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E04A48"/>
+    </Style>
+    <Style Selector="Border.accentTile">
+      <Setter Property="Background" Value="{StaticResource XlaAccentBrush}"/>
+    </Style>
+    <Style Selector="Border.successTile">
+      <Setter Property="Background" Value="#1E6B35"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="*,Auto" Background="{StaticResource XlaGroundBrush}">
+
+    <!-- ================================ Home ================================ -->
+    <ScrollViewer Grid.Row="0" IsVisible="{Binding IsHomePage}">
+      <StackPanel>
+        <!-- Hero: sky, crystal, title -->
+        <Grid Height="250">
+          <views:SkyBackdrop/>
+          <views:CrystalLogo Width="120" Height="170" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,34,26"/>
+          <StackPanel Margin="20,28,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="2">
+            <TextBlock Text="XIVLauncher" FontSize="30" FontWeight="SemiBold"/>
+            <TextBlock Text="FINAL FANTASY XIV on Android" FontSize="14" Foreground="#C8D4F0"/>
+          </StackPanel>
+        </Grid>
+
+        <StackPanel Margin="16,4,16,16" Spacing="12" MaxWidth="600">
+          <!-- A newer APK has been published. Opens the download in the browser; Android's installer does the rest. -->
+          <Button Classes="card" Command="{Binding OpenUpdateCommand}" IsVisible="{Binding IsUpdateAvailable}"
+                  BorderBrush="{StaticResource XlaAccentBrush}">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Border Grid.Column="0" Classes="tile accentTile" Margin="0,0,14,0">
+                <PathIcon Data="{x:Static views:Icons.CloudDownload}"/>
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                <TextBlock Text="Update available" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Classes="dim" Text="{Binding UpdateText}" FontSize="12.5" TextWrapping="Wrap"/>
+              </StackPanel>
+              <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
+            </Grid>
+          </Button>
+
+          <Button Classes="card" Classes.missing="{Binding IsGameMissing}"
+                  Command="{Binding NavigateCommand}" CommandParameter="Game">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Border Grid.Column="0" Classes="tile" Classes.successTile="{Binding !IsGameMissing}" Margin="0,0,14,0">
+                <PathIcon Data="{Binding GameIcon}"/>
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                <TextBlock Text="{Binding GameTitle}" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Classes="dim" Text="{Binding GameDetail}" FontSize="12.5" TextWrapping="Wrap"/>
+              </StackPanel>
+              <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
+            </Grid>
+          </Button>
+
+          <Button Classes="card" Command="{Binding NavigateCommand}" CommandParameter="Login">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Border Grid.Column="0" Classes="tile accentTile" Margin="0,0,14,0">
+                <PathIcon Data="{x:Static views:Icons.Play}"/>
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                <TextBlock Text="Play" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Classes="dim" Text="{Binding PlayDetail}" FontSize="12.5"/>
+              </StackPanel>
+              <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
+            </Grid>
+          </Button>
+
+
+          <Button Classes="card" Command="{Binding NavigateCommand}" CommandParameter="About">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Border Grid.Column="0" Classes="tile" Margin="0,0,14,0">
+                <PathIcon Data="{x:Static views:Icons.Info}"/>
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                <TextBlock Text="About" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Classes="dim" Text="Credits, licences and more" FontSize="12.5"/>
+              </StackPanel>
+              <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
+            </Grid>
+          </Button>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ================================ Login ================================ -->
+    <Grid Grid.Row="0" IsVisible="{Binding IsLoginPage}">
+      <views:SkyBackdrop/>
+      <!-- ScrollViewer so the fields stay reachable when the soft keyboard covers half the screen. -->
+      <ScrollViewer>
+        <StackPanel HorizontalAlignment="Stretch" Spacing="8" Margin="24,12,24,24" MaxWidth="420">
+          <Button Classes="icon" HorizontalAlignment="Left" Margin="-12,0,0,0"
+                  Command="{Binding NavigateCommand}" CommandParameter="Home" IsEnabled="{Binding !IsBusy}">
+            <PathIcon Data="{x:Static views:Icons.ArrowBack}"/>
+          </Button>
+
+          <views:CrystalLogo Width="80" Height="113" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+          <TextBlock Text="XIVLauncher" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+          <TextBlock Text="Log in to your Square Enix account to launch FFXIV." Foreground="#C8D4F0"
+                     HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,18"/>
+
+          <TextBlock Classes="caption" Text="Username"/>
+          <Grid>
+            <TextBox Text="{Binding Username}" IsEnabled="{Binding !IsBusy}" Padding="44,12,12,12"/>
+            <PathIcon Data="{x:Static views:Icons.Person}" Width="18" Height="18" Margin="14,0,0,0"
+                      HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
+                      Foreground="{StaticResource XlaTextDimBrush}"/>
+          </Grid>
+
+          <TextBlock Classes="caption" Text="Password" Margin="4,8,0,6"/>
+          <Grid>
+            <TextBox x:Name="PasswordBox" PasswordChar="•" RevealPassword="{Binding ShowPassword}"
+                     Text="{Binding Password}" IsEnabled="{Binding !IsBusy}" Padding="44,12,48,12"/>
+            <PathIcon Data="{x:Static views:Icons.Lock}" Width="18" Height="18" Margin="14,0,0,0"
+                      HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
+                      Foreground="{StaticResource XlaTextDimBrush}"/>
+            <Button Classes="icon" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,2,0"
+                    Command="{Binding ToggleShowPasswordCommand}">
+              <PathIcon Data="{x:Static views:Icons.Eye}" Width="20" Height="20"
+                        Foreground="{StaticResource XlaTextDimBrush}"/>
+            </Button>
+          </Grid>
+
+          <Button Classes="check" Command="{Binding ToggleUseOtpCommand}" IsEnabled="{Binding !IsBusy}" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="box" Classes.checked="{Binding UseOtp}">
+                <Path Classes="tick" IsVisible="{Binding UseOtp}"/>
+              </Border>
+              <TextBlock Text="Use one-time password" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+
+          <Button Classes="check" Command="{Binding ToggleRememberLoginCommand}" IsEnabled="{Binding !IsBusy}">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="box" Classes.checked="{Binding RememberLogin}">
+                <Path Classes="tick" IsVisible="{Binding RememberLogin}"/>
+              </Border>
+              <TextBlock Text="Remember login" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+
+          <Button Classes="primary" Content="Log in &amp; Play" Command="{Binding LoginAndPlayCommand}"
+                  IsEnabled="{Binding !IsBusy}" Margin="0,14,0,0"/>
+
+          <ProgressBar IsIndeterminate="True" Height="4" Margin="40,6,40,0" IsVisible="{Binding IsBusy}"/>
+          <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" TextAlignment="Center"
+                     TextWrapping="Wrap" Margin="0,6,0,0" Foreground="#C8D4F0"/>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ================================ Settings ================================ -->
+    <!-- The Border keeps MainViewModel as its DataContext so the visibility binding resolves. -->
+    <Border Grid.Row="0" IsVisible="{Binding IsSettingsPage}">
+      <views:SettingsView DataContext="{Binding Settings}"/>
+    </Border>
+
+    <!-- ================================ Logs ================================ -->
+    <Grid Grid.Row="0" RowDefinitions="Auto,Auto,Auto,*" Background="{StaticResource XlaPageBrush}"
+          IsVisible="{Binding IsLogsPage}">
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="18,18,10,4">
+        <Border Grid.Column="0" Classes="tile" Width="46" Height="46" Margin="0,0,12,0">
+          <PathIcon Data="{x:Static views:Icons.Logs}"/>
+        </Border>
+        <TextBlock Grid.Column="1" Classes="h1" Text="Logs" VerticalAlignment="Center"/>
+        <Button Grid.Column="2" Classes="icon" Command="{Binding Logs.ReloadCommand}">
+          <PathIcon Data="{x:Static views:Icons.Refresh}"/>
+        </Button>
+        <Button Grid.Column="3" Classes="icon" Click="CopyLog" IsEnabled="{Binding Logs.HasSources}">
+          <PathIcon Data="{x:Static views:Icons.Copy}"/>
+        </Button>
+        <!-- Zips every log for a bug report and asks where to save it. -->
+        <Button Grid.Column="4" Classes="icon" Command="{Binding Logs.ExportCommand}">
+          <PathIcon Data="{x:Static views:Icons.Download}"/>
+        </Button>
+      </Grid>
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                    Margin="8,6,8,0">
+        <ItemsControl ItemsSource="{Binding Logs.Sources}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LogSource">
+              <Button Classes="tab" Classes.selected="{Binding IsSelected}" Content="{Binding Label}"
+                      Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).Logs.SelectCommand}"
+                      CommandParameter="{Binding}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+      <TextBlock Grid.Row="2" Classes="dim" Text="{Binding Logs.Detail}" FontSize="11.5" TextWrapping="Wrap"
+                 Margin="18,8,18,8"/>
+      <Border Grid.Row="3" Classes="card" Margin="12,0,12,12" Padding="0" IsVisible="{Binding Logs.HasSources}">
+        <ScrollViewer x:Name="LogScroll" HorizontalScrollBarVisibility="Auto">
+          <SelectableTextBlock Text="{Binding Logs.Text}" FontFamily="monospace" FontSize="11"
+                               Foreground="#C8D4F0" Margin="12,10"/>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+
+    <!-- ================================ About ================================ -->
+    <Grid Grid.Row="0" IsVisible="{Binding IsAboutPage}">
+      <views:SkyBackdrop/>
+      <ScrollViewer>
+        <StackPanel Margin="20,12,20,24" Spacing="10" MaxWidth="480">
+          <Button Classes="icon" HorizontalAlignment="Left" Margin="-10,0,0,0"
+                  Command="{Binding NavigateCommand}" CommandParameter="Home">
+            <PathIcon Data="{x:Static views:Icons.ArrowBack}"/>
+          </Button>
+          <views:CrystalLogo Width="96" Height="136" HorizontalAlignment="Center"/>
+          <TextBlock Text="XIVLauncher" FontSize="32" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+          <TextBlock Text="Android Port" FontSize="17" HorizontalAlignment="Center" Foreground="#C8D4F0" Margin="0,-6,0,0"/>
+          <TextBlock Text="A community project that brings XIVLauncher and Dalamud to Android."
+                     Foreground="#C8D4F0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                     Margin="0,4,0,10"/>
+
+          <Border Classes="card" Padding="16,6">
+            <StackPanel>
+              <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,10">
+                <PathIcon Data="{x:Static views:Icons.Info}" Width="18" Height="18" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="1" Text="Version"/>
+                <TextBlock Grid.Column="2" Classes="dim" Text="{Binding VersionText}"/>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,10">
+                <PathIcon Data="{x:Static views:Icons.Code}" Width="18" Height="18" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="1" Text="Built with"/>
+                <TextBlock Grid.Column="2" Classes="dim" Text="Avalonia · .NET"/>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,10">
+                <PathIcon Data="{x:Static views:Icons.Chip}" Width="18" Height="18" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="1" Text="Runs on"/>
+                <TextBlock Grid.Column="2" Classes="dim" Text="Wine · FEX · DXVK · Turnip" TextAlignment="End"/>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card" Padding="16,14">
+            <StackPanel Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{x:Static views:Icons.Heart}" Width="18" Height="18" Foreground="#E06C75"/>
+                <TextBlock Text="Acknowledgements" FontWeight="SemiBold"/>
+              </StackPanel>
+              <TextBlock Classes="dim" FontSize="12.5" TextWrapping="Wrap"
+                         Text="XIVLauncher and Dalamud by goatcorp and contributors. Wine, FEX-Emu, DXVK and Mesa Turnip by their authors. Winlator and GameNative for the Android container groundwork. And the FFXIV community."/>
+            </StackPanel>
+          </Border>
+
+          <!-- Support the port: its own row, deliberately outside the credits card. Opens Ko-fi in the browser. -->
+          <Button Classes="kofi" Command="{Binding OpenKofiCommand}" HorizontalAlignment="Center" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{x:Static views:Icons.Coffee}" Width="18" Height="18" Foreground="White"/>
+              <TextBlock Text="Buy me a coffee" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+
+          <TextBlock Classes="dim" FontSize="11.5" TextWrapping="Wrap" TextAlignment="Center" Margin="8,10,8,0"
+                     Text="Not affiliated with or endorsed by Square Enix. FINAL FANTASY is a registered trademark of Square Enix Holdings Co., Ltd."/>
+          <TextBlock Text="Same adventure. New devices." HorizontalAlignment="Center" Foreground="#C8D4F0"
+                     Margin="0,14,0,0"/>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ================================ Bottom navigation ================================ -->
+    <Border Grid.Row="1" IsVisible="{Binding ShowBottomNav}" Background="#0A1022"
+            BorderBrush="{StaticResource XlaCardBorderBrush}" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,*,*" Margin="0,2,0,4">
+        <Button Grid.Column="0" Classes="nav" Classes.selected="{Binding IsHomePage}"
+                Command="{Binding NavigateCommand}" CommandParameter="Home">
+          <StackPanel Spacing="3" HorizontalAlignment="Center">
+            <PathIcon Data="{x:Static views:Icons.Home}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Home" HorizontalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="1" Classes="nav" Classes.selected="{Binding IsSettingsPage}"
+                Command="{Binding NavigateCommand}" CommandParameter="Settings">
+          <StackPanel Spacing="3" HorizontalAlignment="Center">
+            <PathIcon Data="{x:Static views:Icons.Settings}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Settings" HorizontalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" Classes="nav" Classes.selected="{Binding IsLogsPage}"
+                Command="{Binding NavigateCommand}" CommandParameter="Logs">
+          <StackPanel Spacing="3" HorizontalAlignment="Center">
+            <PathIcon Data="{x:Static views:Icons.Logs}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Logs" HorizontalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- First-run setup. Covers everything until the runtime is installed. -->
+    <Border Grid.RowSpan="2" IsVisible="{Binding Setup.IsOpen}">
+      <views:SetupView DataContext="{Binding Setup}"/>
+    </Border>
+
+    <!-- Game install / update progress. -->
+    <Border Grid.RowSpan="2" IsVisible="{Binding Install.IsOpen}">
+      <views:InstallView DataContext="{Binding Install}"/>
+    </Border>
+
+    <!-- One-time password prompt, opened by Log in & Play when "Use one-time password" is checked. -->
+    <Border Grid.RowSpan="2" IsVisible="{Binding IsOtpPromptOpen}" Background="#B0000000">
+      <Border Classes="dialog" MaxWidth="380">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Enter your one-time password" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Classes="dim" Text="The 6-digit code from your Square Enix authenticator." TextWrapping="Wrap"/>
+          <TextBox x:Name="OtpBox" Text="{Binding Otp}" MaxLength="6" FontSize="24" HorizontalContentAlignment="Center"
+                   TextInputOptions.ContentType="Digits">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding SubmitOtpCommand}"/>
+            </TextBox.KeyBindings>
+          </TextBox>
+          <TextBlock Text="{Binding OtpError}" Foreground="{StaticResource XlaDangerBrush}"
+                     IsVisible="{Binding OtpError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
+            <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding CancelOtpCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Grid.Column="2" Classes="primary" Content="Log in" Command="{Binding SubmitOtpCommand}"
+                    Padding="0,11"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Border>
+
+    <!-- No game installed: the two ways out are "download it" and "I already have it". -->
+    <Border Grid.RowSpan="2" IsVisible="{Binding IsNoGamePromptOpen}" Background="#B0000000">
+      <Border Classes="dialog" MaxWidth="400">
+        <StackPanel Spacing="12">
+          <TextBlock Text="No game installation found" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Classes="dim" Text="{Binding NoGameDetail}" TextWrapping="Wrap"/>
+          <TextBlock Text="Would you like to install the whole game?" TextWrapping="Wrap"/>
+          <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5"
+                     Text="Choose No and set the folder in settings if you already have the game copied from your PC."/>
+          <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
+            <Button Grid.Column="0" Classes="secondary" Content="No, I have it" Command="{Binding ChooseGameFolderCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Grid.Column="2" Classes="primary" Content="Yes, install it" Command="{Binding InstallGameCommand}"
+                    Padding="0,11"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Border>
+  </Grid>
+</UserControl>

@@ -1,0 +1,139 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:XlaBoot.ViewModels"
+             xmlns:views="using:XlaBoot.Views"
+             x:Class="XlaBoot.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <!-- Every setting is a card Button that cycles its value or opens a picker: no ComboBox popups (awkward on a
+       phone) and no CheckBox/ToggleButton, which crashes Avalonia.Android as soon as an accessibility client reads
+       it. Card, tile and tab styles live in Styles/Theme.axaml. -->
+  <UserControl.Styles>
+    <Style Selector="Button.card.warning TextBlock.title, Button.card.warning TextBlock.value">
+      <Setter Property="Foreground" Value="{StaticResource XlaDangerBrush}"/>
+    </Style>
+    <Style Selector="Button.card.warning Border.tile > PathIcon">
+      <Setter Property="Foreground" Value="{StaticResource XlaDangerBrush}"/>
+    </Style>
+
+    <Style Selector="Button.trash">
+      <Setter Property="Background" Value="#C94F4F"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="12"/>
+    </Style>
+    <Style Selector="Button.trash:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#C94F4F"/>
+    </Style>
+    <Style Selector="Button.trash:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#A83E3E"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Background="{StaticResource XlaPageBrush}">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" MaxWidth="600" HorizontalAlignment="Stretch" Margin="16,8,16,0">
+
+      <!-- Header -->
+      <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="2,10,0,4">
+        <Border Classes="tile" Width="46" Height="46">
+          <PathIcon Data="{x:Static views:Icons.Settings}"/>
+        </Border>
+        <TextBlock Classes="h1" Text="Settings" VerticalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- Tabs scroll sideways when four don't fit (Dalamud Repos only shows while Dalamud is on). -->
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                    Margin="0,8,0,4">
+        <StackPanel Orientation="Horizontal">
+          <Button Classes="tab" Classes.selected="{Binding IsGeneralTab}" Content="General"
+                  Command="{Binding SelectTabCommand}" CommandParameter="0"/>
+          <Button Classes="tab" Classes.selected="{Binding IsGraphicsTab}" Content="Graphics"
+                  Command="{Binding SelectTabCommand}" CommandParameter="1"/>
+          <Button Classes="tab" Classes.selected="{Binding IsAdvancedTab}" Content="Advanced"
+                  Command="{Binding SelectTabCommand}" CommandParameter="2"/>
+          <Button Classes="tab" Classes.selected="{Binding IsReposTab}" Content="Dalamud Repos"
+                  Command="{Binding SelectTabCommand}" CommandParameter="3" IsVisible="{Binding ShowReposTab}"/>
+        </StackPanel>
+      </ScrollViewer>
+
+      <ScrollViewer Grid.Row="2">
+        <ItemsControl ItemsSource="{Binding Rows}" Margin="0,0,0,12">
+          <ItemsControl.DataTemplates>
+
+            <DataTemplate DataType="vm:SettingsHeader">
+              <TextBlock Classes="section" Text="{Binding Title}"/>
+            </DataTemplate>
+
+            <DataTemplate DataType="vm:SettingsRow">
+              <Button Classes="card" Classes.warning="{Binding IsWarning}" Command="{Binding Tap}"
+                      IsEnabled="{Binding IsAvailable}" Margin="0,0,0,10">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                  <Border Grid.Column="0" Classes="tile" Margin="0,0,14,0" VerticalAlignment="Top">
+                    <PathIcon Data="{Binding Icon}"/>
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Classes="title" Text="{Binding Title}" FontSize="16" FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Classes="dim" Text="{Binding Detail}" FontSize="12.5" TextWrapping="Wrap"
+                               IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Classes="value" Text="{Binding Value}" FontSize="14"
+                             Margin="12,2,4,0" VerticalAlignment="Top" TextAlignment="End" MaxWidth="150"
+                             TextWrapping="Wrap" Foreground="{StaticResource XlaAccentBrush}"
+                             IsVisible="{Binding Value, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                  <PathIcon Grid.Column="3" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"
+                            VerticalAlignment="Top" Margin="0,3,0,0"/>
+                </Grid>
+              </Button>
+            </DataTemplate>
+
+            <!-- A custom Dalamud repo: the link, and a red trash button that removes it with one tap. -->
+            <DataTemplate DataType="vm:RepoRow">
+              <Border Classes="card" Padding="14,10" Margin="0,0,0,10">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Url}" FontSize="13" TextWrapping="Wrap"/>
+                    <TextBlock Classes="dim" Text="{Binding Title}" FontSize="11.5" IsVisible="{Binding !IsEnabled}"/>
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="trash" Command="{Binding Delete}" Margin="12,0,0,0"
+                          VerticalAlignment="Center">
+                    <PathIcon Width="18" Height="18" Foreground="White" Data="{x:Static views:Icons.Delete}"/>
+                  </Button>
+                </Grid>
+              </Border>
+            </DataTemplate>
+
+            <!-- "Add repo": paste a link, Add (or Enter) to save it. A refused link keeps it open with the reason. -->
+            <DataTemplate DataType="vm:RepoInputRow">
+              <Border Classes="card" Padding="14" Margin="0,0,0,10">
+                <StackPanel Spacing="10">
+                  <TextBox Classes="repoInput" Text="{Binding Text}" Watermark="https://…/repo.json"
+                           TextInputOptions.ContentType="Url">
+                    <TextBox.KeyBindings>
+                      <KeyBinding Gesture="Enter" Command="{Binding Confirm}"/>
+                    </TextBox.KeyBindings>
+                  </TextBox>
+                  <TextBlock Text="{Binding Error}" FontSize="12.5" Foreground="{StaticResource XlaDangerBrush}"
+                             TextWrapping="Wrap"
+                             IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                  <Grid ColumnDefinitions="*,12,*">
+                    <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding Cancel}"
+                            HorizontalAlignment="Stretch"/>
+                    <Button Grid.Column="2" Classes="primary" Content="Add" Command="{Binding Confirm}" Padding="0,11"/>
+                  </Grid>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+
+          </ItemsControl.DataTemplates>
+        </ItemsControl>
+      </ScrollViewer>
+
+      <StackPanel Grid.Row="3" Margin="4,4,4,10" Spacing="4">
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="13"
+                   IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        <TextBlock Classes="dim" Text="These apply the next time you launch the game." FontSize="12"
+                   TextWrapping="Wrap"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

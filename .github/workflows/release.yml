@@ -1,0 +1,87 @@
+name: Release
+
+# Push a tag like v0.1.0 (or v0.1.0-alpha.1 for a pre-release) to build a signed APK and publish it.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  # Keep in sync with scripts/fetch-deps.sh and THIRD_PARTY.md.
+  XIVLAUNCHER_COMMON_COMMIT: 40ed6e93e7eb73e1c18f4d4871e05f32ab5fd2c6
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch XIVLauncher.Common
+        uses: actions/checkout@v4
+        with:
+          repository: goatcorp/FFXIVQuickLauncher
+          ref: ${{ env.XIVLAUNCHER_COMMON_COMMIT }}
+          path: external/FFXIVQuickLauncher
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install the Android workload and SDK packages
+        run: |
+          dotnet workload install android
+          dotnet build src/XlaBoot.Android/XlaBoot.Android.csproj -t:InstallAndroidDependencies \
+            -f net10.0-android -p:AndroidSdkDirectory="$ANDROID_SDK_ROOT" -p:AcceptAndroidSDKLicenses=True
+
+      - name: Build the signed APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          XLA_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          XLA_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          KEYSTORE="$RUNNER_TEMP/release.keystore"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE"
+          dotnet publish src/XlaBoot.Android/XlaBoot.Android.csproj -c Release -f net10.0-android \
+            -p:AndroidSdkDirectory="$ANDROID_SDK_ROOT" \
+            -p:AndroidPackageFormat=apk \
+            -p:ApplicationDisplayVersion="$VERSION" \
+            -p:XLA_KEYSTORE="$KEYSTORE" \
+            -p:XLA_KEY_ALIAS="$KEY_ALIAS" \
+            -o "$RUNNER_TEMP/out"
+          rm -f "$KEYSTORE"
+          APK=$(find "$RUNNER_TEMP/out" -name '*-Signed.apk' | head -1)
+          test -n "$APK"
+          mkdir -p release
+          cp "$APK" release/XIVLauncher.apk
+
+      - name: Write app-version.json
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          AAPT2=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/aapt2 | sort -V | tail -1)
+          BADGING=$("$AAPT2" dump badging release/XIVLauncher.apk | grep -m1 '^package:')
+          CODE=$(sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" <<<"$BADGING")
+          NAME=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$BADGING")
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/XIVLauncher.apk"
+          printf '{\n  "versionCode": %s,\n  "versionName": "%s",\n  "url": "%s"\n}\n' "$CODE" "$NAME" "$URL" > release/app-version.json
+          cat release/app-version.json
+          (cd release && sha256sum XIVLauncher.apk > XIVLauncher.apk.sha256)
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PRERELEASE=""
+          [[ "$TAG" == *-* ]] && PRERELEASE="--prerelease"
+          gh release create "$TAG" release/XIVLauncher.apk release/app-version.json release/XIVLauncher.apk.sha256 \
+            --title "XIVLauncher Android ${TAG#v}" --generate-notes $PRERELEASE

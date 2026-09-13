@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>26</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ApplicationId>uk.aetherworks.xivlauncher</ApplicationId>
+    <!-- versionCode: build time as yyDDDHHmm (year, day of year, UTC hour and minute), so every build is newer than
+         the last - Android refuses to update to a lower code, and the in-app update check compares these.
+         Fits an int until 2099. Pass -p:ApplicationVersion=N to pin one. -->
+    <ApplicationVersion Condition="'$(ApplicationVersion)' == ''">$([System.DateTime]::UtcNow.ToString('yy'))$([System.DateTime]::UtcNow.DayOfYear.ToString('000'))$([System.DateTime]::UtcNow.ToString('HHmm'))</ApplicationVersion>
+    <!-- versionName: the release workflow passes the tag (v0.1.0 -> 0.1.0); local builds say "dev". -->
+    <ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">dev</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <!-- The vendored Winlator sources use pattern-matching instanceof (Java 16+). -->
+    <JavacSourceVersion>17</JavacSourceVersion>
+    <JavacTargetVersion>17</JavacTargetVersion>
+  </PropertyGroup>
+
+  <!-- Release: not debuggable (the SDK's default), signed with the release key when XLA_KEYSTORE points at it.
+       Passwords are read from the environment by the signing tool itself (env:), never put on a command line.
+       Trimming stays off: System.Text.Json and Newtonsoft (XIVLauncher.Common) use reflection and the Java side
+       calls into C# by name, so nothing may be removed without proof on a device. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <RunAOTCompilation>false</RunAOTCompilation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(XLA_KEYSTORE)' != ''">
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyStore>$(XLA_KEYSTORE)</AndroidSigningKeyStore>
+    <AndroidSigningKeyAlias>$(XLA_KEY_ALIAS)</AndroidSigningKeyAlias>
+    <AndroidSigningStorePass>env:XLA_KEYSTORE_PASSWORD</AndroidSigningStorePass>
+    <AndroidSigningKeyPass>env:XLA_KEY_PASSWORD</AndroidSigningKeyPass>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="Icon.png">
+      <Link>Resources\drawable\Icon.png</Link>
+    </AndroidResource>
+    <!-- The launch script is installed by PrefixSetup, not downloaded: it and the app's XLA_* settings
+         contract have to move together. Linked rather than copied so runtime/run-wine.sh stays the one
+         source of truth. -->
+    <!-- Winlator's in-prefix input helper (GPL-3.0, from the GameNative imagefs). Installed into C:\windows at
+         launch; carries the captured mouse into Windows as injected input. See WinHandler.java. -->
+    <AndroidAsset Include="..\..\runtime\winhandler.exe">
+      <Link>Assets\winhandler.exe</Link>
+    </AndroidAsset>
+    <AndroidAsset Include="..\..\runtime\run-wine.sh">
+      <Link>Assets\run-wine.sh</Link>
+    </AndroidAsset>
+  </ItemGroup>
+
+
+  <!-- Winlator/GameNative X server, vendored from github.com/utkarshdalal/GameNative (GPL-3.0).
+       Compiled straight into the app by the .NET Android SDK's javac support - no Gradle.
+       The SDK already globs **\*.java into AndroidJavaSource, so this only turns binding off. -->
+  <ItemGroup>
+    <!-- Bind="false" throughout: javac compiles these into the APK, but no C# bindings are
+         generated. The generator cannot express Winlator's covariant returns and interface
+         default methods, and binding the facade would drag the whole tree in with it (javac
+         pulls dependencies onto the same output path). C# reaches xla.XServerHost over JNI
+         instead - see XServerHost.cs. -->
+    <AndroidJavaSource Update="**\*.java" Bind="false" />
+  </ItemGroup>
+
+  <!-- Prebuilt native halves of the same project (libwinlator.so et al). -->
+  <ItemGroup>
+    <AndroidNativeLibrary Include="..\native\arm64-v8a\*.so">
+      <Abi>arm64-v8a</Abi>
+    </AndroidNativeLibrary>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+    <!-- androidx.collection.ArrayMap / ArraySet, used by the vendored Winlator sources. -->
+    <PackageReference Include="Xamarin.AndroidX.Collection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XlaBoot\XlaBoot.csproj" />
+  </ItemGroup>
+</Project>

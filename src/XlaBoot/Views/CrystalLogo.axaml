@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="XlaBoot.Views.CrystalLogo">
+  <!-- The launcher's mark: a faceted crystal with two shards and a soft glow. Original vector art, drawn on a
+       120x170 canvas and scaled by the Viewbox to whatever size the page gives it. -->
+  <Viewbox Stretch="Uniform">
+    <Canvas Width="120" Height="170">
+      <!-- Glow -->
+      <Ellipse Canvas.Left="-10" Canvas.Top="15" Width="140" Height="140">
+        <Ellipse.Fill>
+          <RadialGradientBrush>
+            <GradientStop Offset="0" Color="#664C8DFF"/>
+            <GradientStop Offset="0.55" Color="#224C8DFF"/>
+            <GradientStop Offset="1" Color="#004C8DFF"/>
+          </RadialGradientBrush>
+        </Ellipse.Fill>
+      </Ellipse>
+
+      <!-- Left shard -->
+      <Path Data="M22,86 L12,112 L22,140 L31,112 Z">
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="#D6E6FF"/>
+            <GradientStop Offset="1" Color="#4F79C9"/>
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Data="M22,86 L31,112 L22,140 Z" Fill="#403A5FA8"/>
+
+      <!-- Right shard -->
+      <Path Data="M98,86 L108,112 L98,140 L89,112 Z">
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="100%,0%" EndPoint="0%,100%">
+            <GradientStop Offset="0" Color="#C2D8FF"/>
+            <GradientStop Offset="1" Color="#3E64B3"/>
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Data="M98,86 L89,112 L98,140 Z" Fill="#50243F80"/>
+
+      <!-- Main crystal: four facets around a ridge at (60,74) -->
+      <Path Data="M60,4 L32,64 L60,76 Z">
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="#FFFFFF"/>
+            <GradientStop Offset="1" Color="#9DBEFF"/>
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Data="M60,4 L88,64 L60,76 Z">
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="100%,0%" EndPoint="0%,100%">
+            <GradientStop Offset="0" Color="#B9D1FF"/>
+            <GradientStop Offset="1" Color="#6A94E8"/>
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Data="M32,64 L60,76 L60,166 Z">
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="#8FB3FA"/>
+            <GradientStop Offset="1" Color="#3558A6"/>
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Data="M88,64 L60,76 L60,166 Z">
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="100%,0%" EndPoint="0%,100%">
+            <GradientStop Offset="0" Color="#5B84D8"/>
+            <GradientStop Offset="1" Color="#1F3674"/>
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <!-- Edge highlights -->
+      <Path Data="M60,4 L60,166" Stroke="#99FFFFFF" StrokeThickness="0.8"/>
+      <Path Data="M32,64 L60,76 L88,64" Stroke="#80FFFFFF" StrokeThickness="0.8"/>
+      <Path Data="M60,4 L32,64 L60,166 L88,64 Z" Stroke="#40DDE8FF" StrokeThickness="1"/>
+      <!-- Sparkle -->
+      <Path Data="M60,14 L62,22 L70,24 L62,26 L60,34 L58,26 L50,24 L58,22 Z" Fill="#E6FFFFFF"/>
+    </Canvas>
+  </Viewbox>
+</UserControl>

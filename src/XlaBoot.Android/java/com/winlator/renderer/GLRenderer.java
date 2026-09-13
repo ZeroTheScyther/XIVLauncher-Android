@@ -1,0 +1,564 @@
+package com.winlator.renderer;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
+import android.view.View;
+
+// import com.winlator.R;
+// import com.winlator.XrActivity;
+import com.winlator.math.Mathf;
+import com.winlator.math.XForm;
+import com.winlator.renderer.material.CursorMaterial;
+import com.winlator.renderer.material.ShaderMaterial;
+import com.winlator.renderer.material.WindowMaterial;
+import com.winlator.widget.FrameRating;
+import com.winlator.widget.XServerRendererView;
+import com.winlator.widget.XServerViewGL;
+import com.winlator.xserver.Bitmask;
+import com.winlator.xserver.Cursor;
+import com.winlator.xserver.Drawable;
+import com.winlator.xserver.Pointer;
+import com.winlator.xserver.Window;
+import com.winlator.xserver.WindowAttributes;
+import com.winlator.xserver.WindowManager;
+import com.winlator.xserver.XLock;
+import com.winlator.xserver.XServer;
+
+import java.util.ArrayList;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+
+public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindowModificationListener, Pointer.OnPointerMotionListener, XServerRenderer {
+    public final XServerViewGL xServerView;
+    private final XServer xServer;
+    private Runnable onFrameRenderedListener;
+    private final VertexAttribute quadVertices = new VertexAttribute("position", 2);
+    private final float[] tmpXForm1 = XForm.getInstance();
+    private final float[] tmpXForm2 = XForm.getInstance();
+    private final CursorMaterial cursorMaterial = new CursorMaterial();
+    private final WindowMaterial windowMaterial = new WindowMaterial();
+    public final ViewTransformation viewTransformation = new ViewTransformation();
+    private final Drawable rootCursorDrawable;
+    private final ArrayList<RenderableWindow> renderableWindows = new ArrayList<>();
+    private String forceFullscreenWMClass = null;
+    private boolean fullscreen = false;
+    private boolean toggleFullscreen = false;
+    private boolean viewportNeedsUpdate = true;
+    private boolean cursorVisible = true;
+    private boolean screenOffsetYRelativeToCursor = false;
+    private String[] unviewableWMClasses = null;
+    private float magnifierZoom = 1.0f;
+    private boolean magnifierEnabled = true;
+    private int surfaceWidth;
+    private int surfaceHeight;
+    private int renderTargetWidthOverride = 0;
+    private int renderTargetHeightOverride = 0;
+    private boolean sceneInitialized = false;
+    private final EffectComposer effectComposer;
+    private FrameRating frameRating;
+    private volatile XrFrameBridge xrFrameBridge = null;
+    private volatile boolean flatPresentationEnabled = true;
+
+    public void setFlatPresentationEnabled(boolean enabled) {
+        if (flatPresentationEnabled == enabled) return;
+        flatPresentationEnabled = enabled;
+        if (enabled) {
+            xServerView.queueEvent(this::updateScene);
+            xServerView.requestRender();
+        }
+    }
+
+    public GLRenderer(XServerViewGL xServerView, XServer xServer) {
+        this.xServerView = xServerView;
+        this.xServer = xServer;
+        this.effectComposer = new EffectComposer(this);
+        rootCursorDrawable = createRootCursorDrawable();
+
+        quadVertices.put(new float[]{
+                0.0f, 0.0f,
+                0.0f, 1.0f,
+                1.0f, 0.0f,
+                1.0f, 1.0f
+        });
+
+        xServer.windowManager.addOnWindowModificationListener(this);
+        xServer.pointer.addOnPointerMotionListener(this);
+    }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        GPUImage.checkIsSupported();
+
+        GLES20.glFrontFace(GLES20.GL_CCW);
+        GLES20.glDisable(GLES20.GL_CULL_FACE);
+
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        GLES20.glDepthMask(false);
+
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        effectComposer.invalidateGLResources();
+        try (XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER)) {
+            // iterate all known drawables; if you don't have a central list,
+            // call this during updateScene() for each window's content.
+            android.util.SparseArray<Drawable> sa = xServer.drawableManager.all(); // adjust type if needed
+            for (int i = 0; i < sa.size(); i++) {
+                Drawable d = sa.valueAt(i);
+                if (d != null) d.getTexture().invalidate(); // sets textureId=0 so next draw re-creates
+            }
+            rootCursorDrawable.getTexture().invalidate();
+        }
+        updateScene();
+        xServerView.requestRender();
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        // if (XrActivity.isSupported()) {
+        //     XrActivity activity = XrActivity.getInstance();
+        //     activity.init();
+        //     width = activity.getWidth();
+        //     height = activity.getHeight();
+        //     GLES20.glViewport(0, 0, width, height);
+        //     magnifierEnabled = false;
+        // }
+
+        surfaceWidth = width;
+        surfaceHeight = height;
+        viewTransformation.update(width, height, xServer.screenInfo.width, xServer.screenInfo.height);
+        viewportNeedsUpdate = true;
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        if (!flatPresentationEnabled) return;
+        if (toggleFullscreen) {
+            fullscreen = !fullscreen;
+            toggleFullscreen = false;
+            viewportNeedsUpdate = true;
+        }
+
+        if (effectComposer.hasEffects()) {
+            effectComposer.render();
+        }
+        else {
+            drawScene();
+        }
+
+        if (frameRating != null && frameRating.getVisibility() == View.VISIBLE) {
+            frameRating.update();
+        }
+        if (onFrameRenderedListener != null) {
+            onFrameRenderedListener.run();
+        }
+    }
+
+    void drawScene() {
+        // The effect composer renders the scene into its own target, so the XR bridge must not
+        // rebind the framebuffer underneath it.
+        XrFrameBridge bridge = effectComposer.hasEffects() ? null : xrFrameBridge;
+        boolean xrFrame = false;
+        if (bridge != null) {
+            int[] xrTargetSize = bridge.beginFrame();
+            if (xrTargetSize != null) {
+                xrFrame = true;
+                setRenderTargetSizeOverride(xrTargetSize[0], xrTargetSize[1]);
+            }
+        }
+
+        int targetWidth = renderTargetWidthOverride > 0 ? renderTargetWidthOverride : surfaceWidth;
+        int targetHeight = renderTargetHeightOverride > 0 ? renderTargetHeightOverride : surfaceHeight;
+        boolean renderingToOffscreenTarget = renderTargetWidthOverride > 0 && renderTargetHeightOverride > 0;
+        float viewportScaleX = surfaceWidth > 0 ? (float) targetWidth / (float) surfaceWidth : 1.0f;
+        float viewportScaleY = surfaceHeight > 0 ? (float) targetHeight / (float) surfaceHeight : 1.0f;
+
+        if (viewportNeedsUpdate) {
+            if (renderingToOffscreenTarget || fullscreen) {
+                GLES20.glViewport(0, 0, targetWidth, targetHeight);
+            }
+            else if (magnifierEnabled) {
+                GLES20.glViewport(
+                    Math.round(viewTransformation.viewOffsetX * viewportScaleX),
+                    Math.round(viewTransformation.viewOffsetY * viewportScaleY),
+                    Math.round(viewTransformation.viewWidth * viewportScaleX),
+                    Math.round(viewTransformation.viewHeight * viewportScaleY)
+                );
+            }
+            viewportNeedsUpdate = false;
+        }
+
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
+        if (renderingToOffscreenTarget) {
+            GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+            XForm.identity(tmpXForm2);
+        }
+        else if (magnifierEnabled) {
+            float pointerX = 0;
+            float pointerY = 0;
+            float magnifierZoom = !screenOffsetYRelativeToCursor ? this.magnifierZoom : 1.0f;
+
+            if (magnifierZoom != 1.0f) {
+                pointerX = Mathf.clamp(xServer.pointer.getX() * magnifierZoom - xServer.screenInfo.width * 0.5f, 0, xServer.screenInfo.width * Math.abs(1.0f - magnifierZoom));
+            }
+
+            if (screenOffsetYRelativeToCursor || magnifierZoom != 1.0f) {
+                float scaleY = magnifierZoom != 1.0f ? Math.abs(1.0f - magnifierZoom) : 0.5f;
+                float offsetY = xServer.screenInfo.height * (screenOffsetYRelativeToCursor ? 0.25f : 0.5f);
+                pointerY = Mathf.clamp(xServer.pointer.getY() * magnifierZoom - offsetY, 0, xServer.screenInfo.height * scaleY);
+            }
+
+            XForm.makeTransform(tmpXForm2, -pointerX, -pointerY, magnifierZoom, magnifierZoom, 0);
+        }
+        else {
+            if (!fullscreen) {
+                int pointerY = 0;
+                if (screenOffsetYRelativeToCursor) {
+                    short halfScreenHeight = (short)(xServer.screenInfo.height / 2);
+                    pointerY = Mathf.clamp(xServer.pointer.getY() - halfScreenHeight / 2, 0, halfScreenHeight);
+                }
+
+                XForm.makeTransform(tmpXForm2, viewTransformation.sceneOffsetX, viewTransformation.sceneOffsetY - pointerY, viewTransformation.sceneScaleX, viewTransformation.sceneScaleY, 0);
+
+                GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
+                GLES20.glScissor(
+                    Math.round(viewTransformation.viewOffsetX * viewportScaleX),
+                    Math.round(viewTransformation.viewOffsetY * viewportScaleY),
+                    Math.round(viewTransformation.viewWidth * viewportScaleX),
+                    Math.round(viewTransformation.viewHeight * viewportScaleY)
+                );
+            }
+            else XForm.identity(tmpXForm2);
+        }
+
+        renderWindows();
+        if (cursorVisible) renderCursor();
+
+        if ((!magnifierEnabled && !fullscreen) || renderingToOffscreenTarget) GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+
+        if (xrFrame) {
+            bridge.endFrame();
+            xServerView.requestRender();
+        }
+    }
+
+    @Override
+    public void onMapWindow(Window window) {
+        if (!flatPresentationEnabled) return;
+        xServerView.queueEvent(this::updateScene);
+        xServerView.requestRender();
+    }
+
+    @Override
+    public void onUnmapWindow(Window window) {
+        if (!flatPresentationEnabled) return;
+        xServerView.queueEvent(this::updateScene);
+        xServerView.requestRender();
+    }
+
+    @Override
+    public void onChangeWindowZOrder(Window window) {
+        if (!flatPresentationEnabled) return;
+        xServerView.queueEvent(this::updateScene);
+        xServerView.requestRender();
+    }
+
+    @Override
+    public void onUpdateWindowContent(Window window) {
+        if (!flatPresentationEnabled) return;
+        xServerView.requestRender();
+    }
+
+    @Override
+    public void onUpdateWindowGeometry(final Window window, boolean resized) {
+        if (!flatPresentationEnabled) return;
+        if (resized) {
+            xServerView.queueEvent(this::updateScene);
+        }
+        else xServerView.queueEvent(() -> updateWindowPosition(window));
+        xServerView.requestRender();
+    }
+
+    @Override
+    public void onUpdateWindowAttributes(Window window, Bitmask mask) {
+        if (!flatPresentationEnabled) return;
+        if (mask.isSet(WindowAttributes.FLAG_CURSOR)) xServerView.requestRender();
+    }
+
+    @Override
+    public void onPointerMove(short x, short y) {
+        if (!flatPresentationEnabled) return;
+        xServerView.requestRender();
+    }
+
+    private void renderDrawable(Drawable drawable, int x, int y, ShaderMaterial material) {
+        renderDrawable(drawable, x, y, material, false);
+    }
+
+    private void renderDrawable(Drawable drawable, int x, int y, ShaderMaterial material, boolean forceFullscreen) {
+        if (drawable == null) return;
+        synchronized (drawable.renderLock) {
+            Texture texture = drawable.getTexture();
+            texture.updateFromDrawable(drawable);
+
+            if (forceFullscreen) {
+                short newHeight = (short)Math.min(xServer.screenInfo.height, ((float)xServer.screenInfo.width / drawable.width) * drawable.height);
+                short newWidth = (short)(((float)newHeight / drawable.height) * drawable.width);
+                XForm.set(tmpXForm1, (xServer.screenInfo.width - newWidth) * 0.5f, (xServer.screenInfo.height - newHeight) * 0.5f, newWidth, newHeight);
+            }
+            else XForm.set(tmpXForm1, x, y, drawable.width, drawable.height);
+
+            XForm.multiply(tmpXForm1, tmpXForm1, tmpXForm2);
+
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.getTextureId());
+            GLES20.glUniform1i(material.getUniformLocation("texture"), 0);
+            GLES20.glUniform1fv(material.getUniformLocation("xform"), tmpXForm1.length, tmpXForm1, 0);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, quadVertices.count());
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        }
+    }
+
+    private void renderWindows() {
+        windowMaterial.use();
+        GLES20.glUniform2f(windowMaterial.getUniformLocation("viewSize"), xServer.screenInfo.width, xServer.screenInfo.height);
+        quadVertices.bind(windowMaterial.programId);
+
+        try (XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER)) {
+            for (RenderableWindow window : renderableWindows) {
+                renderDrawable(window.content, window.rootX, window.rootY, windowMaterial, window.forceFullscreen);
+            }
+        }
+
+        quadVertices.disable();
+    }
+
+    private void renderCursor() {
+        cursorMaterial.use();
+        GLES20.glUniform2f(cursorMaterial.getUniformLocation("viewSize"), xServer.screenInfo.width, xServer.screenInfo.height);
+        quadVertices.bind(cursorMaterial.programId);
+
+        try (XLock lock = xServer.lock(XServer.Lockable.DRAWABLE_MANAGER)) {
+            Window pointWindow = xServer.inputDeviceManager.getPointWindow();
+            Cursor cursor = pointWindow != null ? pointWindow.attributes.getCursor() : null;
+            short x = xServer.pointer.getClampedX();
+            short y = xServer.pointer.getClampedY();
+
+            if (cursor != null) {
+                if (cursor.isVisible()) renderDrawable(cursor.cursorImage, x - cursor.hotSpotX, y - cursor.hotSpotY, cursorMaterial);
+            }
+            else renderDrawable(rootCursorDrawable, x, y, cursorMaterial);
+        }
+
+        quadVertices.disable();
+    }
+
+    public void toggleFullscreen() {
+        toggleFullscreen = true;
+        xServerView.requestRender();
+    }
+
+    public void setOnFrameRenderedListener(Runnable onFrameRenderedListener) {
+        this.onFrameRenderedListener = onFrameRenderedListener;
+    }
+
+    /** See {@link XrFrameBridge}. Pass null to detach (e.g. when leaving immersive mode). */
+    public void setXrFrameBridge(XrFrameBridge xrFrameBridge) {
+        this.xrFrameBridge = xrFrameBridge;
+        if (xrFrameBridge == null) clearRenderTargetSizeOverride();
+        viewportNeedsUpdate = true;
+        if (flatPresentationEnabled) xServerView.requestRender();
+    }
+
+    /** Whether active screen effects are forcing the composer path, which blocks the XR direct
+     * bridge. Mirrors {@link VulkanRenderer#isEffectsRequireCompositor()}. */
+    public boolean isEffectsRequireCompositor() {
+        return effectComposer.hasEffects();
+    }
+
+    private Drawable createRootCursorDrawable() {
+        Context context = xServerView.getContext();
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        Bitmap bitmap = com.winlator.core.CursorRes.decode(options);
+        return Drawable.fromBitmap(bitmap);
+    }
+
+    private void updateScene() {
+        if (!flatPresentationEnabled) return;
+        try (XLock lock = xServer.lock(XServer.Lockable.WINDOW_MANAGER, XServer.Lockable.DRAWABLE_MANAGER)) {
+            renderableWindows.clear();
+            collectRenderableWindows(xServer.windowManager.rootWindow, xServer.windowManager.rootWindow.getX(), xServer.windowManager.rootWindow.getY());
+        }
+    }
+
+    private void collectRenderableWindows(Window window, int x, int y) {
+        if (!window.attributes.isMapped()) return;
+        if (window != xServer.windowManager.rootWindow) {
+            boolean viewable = true;
+
+            if (unviewableWMClasses != null) {
+                String wmClass = window.getClassName();
+                for (String unviewableWMClass : unviewableWMClasses) {
+                    if (wmClass.contains(unviewableWMClass)) {
+                        if (window.attributes.isEnabled()) window.disableAllDescendants();
+                        viewable = false;
+                        break;
+                    }
+                }
+            }
+
+            if (viewable) {
+                if (forceFullscreenWMClass != null) {
+                    short width = window.getWidth();
+                    short height = window.getHeight();
+                    boolean forceFullscreen= false;
+
+                    if (width >= 320 && height >= 200 && width < xServer.screenInfo.width && height < xServer.screenInfo.height) {
+                        Window parent = window.getParent();
+                        boolean parentHasWMClass = parent.getClassName().contains(forceFullscreenWMClass);
+                        boolean hasWMClass = window.getClassName().contains(forceFullscreenWMClass);
+                        if (hasWMClass) {
+                            forceFullscreen = !parentHasWMClass && window.getChildCount() == 0;
+                        }
+                        else {
+                            short borderX = (short)(parent.getWidth() - width);
+                            short borderY = (short)(parent.getHeight() - height);
+                            if (parent.getChildCount() == 1 && borderX > 0 && borderY > 0 && borderX <= 12) {
+                                forceFullscreen = true;
+                                removeRenderableWindow(parent);
+                            }
+                        }
+                    }
+
+                    renderableWindows.add(new RenderableWindow(window.getContent(), x, y, forceFullscreen));
+                }
+                else renderableWindows.add(new RenderableWindow(window.getContent(), x, y));
+            }
+        }
+
+        for (Window child : window.getChildren()) {
+            collectRenderableWindows(child, child.getX() + x, child.getY() + y);
+        }
+    }
+
+    private void removeRenderableWindow(Window window) {
+        for (int i = 0; i < renderableWindows.size(); i++) {
+            if (renderableWindows.get(i).content == window.getContent()) {
+                renderableWindows.remove(i);
+                break;
+            }
+        }
+    }
+
+    private void updateWindowPosition(Window window) {
+        for (RenderableWindow renderableWindow : renderableWindows) {
+            if (renderableWindow.content == window.getContent()) {
+                renderableWindow.rootX = window.getRootX();
+                renderableWindow.rootY = window.getRootY();
+                break;
+            }
+        }
+    }
+
+    public void setCursorVisible(boolean cursorVisible) {
+        this.cursorVisible = cursorVisible;
+        xServerView.requestRender();
+    }
+
+    public boolean isCursorVisible() {
+        return cursorVisible;
+    }
+
+    public boolean isScreenOffsetYRelativeToCursor() {
+        return screenOffsetYRelativeToCursor;
+    }
+
+    public void setScreenOffsetYRelativeToCursor(boolean screenOffsetYRelativeToCursor) {
+        this.screenOffsetYRelativeToCursor = screenOffsetYRelativeToCursor;
+        xServerView.requestRender();
+    }
+
+    public String getForceFullscreenWMClass() {
+        return forceFullscreenWMClass;
+    }
+
+    public void setForceFullscreenWMClass(String forceFullscreenWMClass) {
+        this.forceFullscreenWMClass = forceFullscreenWMClass;
+    }
+
+    public String[] getUnviewableWMClasses() {
+        return unviewableWMClasses;
+    }
+
+    public void setUnviewableWMClasses(String... unviewableWMNames) {
+        this.unviewableWMClasses = unviewableWMNames;
+    }
+
+    public boolean isFullscreen() {
+        return fullscreen;
+    }
+
+    @Override
+    public XServerRendererView getRendererView() {
+        return xServerView;
+    }
+
+    public float getMagnifierZoom() {
+        return magnifierZoom;
+    }
+
+    public void setMagnifierZoom(float magnifierZoom) {
+        this.magnifierZoom = magnifierZoom;
+        xServerView.requestRender();
+    }
+
+    public int getSurfaceWidth() {
+        return surfaceWidth;
+    }
+
+    public int getSurfaceHeight() {
+        return surfaceHeight;
+    }
+
+    public int getXServerWidth() {
+        return xServer.screenInfo.width;
+    }
+
+    public int getXServerHeight() {
+        return xServer.screenInfo.height;
+    }
+
+    public VertexAttribute getQuadVertices() {
+        return quadVertices;
+    }
+
+    public void setViewportNeedsUpdate(boolean viewportNeedsUpdate) {
+        this.viewportNeedsUpdate = viewportNeedsUpdate;
+    }
+
+    public void setRenderTargetSizeOverride(int width, int height) {
+        renderTargetWidthOverride = width;
+        renderTargetHeightOverride = height;
+        viewportNeedsUpdate = true;
+    }
+
+    public void clearRenderTargetSizeOverride() {
+        renderTargetWidthOverride = 0;
+        renderTargetHeightOverride = 0;
+        viewportNeedsUpdate = true;
+    }
+
+    public EffectComposer getEffectComposer() {
+        return effectComposer;
+    }
+
+    public void setFrameRating(FrameRating frameRating) {
+        this.frameRating = frameRating;
+    }
+}

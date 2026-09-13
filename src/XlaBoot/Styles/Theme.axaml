@@ -1,0 +1,297 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- The launcher's look: deep navy ground, rounded cards, a blue accent. Dark only - the launcher sits
+       between a phone's home screen and a dark game, and a white flash either side of it is the worst of both. -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <Color x:Key="XlaGround">#070C19</Color>
+      <Color x:Key="XlaGroundTop">#0E1733</Color>
+      <Color x:Key="XlaCard">#101A31</Color>
+      <Color x:Key="XlaCardPressed">#16223F</Color>
+      <Color x:Key="XlaCardBorder">#1D2A4A</Color>
+      <Color x:Key="XlaTile">#1A2749</Color>
+      <Color x:Key="XlaAccent">#4C8DFF</Color>
+      <Color x:Key="XlaAccentPressed">#3A74E0</Color>
+      <Color x:Key="XlaText">#EAF0FF</Color>
+      <Color x:Key="XlaTextDim">#8E9BB9</Color>
+      <Color x:Key="XlaDanger">#E06C75</Color>
+      <Color x:Key="XlaSuccess">#3FB950</Color>
+
+      <SolidColorBrush x:Key="XlaGroundBrush" Color="{StaticResource XlaGround}"/>
+      <SolidColorBrush x:Key="XlaCardBrush" Color="{StaticResource XlaCard}"/>
+      <SolidColorBrush x:Key="XlaCardPressedBrush" Color="{StaticResource XlaCardPressed}"/>
+      <SolidColorBrush x:Key="XlaCardBorderBrush" Color="{StaticResource XlaCardBorder}"/>
+      <SolidColorBrush x:Key="XlaTileBrush" Color="{StaticResource XlaTile}"/>
+      <SolidColorBrush x:Key="XlaAccentBrush" Color="{StaticResource XlaAccent}"/>
+      <SolidColorBrush x:Key="XlaAccentPressedBrush" Color="{StaticResource XlaAccentPressed}"/>
+      <SolidColorBrush x:Key="XlaTextBrush" Color="{StaticResource XlaText}"/>
+      <SolidColorBrush x:Key="XlaTextDimBrush" Color="{StaticResource XlaTextDim}"/>
+      <SolidColorBrush x:Key="XlaDangerBrush" Color="{StaticResource XlaDanger}"/>
+      <SolidColorBrush x:Key="XlaSuccessBrush" Color="{StaticResource XlaSuccess}"/>
+
+      <LinearGradientBrush x:Key="XlaPageBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="{StaticResource XlaGroundTop}"/>
+        <GradientStop Offset="0.45" Color="{StaticResource XlaGround}"/>
+      </LinearGradientBrush>
+
+      <!-- Fluent's own keys, so stock controls (TextBox caret, ProgressBar, focus) pick up the palette, and
+           the TopLevel background that MainView mirrors into the Android window is the navy ground. -->
+      <Color x:Key="SystemAccentColor">#4C8DFF</Color>
+      <Color x:Key="SystemAccentColorDark1">#3F7BEA</Color>
+      <Color x:Key="SystemAccentColorDark2">#3268D0</Color>
+      <Color x:Key="SystemAccentColorLight1">#6AA0FF</Color>
+      <Color x:Key="SystemAccentColorLight2">#8BB5FF</Color>
+      <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#070C19"/>
+      <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#4C8DFF"/>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <Style Selector=":is(TopLevel)">
+    <Setter Property="Background" Value="{StaticResource XlaGroundBrush}"/>
+  </Style>
+  <!-- Text colour is inherited from the page roots (MainView), so buttons can still set their own. -->
+  <Style Selector="TextBlock.dim">
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="28"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="TextBlock.section">
+    <Setter Property="FontSize" Value="15"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Margin" Value="4,18,4,8"/>
+  </Style>
+
+  <!-- A card: rounded, faintly bordered panel. Border.card is static, Button.card is tappable. -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{StaticResource XlaCardBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="16"/>
+  </Style>
+
+  <Style Selector="Button.card">
+    <Setter Property="Background" Value="{StaticResource XlaCardBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="16"/>
+    <Setter Property="Padding" Value="14,14"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+  <Style Selector="Button.card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaCardBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+  </Style>
+  <Style Selector="Button.card:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaCardPressedBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+  </Style>
+  <Style Selector="Button.card:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.985)"/>
+  </Style>
+  <!-- Unavailable for now (nothing to act on yet): shown, so people know it exists, but greyed out. -->
+  <Style Selector="Button.card:disabled">
+    <Setter Property="Opacity" Value="0.45"/>
+  </Style>
+  <Style Selector="Button.card:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaCardBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+  </Style>
+
+  <!-- The rounded square an icon sits in, on the left of a card. -->
+  <Style Selector="Border.tile">
+    <Setter Property="Background" Value="{StaticResource XlaTileBrush}"/>
+    <Setter Property="CornerRadius" Value="12"/>
+    <Setter Property="Width" Value="44"/>
+    <Setter Property="Height" Value="44"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Border.tile > PathIcon">
+    <Setter Property="Width" Value="22"/>
+    <Setter Property="Height" Value="22"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+  <Style Selector="PathIcon.chevron">
+    <Setter Property="Width" Value="16"/>
+    <Setter Property="Height" Value="16"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+  <!-- The one big action on a page: a solid accent pill. -->
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="CornerRadius" Value="26"/>
+    <Setter Property="Padding" Value="0,15"/>
+    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="Foreground" Value="White"/>
+  </Style>
+  <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaAccentPressedBrush}"/>
+    <Setter Property="Foreground" Value="White"/>
+  </Style>
+  <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaTileBrush}"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+
+  <!-- Secondary action: outlined pill. -->
+  <Style Selector="Button.secondary">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="22"/>
+    <Setter Property="Padding" Value="18,11"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+  <Style Selector="Button.secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource XlaCardPressedBrush}"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+
+  <!-- Borderless icon button (back arrow, header actions). -->
+  <Style Selector="Button.icon">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="10"/>
+    <Setter Property="CornerRadius" Value="22"/>
+  </Style>
+  <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="Button.icon:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#22FFFFFF"/>
+  </Style>
+  <Style Selector="Button.icon > PathIcon">
+    <Setter Property="Width" Value="22"/>
+    <Setter Property="Height" Value="22"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+
+  <!-- Text fields: dark rounded wells with a caption above the text, like the mockup's login form. -->
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="#0B1226"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="12"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+    <Setter Property="Padding" Value="12,11"/>
+    <Setter Property="FontSize" Value="15"/>
+  </Style>
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="#0B1226"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+  </Style>
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="#0B1226"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="BorderThickness" Value="1.5"/>
+  </Style>
+  <Style Selector="TextBox:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+  <Style Selector="TextBox:focus">
+    <Setter Property="Foreground" Value="{StaticResource XlaTextBrush}"/>
+  </Style>
+  <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="Background" Value="{StaticResource XlaTileBrush}"/>
+    <Setter Property="CornerRadius" Value="3"/>
+  </Style>
+
+  <!-- Bottom navigation. -->
+  <Style Selector="Button.nav">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="0,8"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="Button.nav:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="Button.nav PathIcon">
+    <Setter Property="Width" Value="22"/>
+    <Setter Property="Height" Value="22"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="Button.nav TextBlock">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="Button.nav.selected PathIcon">
+    <Setter Property="Foreground" Value="{StaticResource XlaAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.nav.selected TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+
+  <!-- Tabs (settings): accent underline under the selected one. -->
+  <Style Selector="Button.tab">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0,0,0,2.5"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="CornerRadius" Value="0"/>
+    <Setter Property="Padding" Value="10,10"/>
+    <Setter Property="FontSize" Value="14.5"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="Button.tab /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaTextDimBrush}"/>
+  </Style>
+  <Style Selector="Button.tab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="Button.tab.selected">
+    <Setter Property="BorderBrush" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="Foreground" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.tab.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{StaticResource XlaAccentBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaAccentBrush}"/>
+  </Style>
+
+  <!-- Dialog panels over a dimmed page. -->
+  <Style Selector="Border.dialog">
+    <Setter Property="Background" Value="{StaticResource XlaCardBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource XlaCardBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="20"/>
+    <Setter Property="Padding" Value="22"/>
+    <Setter Property="Margin" Value="24"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+  </Style>
+</Styles>

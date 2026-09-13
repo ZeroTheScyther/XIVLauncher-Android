@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+	<uses-sdk android:minSdkVersion="26" android:targetSdkVersion="28" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+	<!-- The runtime download and the game install both outlast the screen, and a backgrounded process
+	     is frozen outright on this OEM, so they run behind a foreground service holding a wake lock.
+	     At targetSdk 28 no foregroundServiceType and no POST_NOTIFICATIONS grant are required. -->
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<!-- A foreground service and a wake lock are NOT enough on this OEM: Samsung's Freecess froze the
+	     app mid-download anyway and logged "disable frozen app ... wakelock". Being on the battery
+	     exemption list is what actually stops it, so the app asks for it before long work. -->
+	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+	<application android:label="XIVLauncher" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:requestLegacyExternalStorage="true" android:networkSecurityConfig="@xml/network_security_config" />
+</manifest>
