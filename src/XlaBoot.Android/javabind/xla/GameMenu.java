@@ -36,6 +36,7 @@ final class GameMenu extends FrameLayout {
         void applyInputSettings();
         void menuClosed();
         void exitGame();
+        void showKeyboard();
     }
 
     private static final int PANEL_WIDTH_DP = 300;
@@ -130,6 +131,12 @@ final class GameMenu extends FrameLayout {
         });
 
         header("Game");
+        // For a field the helper plugin did not report, or when the plugin is not installed at all.
+        TextView keyboardRow = row(v -> {
+            hide();
+            actions.showKeyboard();
+        });
+        keyboardRow.setText("Keyboard");
         TextView back = row(v -> hide());
         back.setText("Back to game");
         exitRow = row(v -> {

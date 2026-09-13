@@ -69,6 +69,7 @@ public final class XServerHost {
     private static Activity activity;
     private static PerfHud hud;
     private static GameMenu menu;
+    private static GameKeyboard keyboard;
     private static XlaSettings settings;
     private static VulkanRenderer vulkanRenderer;
 
@@ -146,7 +147,11 @@ public final class XServerHost {
             @Override public void applyInputSettings() { XServerHost.applyInputSettings(); }
             @Override public void menuClosed() { hideSystemBars(); }
             @Override public void exitGame() { XServerHost.exitGame(context); }
+            @Override public void showKeyboard() { if (keyboard != null) keyboard.openManually(); }
         });
+
+        // Opened by the helper plugin when the game focuses a text field, or by hand from the menu.
+        keyboard = new GameKeyboard(context, XServerHost::hideSystemBars);
 
         FrameLayout root = new FrameLayout(context);
         root.addView(view, new FrameLayout.LayoutParams(
@@ -167,6 +172,10 @@ public final class XServerHost {
         int margin = PerfHud.dp(context, 8);
         hudParams.setMargins(margin, margin, margin, margin);
         root.addView(hud.getView(), hudParams);
+        // Top of the screen, above everything but the menu: the IME covers the bottom, and the game window is
+        // adjustNothing so nothing moves out of its way.
+        root.addView(keyboard, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP));
         root.addView(menu, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
@@ -375,6 +384,10 @@ public final class XServerHost {
     }
 
     public static void stop() {
+        if (keyboard != null) {
+            keyboard.dispose();
+            keyboard = null;
+        }
         if (hud != null) hud.stop();
         if (touchControls != null) touchControls.releaseAll();
         if (view != null && Build.VERSION.SDK_INT >= 26) view.releasePointerCapture();
@@ -421,6 +434,9 @@ public final class XServerHost {
     public static boolean handleKeyEvent(KeyEvent event) {
         if (xServerComponent == null) return false;
         if (menu != null && menu.isOpen()) return menu.handleKey(event);
+        // The on-screen keyboard is an Android text field: its keys must reach it, not the X server, or every
+        // character would be typed into the game as well.
+        if (keyboard != null && keyboard.isOpen()) return keyboard.handleKey(event);
 
         int code = event.getKeyCode();
         if (menu != null && code == KeyEvent.KEYCODE_BUTTON_MODE) {
@@ -485,8 +501,9 @@ public final class XServerHost {
     }
 
     /**
-     * Kills every other process sharing our uid. With keepAppProcesses the app's own processes are spared (their
-     * cmdline is the package name) and only the guest's are killed, which is what makes this safe before a launch.
+     * Kills every other process sharing our uid. With <paramref>keepAppProcesses</paramref> the app's own
+     * processes are spared (their cmdline is the package name) and only the guest's are killed, which is what
+     * makes this safe to call before a launch.
      */
     private static int killOtherProcesses(boolean keepAppProcesses) {
         int myPid = myPid();
