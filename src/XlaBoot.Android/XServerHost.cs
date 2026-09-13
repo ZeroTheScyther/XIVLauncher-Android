@@ -45,6 +45,13 @@ internal static class XServerHost
         finally { JNIEnv.DeleteLocalRef(s); }
     }
 
+    /// <summary>
+    /// Kills guest processes left over from a previous session (wineserver above all) and returns how many.
+    /// Must be called before a game starts, never while one is running.
+    /// </summary>
+    public static int ClearLeftovers() =>
+        JNIEnv.CallStaticIntMethod(Class, Method("clearLeftovers", "()I"));
+
     public static void Stop() =>
         JNIEnv.CallStaticVoidMethod(Class, Method("stop", "()V"));
 

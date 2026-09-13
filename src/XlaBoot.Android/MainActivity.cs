@@ -223,6 +223,16 @@ public class MainActivity : AvaloniaMainActivity<App>
         var done = new System.Threading.ManualResetEventSlim(false);
         string result = "";
 
+        // Anything still running from a previous session has to go first. Swiping the app away leaves wineserver
+        // and the game alive, and a new Wine started against that stale server hangs before drawing a frame.
+        // Runs on this worker thread, before the UI thread builds the X server.
+        var leftovers = XServerHost.ClearLeftovers();
+        if (leftovers > 0)
+        {
+            AppLog.Note($"Cleared {leftovers} process(es) left over from a previous session");
+            System.Threading.Thread.Sleep(500);   // let wineserver actually die before a new one is started
+        }
+
         RunOnUiThread(() =>
         {
             try

@@ -463,19 +463,64 @@ public final class XServerHost {
      * /proc only shows our own uid's processes to an app, and killProcess is allowed for them.
      */
     private static void exitGame(Context context) {
-        int myPid = android.os.Process.myPid();
-        int myUid = android.os.Process.myUid();
-        File[] entries = new File("/proc").listFiles();
-        if (entries != null) {
-            for (File entry : entries) {
-                int pid;
-                try { pid = Integer.parseInt(entry.getName()); }
-                catch (NumberFormatException e) { continue; }
-                if (pid != myPid && uidOf(pid) == myUid) android.os.Process.killProcess(pid);
-            }
-        }
+        killOtherProcesses(false);
         if (context instanceof Activity) ((Activity) context).finishAndRemoveTask();
-        android.os.Process.killProcess(myPid);
+        android.os.Process.killProcess(myPid());
+    }
+
+    /**
+     * Kills anything left running from a previous game session, and returns how many there were.
+     *
+     * Only the menu's "Exit game" shuts the guest down. Swiping the app out of recents - or the app being killed
+     * for any other reason - takes the app process and leaves wineserver, the game and the Wine services behind,
+     * because they are separate processes that merely share our uid. The next launch would then start a fresh Wine
+     * against that stale wineserver, which holds the same prefix, and hang before the game ever drew a frame.
+     *
+     * Call this before starting a game, never during one.
+     */
+    public static int clearLeftovers() {
+        int killed = killOtherProcesses(true);
+        if (killed > 0) Log.i(TAG, "killed " + killed + " process(es) left over from a previous session");
+        return killed;
+    }
+
+    /**
+     * Kills every other process sharing our uid. With keepAppProcesses the app's own processes are spared (their
+     * cmdline is the package name) and only the guest's are killed, which is what makes this safe before a launch.
+     */
+    private static int killOtherProcesses(boolean keepAppProcesses) {
+        int myPid = myPid();
+        int myUid = android.os.Process.myUid();
+        String ours = cmdlineOf(myPid);
+        File[] entries = new File("/proc").listFiles();
+        if (entries == null) return 0;
+
+        int killed = 0;
+        for (File entry : entries) {
+            int pid;
+            try { pid = Integer.parseInt(entry.getName()); }
+            catch (NumberFormatException e) { continue; }
+            if (pid == myPid || uidOf(pid) != myUid) continue;
+            String cmdline = cmdlineOf(pid);
+            if (keepAppProcesses && !ours.isEmpty() && cmdline.startsWith(ours)) continue;
+            if (keepAppProcesses) Log.i(TAG, "killing leftover pid " + pid + " (" + cmdline + ")");
+            android.os.Process.killProcess(pid);
+            killed++;
+        }
+        return killed;
+    }
+
+    private static int myPid() {
+        return android.os.Process.myPid();
+    }
+
+    /** A process's command line with the NUL separators flattened, or "" if it is already gone. */
+    private static String cmdlineOf(int pid) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("/proc/" + pid + "/cmdline"))) {
+            String line = reader.readLine();
+            return line == null ? "" : line.replace('\0', ' ').trim();
+        }
+        catch (Exception e) { return ""; }
     }
 
     static int uidOf(int pid) {
