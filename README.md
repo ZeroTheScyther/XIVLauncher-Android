@@ -5,6 +5,16 @@ it logs in to your Square Enix account, installs or updates the game, and runs t
 FEX, DXVK and the Turnip Vulkan driver, all inside one app. [Dalamud](https://github.com/goatcorp/Dalamud) plugins
 are supported.
 
+> [!CAUTION]
+> **This repository is the only official source of XIVLauncher Android.** The APK is published only on this
+> repository's [Releases page](https://github.com/ZeroTheScyther/XIVLauncher-Android/releases). It is not
+> distributed through any website, app store, mirror, Discord server or file host.
+>
+> The app handles your Square Enix login. An APK from anywhere else may be modified to **steal your FFXIV account**
+> or **install malware on your device**. If you got it somewhere else, uninstall it, change your Square Enix
+> password and enable the one-time password.
+
+> [!NOTE]
 > **Alpha.** Expect rough edges. Please send logs with bug reports (Logs tab → download button).
 
 ## Requirements
@@ -24,7 +34,25 @@ are supported.
 4. Tap **Play**, log in, and either let the app install the game or point **Settings → Game install location** at a
    copy you already have.
 
-The app checks for new releases on launch and offers the download.
+The app checks for new releases on launch and offers the download from this repository.
+
+### Verifying the APK
+
+Every official APK is signed with the same key. You can check a download with `apksigner` from the Android SDK
+build tools:
+
+```sh
+apksigner verify --print-certs XIVLauncher.apk
+```
+
+The certificate SHA-256 digest must be:
+
+```
+ec57f9d5961252b5c09b973c6cd746ba126f1165179b9ee9be4cad419851d943
+```
+
+Each release also lists the APK's SHA-256 checksum in `XIVLauncher.apk.sha256`. Android itself refuses to update an
+official install with an APK signed by a different key.
 
 ## Building
 
