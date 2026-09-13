@@ -51,6 +51,7 @@ public partial class LogsViewModel : ViewModelBase
         var dalamudLogs = System.IO.Path.Combine(files, "xlroaming", "logs");
         var candidates = new[]
         {
+            new LogSource("Launcher", AppLog.Path(files)),
             new LogSource("Dalamud", System.IO.Path.Combine(dalamudLogs, "dalamud.log")),
             new LogSource("Dalamud boot", System.IO.Path.Combine(dalamudLogs, "dalamud.boot.log")),
             new LogSource("Injector", System.IO.Path.Combine(dalamudLogs, "dalamud.injector.log")),
@@ -94,7 +95,8 @@ public partial class LogsViewModel : ViewModelBase
                        + $"Graphics driver: {driver}\n"
                        + $"Dalamud: {AppHost.Get("dalamud_enabled", "OFF")}\n"
                        + $"Exported {DateTime.Now:yyyy-MM-dd HH:mm:ss zzz}\n"
-                       + $"Game folder: {MainViewModel.GamePath}\n";
+                       + $"Game folder: {MainViewModel.GamePath}\n"
+                       + (ProcessExits.Newest() is { Length: > 0 } exit ? $"Last exit: {exit}\n" : "");
             var count = await System.Threading.Tasks.Task.Run(() => LogExport.Create(AppHost.FilesDir, zip, info));
             if (count == 0)
             {

@@ -145,6 +145,11 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
+        // Android records why a process died, which is the only account of a kill the app could not log itself
+        // (out of memory with the game running). Written to the launcher log, where the Logs page shows it.
+        ProcessExits.Report();
+        AppLog.Note($"Launcher started (version {AppHost.VersionName}, {AppHost.DeviceDescription.Replace("\n", "; ")})");
+
         try
         {
             if (LoadCredentials?.Invoke() is { } saved)
@@ -419,13 +424,16 @@ public partial class MainViewModel : ViewModelBase
             var safeMode = dalamudEnabled && SafeModeNextLaunch;
             SafeModeNextLaunch = false;
             Greeting = safeMode ? "Login OK, starting the game in safe mode (no plugins)..." : "Login OK, starting the game...";
+            var screen = GameResolution();
+            AppLog.Note($"Starting the game at {screen.Width}x{screen.Height}"
+                        + $", Dalamud {(dalamudEnabled ? safeMode ? "on (safe mode)" : "on" : "off")}"
+                        + $", driver {GraphicsDrivers.Selected(GraphicsDrivers.All()).Label}");
 
             // Always Full Screen (GameSettingsPreset.ForceFullScreen). FFXIV.cfg only exists after the game's first
             // run; until then the game picks its own mode. Never worth failing a launch over.
             try
             {
-                var (width, height) = GameResolution();
-                GameSettingsPreset.ForceFullScreen(GameSettingsPreset.ConfigPath(FilesDir), width, height);
+                GameSettingsPreset.ForceFullScreen(GameSettingsPreset.ConfigPath(FilesDir), screen.Width, screen.Height);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {

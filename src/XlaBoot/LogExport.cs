@@ -20,6 +20,7 @@ public static class LogExport
     {
         var entries = new (string Source, string Name)[]
         {
+            (AppLog.Path(filesDir), "launcher.log"),
             (Path.Combine(filesDir, "wine-test.log"), "wine-test.log"),
             (Path.Combine(filesDir, "xserver.log"), "xserver.log"),
             (Path.Combine(filesDir, "xla-settings.sh"), "xla-settings.sh"),

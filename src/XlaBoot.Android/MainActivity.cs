@@ -85,6 +85,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         AppHost.PickFile = PickArchive;
         AppHost.SaveFileAs = SaveFileAs;
         AppHost.DeviceDescription = DescribeDevice();
+        XlaBoot.ProcessExits.Recent = RecentExits;
         AppHost.RequestStoragePermission = RequestStoragePermission;
         AppHost.CacheDir = CacheDir!.AbsolutePath;
         try
@@ -436,6 +437,61 @@ public class MainActivity : AvaloniaMainActivity<App>
         using (var input = System.IO.File.OpenRead(localPath))
             await input.CopyToAsync(output);
         return DisplayName(uri) ?? suggestedName;
+    }
+
+    /// <summary>
+    /// How this app's process ended the last few times, as Android recorded it. This is the only way to explain a
+    /// process the system killed - typically out of memory with the game running, where nothing of ours survives to
+    /// log anything. Available from Android 11; older devices simply get nothing.
+    /// </summary>
+    private System.Collections.Generic.IReadOnlyList<XlaBoot.ProcessExit> RecentExits()
+    {
+        var exits = new System.Collections.Generic.List<XlaBoot.ProcessExit>();
+        if (!System.OperatingSystem.IsAndroidVersionAtLeast(30))
+            return exits;
+        var manager = (global::Android.App.ActivityManager?)GetSystemService(ActivityService);
+        var records = manager?.GetHistoricalProcessExitReasons(PackageName, 0, 5);
+        if (records == null)
+            return exits;
+
+        foreach (var record in records)
+        {
+            var when = System.DateTimeOffset.FromUnixTimeMilliseconds(record.Timestamp).LocalDateTime;
+            var described = record.Description is { Length: > 0 } d ? d : "";
+            // The binding hands back a plain int; name it for the switch below.
+            var code = (global::Android.App.ApplicationExitInfoReason)record.Reason;
+            var outOfMemory = code == global::Android.App.ApplicationExitInfoReason.LowMemory
+                // A kill from lmkd is reported as SIGNALED (SIGKILL, status 9) rather than LOW_MEMORY on some
+                // builds - Samsung's among them - so the description is what names the killer.
+                || (code == global::Android.App.ApplicationExitInfoReason.Signaled
+                    && described.Contains("lmk", System.StringComparison.OrdinalIgnoreCase));
+            var reason = code switch
+            {
+                _ when outOfMemory =>
+                    "Android closed the app because the phone ran out of memory. Close other apps, "
+                    + "turn on RAM Plus, or lower the game resolution and texture settings.",
+                global::Android.App.ApplicationExitInfoReason.UserRequested => "closed by the user",
+                global::Android.App.ApplicationExitInfoReason.UserStopped => "stopped from Android's settings",
+                global::Android.App.ApplicationExitInfoReason.ExitSelf => "the app exited normally",
+                global::Android.App.ApplicationExitInfoReason.Crash => "the app crashed (unhandled exception)",
+                global::Android.App.ApplicationExitInfoReason.CrashNative => "a native crash (segfault or abort)",
+                global::Android.App.ApplicationExitInfoReason.Anr => "Android closed the app after it stopped responding",
+                global::Android.App.ApplicationExitInfoReason.ExcessiveResourceUsage => "Android closed the app for using too many resources",
+                global::Android.App.ApplicationExitInfoReason.Freezer => "Android froze and then closed the app in the background",
+                global::Android.App.ApplicationExitInfoReason.Signaled => "the process was killed (signal)",
+                global::Android.App.ApplicationExitInfoReason.DependencyDied => "a process it depends on died",
+                global::Android.App.ApplicationExitInfoReason.PackageUpdated => "the app was updated",
+                _ => $"ended ({code})",
+            };
+            // Android's description is often empty; the process size is often the only useful part.
+            var parts = new System.Collections.Generic.List<string>();
+            if (described.Length > 0)
+                parts.Add(described);
+            if (record.Rss > 0)
+                parts.Add($"using {record.Rss / 1024.0:F0} MB");
+            exits.Add(new XlaBoot.ProcessExit(when, reason, string.Join(", ", parts), outOfMemory));
+        }
+        return exits;
     }
 
     /// <summary>
