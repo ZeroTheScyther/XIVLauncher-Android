@@ -165,11 +165,16 @@ public sealed class SteamSession : IDisposable
         }
         catch (Exception ex) when (ex is not SteamSignInException)
         {
-            // The usual cause is the account not owning the app, which SteamKit reports as a plain
-            // exception carrying the EResult in its text.
+            // SteamKit reports a refused ownership ticket as a plain exception with the EResult in its
+            // text, so the result has to be read back out of the message to tell "does not own this app"
+            // apart from anything else that can go wrong here.
+            var notOwned = ex.Message.Contains("ownership ticket", StringComparison.OrdinalIgnoreCase)
+                           && (ex.Message.Contains(nameof(EResult.AccessDenied), StringComparison.Ordinal)
+                               || ex.Message.Contains(nameof(EResult.Fail), StringComparison.Ordinal));
+
             throw new SteamSignInException(
-                $"Steam would not issue a ticket for app {appId}. Check that this Steam account owns the game. ({ex.Message})",
-                EResult.Invalid, ex);
+                $"Steam would not issue a ticket for app {appId}. ({ex.Message})",
+                notOwned ? EResult.AccessDenied : EResult.Invalid, ex) { NotOwned = notOwned };
         }
     }
 

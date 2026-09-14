@@ -16,6 +16,12 @@ public sealed class SteamSignInException : Exception
     /// <summary>Steam's own result code, when there was one.</summary>
     public EResult Result { get; }
 
+    /// <summary>
+    /// True when Steam refused an app ownership ticket because the account does not own that app. The
+    /// caller knows which app it asked for and can say something more useful than Steam's own wording.
+    /// </summary>
+    public bool NotOwned { get; init; }
+
     /// <summary>True when the stored refresh token is no longer good and a password is needed again.</summary>
     public bool NeedsPassword => Result is EResult.InvalidPassword or EResult.AccessDenied or EResult.Expired
         or EResult.InvalidSignature or EResult.Revoked or EResult.InvalidParam;

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using SteamKit2;
+using XIVLauncher.Common;
 using XIVLauncher.Common.PlatformAbstractions;
 
 namespace XlaBoot.Steam;
@@ -47,8 +48,23 @@ public sealed class SteamKitSteam : ISteam, IDisposable
 
     public async Task<byte[]?> GetAuthSessionTicketAsync()
     {
-        _ticket = await _session.GetTicketAsync(_appId).ConfigureAwait(false);
-        return _ticket.Ticket;
+        try
+        {
+            _ticket = await _session.GetTicketAsync(_appId).ConfigureAwait(false);
+            return _ticket.Ticket;
+        }
+        catch (SteamSignInException ex) when (ex.NotOwned)
+        {
+            // Retail and the Free Trial are two separate Steam apps, and Steam only issues a ticket for
+            // the one the account actually owns. Getting this wrong is the likeliest way to land here,
+            // and "the account may not own the game" sends people looking in the wrong place.
+            throw new SteamSignInException(_appId == Constants.STEAM_FT_APP_ID
+                ? "This Steam account does not own the FINAL FANTASY XIV Free Trial. If it is a full "
+                  + "account, turn off Settings > Account > Free trial account and try again."
+                : "This Steam account does not own FINAL FANTASY XIV. If it is a Free Trial account, "
+                  + "turn on Settings > Account > Free trial account and try again.",
+                ex.Result, ex);
+        }
     }
 
     public uint GetServerRealTime() => _session.ServerRealTime;

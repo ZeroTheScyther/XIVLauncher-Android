@@ -118,10 +118,6 @@ public partial class SettingsViewModel : ViewModelBase
 
         Rows.Add(new SettingsHeader("Account"));
 
-        Rows.Add(Choice("free_trial", "Free trial account", OffOn, OffOnLabels,
-            "Turn this on for a Free Trial account. It tells Square Enix the account is a trial one, and "
-            + "for Steam service accounts it picks the Free Trial app rather than the full game."));
-
         Rows.Add(Choice("steam_launch_flag", "Steam launch flag", SteamFlag, SteamFlagLabels,
             "Steam service accounts only. Tells the game it was started from Steam, the way XIVLauncher "
             + "does on a PC. The login is already finished by the time the game starts, so turn this off "

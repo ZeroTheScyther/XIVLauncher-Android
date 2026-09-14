@@ -60,12 +60,24 @@ public partial class MainViewModel : ISteamPrompts
         }
     }
 
-    /// <summary>Retail or Free Trial, which are separate apps on Steam and need separate tickets.</summary>
-    private static uint SteamAppId =>
-        AppHost.Get("free_trial", "OFF") == "ON" ? Constants.STEAM_FT_APP_ID : Constants.STEAM_APP_ID;
+    /// <summary>
+    /// "Free trial account" on the login page. Square Enix is told either way, but it matters most to
+    /// Steam: the Free Trial is a separate Steam app from the full game, and Steam will only issue a
+    /// ticket for the one the account actually owns. Getting it wrong fails the login outright, which is
+    /// why it sits next to the Steam box rather than in the settings screen.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isFreeTrial;
 
-    /// <summary>The Free Trial setting, which Square Enix is told about whether or not Steam is involved.</summary>
-    private static bool IsFreeTrial => AppHost.Get("free_trial", "OFF") == "ON";
+    [RelayCommand]
+    private void ToggleIsFreeTrial() => IsFreeTrial = !IsFreeTrial;
+
+    // Kept outside the saved login so it survives with or without "Remember login"; it describes the
+    // account, not the session.
+    partial void OnIsFreeTrialChanged(bool value) => AppHost.Set("free_trial", value ? "ON" : "OFF");
+
+    /// <summary>Retail or Free Trial, which are separate apps on Steam and need separate tickets.</summary>
+    private uint SteamAppId => IsFreeTrial ? Constants.STEAM_FT_APP_ID : Constants.STEAM_APP_ID;
 
     /// <summary>
     /// Signs in to Steam so the Square Enix login can ask it for a ticket. Retries once if the user

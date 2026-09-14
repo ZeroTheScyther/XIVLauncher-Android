@@ -162,6 +162,8 @@ public partial class MainViewModel : ViewModelBase
         ProcessExits.Report();
         AppLog.Note($"Launcher started (version {AppHost.VersionName}, {AppHost.DeviceDescription.Replace("\n", "; ")})");
 
+        IsFreeTrial = AppHost.Get("free_trial", "OFF") == "ON";
+
         try
         {
             if (LoadCredentials?.Invoke() is { } saved)
@@ -387,7 +389,10 @@ public partial class MainViewModel : ViewModelBase
             var result = await Task.Run(() => launcher.Login(
                 Username.Trim(), Password, otp,
                 isSteam: IsSteamAccount, useCache: false, gamePath,
-                forceBaseVersion: false, isFreeTrial: IsFreeTrial, ClientLanguage.English));
+                // Only meaningful for Steam: it picks which Steam app the ticket is for. A standalone
+                // free trial logs in without it, and the checkbox is hidden there, so it must not carry
+                // over from an earlier Steam login.
+                forceBaseVersion: false, isFreeTrial: IsSteamAccount && IsFreeTrial, ClientLanguage.English));
 
             // Login() returned without throwing, so Square Enix accepted these credentials.
             try
