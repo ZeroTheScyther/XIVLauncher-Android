@@ -31,6 +31,11 @@ public partial class SettingsViewModel : ViewModelBase
     private static readonly string[] OnOffLabels = { "On", "Off" };
     private static readonly string[] OffOnLabels = { "Off", "On" };
 
+    // Steam service accounts only. "DLL" also puts the game's own steam_api64.dll where the game
+    // looks for it; see MainViewModel.ApplySteamLaunchFlag.
+    private static readonly string[] SteamFlag = { "ON", "DLL", "OFF" };
+    private static readonly string[] SteamFlagLabels = { "On", "On + DLL", "Off" };
+
     [ObservableProperty]
     private bool _isOpen;
 
@@ -110,6 +115,18 @@ public partial class SettingsViewModel : ViewModelBase
         location.Detail = gamePath + "\n" + game.Message;
         location.IsWarning = !game.IsPresent;
         Rows.Add(location);
+
+        Rows.Add(new SettingsHeader("Account"));
+
+        Rows.Add(Choice("free_trial", "Free trial account", OffOn, OffOnLabels,
+            "Turn this on for a Free Trial account. It tells Square Enix the account is a trial one, and "
+            + "for Steam service accounts it picks the Free Trial app rather than the full game."));
+
+        Rows.Add(Choice("steam_launch_flag", "Steam launch flag", SteamFlag, SteamFlagLabels,
+            "Steam service accounts only. Tells the game it was started from Steam, the way XIVLauncher "
+            + "does on a PC. The login is already finished by the time the game starts, so turn this off "
+            + "if the game will not launch. \"On + DLL\" also copies the game's own steam_api64.dll next "
+            + "to the game, which is where the game looks for it."));
 
         Rows.Add(new SettingsHeader("Plugins"));
         // Like Choice(), but the Dalamud Repos tab appears and disappears with it.

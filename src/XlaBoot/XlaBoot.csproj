@@ -22,6 +22,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <!-- Unpacks the runtime packages; see Provisioning/ArchiveExtractor.cs. -->
     <PackageReference Include="ZstdSharp.Port" />
+    <!-- Steam sign-in and auth session tickets; see Steam/SteamSession.cs. -->
+    <PackageReference Include="SteamKit2" />
   </ItemGroup>
 
   <ItemGroup>

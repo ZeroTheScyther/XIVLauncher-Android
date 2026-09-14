@@ -19,6 +19,8 @@ it comes from, and under which licence. The app itself is licensed under the GNU
 | Avalonia UI | [AvaloniaUI/Avalonia](https://github.com/AvaloniaUI/Avalonia) | MIT | Launcher UI. |
 | CommunityToolkit.Mvvm | [CommunityToolkit/dotnet](https://github.com/CommunityToolkit/dotnet) | MIT | View models. |
 | ZstdSharp | [oleg-st/ZstdSharp](https://github.com/oleg-st/ZstdSharp) | MIT | Unpacking the runtime. |
+| SteamKit2 | [SteamRE/SteamKit](https://github.com/SteamRE/SteamKit) | LGPL-2.1 | Steam sign-in and auth session tickets, for Steam service accounts. |
+| protobuf-net | [protobuf-net/protobuf-net](https://github.com/protobuf-net/protobuf-net) | Apache-2.0 | Steam message serialisation (SteamKit2 dependency). |
 | AndroidX libraries | [Android Jetpack](https://developer.android.com/jetpack) | Apache-2.0 | Splash screen, collections. |
 | Material Design icons | [google/material-design-icons](https://github.com/google/material-design-icons) | Apache-2.0 | Launcher icons. |
 | Inter font | [rsms/inter](https://github.com/rsms/inter) (via Avalonia.Fonts.Inter) | OFL-1.1 | Launcher typeface. |

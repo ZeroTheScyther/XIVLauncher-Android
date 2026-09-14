@@ -26,7 +26,7 @@ are supported.
   If the game vanishes, the Logs tab says whether running out of memory was the cause.
 - Android 8.0 or newer.
 - About 2.5 GB for the runtime, plus the game (~130 GB), or copy your existing PC install onto the device.
-- A FINAL FANTASY XIV account with an active subscription.
+- A FINAL FANTASY XIV account with an active subscription. Square Enix and Steam service accounts both work.
 - A controller / bluetooth keyboard and mouse.
 
 ## Install

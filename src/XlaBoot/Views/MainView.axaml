@@ -199,6 +199,17 @@
             </StackPanel>
           </Button>
 
+          <Button Classes="check" Command="{Binding ToggleIsSteamAccountCommand}" IsEnabled="{Binding !IsBusy}">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="box" Classes.checked="{Binding IsSteamAccount}">
+                <Path Classes="tick" IsVisible="{Binding IsSteamAccount}"/>
+              </Border>
+              <TextBlock Text="Use Steam service account" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <TextBlock Classes="dim" Text="{Binding SteamStatus}" TextWrapping="Wrap" FontSize="12.5"
+                     Margin="36,-4,0,0" IsVisible="{Binding IsSteamAccount}"/>
+
           <Button Classes="check" Command="{Binding ToggleRememberLoginCommand}" IsEnabled="{Binding !IsBusy}">
             <StackPanel Orientation="Horizontal" Spacing="12">
               <Border Classes="box" Classes.checked="{Binding RememberLogin}">
@@ -389,6 +400,82 @@
             <Button Grid.Column="2" Classes="primary" Content="Log in" Command="{Binding SubmitOtpCommand}"
                     Padding="0,11"/>
           </Grid>
+        </StackPanel>
+      </Border>
+    </Border>
+
+    <!-- Steam sign-in. Only ever shown for a Steam service account, and only when there is no usable
+         saved Steam session; the password is handed straight to Steam and never stored. -->
+    <Border Grid.RowSpan="2" IsVisible="{Binding IsSteamSignInOpen}" Background="#B0000000">
+      <Border Classes="dialog" MaxWidth="400">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Sign in to Steam" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Classes="dim" TextWrapping="Wrap"
+                     Text="Your Square Enix account is linked to Steam, so Steam has to vouch for this login. Your Steam password is not saved."/>
+
+          <TextBlock Classes="caption" Text="Steam account name"/>
+          <TextBox Text="{Binding SteamAccountInput}"/>
+
+          <TextBlock Classes="caption" Text="Steam password" Margin="4,4,0,6"/>
+          <Grid>
+            <TextBox x:Name="SteamPasswordBox" PasswordChar="&#x2022;" RevealPassword="{Binding ShowSteamPassword}"
+                     Text="{Binding SteamPasswordInput}" Padding="12,12,48,12">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding SubmitSteamSignInCommand}"/>
+              </TextBox.KeyBindings>
+            </TextBox>
+            <Button Classes="icon" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,2,0"
+                    Command="{Binding ToggleShowSteamPasswordCommand}">
+              <PathIcon Data="{x:Static views:Icons.Eye}" Width="20" Height="20"
+                        Foreground="{StaticResource XlaTextDimBrush}"/>
+            </Button>
+          </Grid>
+
+          <TextBlock Text="{Binding SteamSignInError}" Foreground="{StaticResource XlaDangerBrush}" TextWrapping="Wrap"
+                     IsVisible="{Binding SteamSignInError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
+            <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding CancelSteamSignInCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Grid.Column="2" Classes="primary" Content="Sign in" Command="{Binding SubmitSteamSignInCommand}"
+                    Padding="0,11"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Border>
+
+    <!-- Steam Guard: either waiting for the push in the Steam mobile app, or asking for a code. -->
+    <Border Grid.RowSpan="2" IsVisible="{Binding IsSteamGuardOpen}" Background="#B0000000">
+      <Border Classes="dialog" MaxWidth="380">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Steam Guard" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Classes="dim" Text="{Binding SteamGuardDetail}" TextWrapping="Wrap"/>
+
+          <ProgressBar IsIndeterminate="True" Height="4" Margin="0,4,0,0" IsVisible="{Binding IsSteamGuardWaiting}"/>
+
+          <TextBox Text="{Binding SteamGuardCode}" MaxLength="5" FontSize="24" HorizontalContentAlignment="Center"
+                   IsVisible="{Binding !IsSteamGuardWaiting}">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding SubmitSteamGuardCommand}"/>
+            </TextBox.KeyBindings>
+          </TextBox>
+
+          <TextBlock Text="{Binding SteamGuardError}" Foreground="{StaticResource XlaDangerBrush}" TextWrapping="Wrap"
+                     IsVisible="{Binding SteamGuardError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+          <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0" IsVisible="{Binding !IsSteamGuardWaiting}">
+            <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding CancelSteamGuardCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Grid.Column="2" Classes="primary" Content="Continue" Command="{Binding SubmitSteamGuardCommand}"
+                    Padding="0,11"/>
+          </Grid>
+
+          <!-- Stacked rather than side by side: "Enter a code instead" does not fit a half-width button. -->
+          <StackPanel Spacing="10" Margin="0,4,0,0" IsVisible="{Binding IsSteamGuardWaiting}">
+            <Button Classes="secondary" Content="Enter a code instead" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Command="{Binding UseSteamGuardCodeCommand}"/>
+            <Button Classes="secondary" Content="Cancel" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Command="{Binding CancelSteamGuardCommand}"/>
+          </StackPanel>
         </StackPanel>
       </Border>
     </Border>

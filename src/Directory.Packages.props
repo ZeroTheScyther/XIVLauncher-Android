@@ -17,7 +17,11 @@
 
         <!-- Pure-managed zstd, for unpacking the runtime packages. Measured fastest AND smallest of
              the formats compared (xz, gzip, zstd), and needs no native library. -->
-        <PackageVersion Include="ZstdSharp.Port" Version="0.8.6" />
+        <PackageVersion Include="ZstdSharp.Port" Version="0.8.7" />
+
+        <!-- Steam login and auth session tickets, so Steam service accounts can sign in.
+             Pure managed: speaks the Steam protocol directly, no Steam client and no native library. -->
+        <PackageVersion Include="SteamKit2" Version="3.4.0" />
 
         <PackageVersion Include="Xamarin.AndroidX.Collection" Version="1.5.0.1" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />

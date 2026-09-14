@@ -20,8 +20,20 @@ using XlaBoot.Install;
 
 namespace XlaBoot.ViewModels;
 
-/// <summary>What "Remember login" keeps between launches. The one-time password itself is never stored.</summary>
-public sealed record SavedLogin(string User, string Password, bool UseOtp);
+/// <summary>
+/// What "Remember login" keeps between launches. The one-time password itself is never stored, and
+/// neither is the Steam password: Steam hands back a refresh token that stands in for it.
+/// </summary>
+/// <param name="SteamRefreshToken">A full Steam account credential. Stored encrypted, like the password.</param>
+/// <param name="SteamGuardData">Steam Guard machine token, so a later sign-in can skip the code.</param>
+public sealed record SavedLogin(
+    string User,
+    string Password,
+    bool UseOtp,
+    bool IsSteam = false,
+    string? SteamAccount = null,
+    string? SteamRefreshToken = null,
+    string? SteamGuardData = null);
 
 public partial class MainViewModel : ViewModelBase
 {
@@ -157,6 +169,10 @@ public partial class MainViewModel : ViewModelBase
                 Username = saved.User;
                 Password = saved.Password;
                 UseOtp = saved.UseOtp;
+                IsSteamAccount = saved.IsSteam;
+                if (saved.SteamAccount != null && saved.SteamRefreshToken != null)
+                    _steamTokens = new Steam.SteamTokens(saved.SteamAccount, saved.SteamRefreshToken, saved.SteamGuardData);
+                OnPropertyChanged(nameof(SteamStatus));
             }
         }
         catch (Exception ex)
@@ -302,12 +318,17 @@ public partial class MainViewModel : ViewModelBase
         }
 
         IsBusy = true;
+        Steam.SteamKitSteam? steam = null;
 
         try
         {
             var gamePath = new DirectoryInfo(GamePath);
+            // Steam service accounts have to present a ticket issued by Steam itself. Constructed here but
+            // not signed in yet: signing in is interactive, so it waits until just before the login, after
+            // any boot patching. Disposed in the finally below.
+            steam = IsSteamAccount ? new Steam.SteamKitSteam(SteamAppId, SteamLoginId) : null;
             // No cache file: the unique-id cache lives in memory only for this spike.
-            var launcher = new Launcher((ISteam?)null, new CommonUniqueIdCache(null), FrontierUrl, "en-us");
+            var launcher = new Launcher((ISteam?)steam, new CommonUniqueIdCache(null), FrontierUrl, "en-us");
             var installTitle = installing ? "Installing FFXIV" : "Updating FFXIV";
 
             // Boot comes first and needs no login. Login cannot even be attempted without it: building the
@@ -349,17 +370,32 @@ public partial class MainViewModel : ViewModelBase
                 otp = code;
             }
 
+            if (steam != null)
+            {
+                Greeting = "Signing in to Steam...";
+                var signedIn = await SignInToSteamAsync(steam);
+                if (!ReferenceEquals(signedIn, steam))
+                {
+                    // The sign-in started over, so the Launcher is holding a dead Steam connection.
+                    steam = signedIn;
+                    launcher = new Launcher(steam, new CommonUniqueIdCache(null), FrontierUrl, "en-us");
+                }
+            }
+
             Greeting = "Logging in...";
 
             var result = await Task.Run(() => launcher.Login(
                 Username.Trim(), Password, otp,
-                isSteam: false, useCache: false, gamePath,
-                forceBaseVersion: false, isFreeTrial: false, ClientLanguage.English));
+                isSteam: IsSteamAccount, useCache: false, gamePath,
+                forceBaseVersion: false, isFreeTrial: IsFreeTrial, ClientLanguage.English));
 
             // Login() returned without throwing, so Square Enix accepted these credentials.
             try
             {
-                SaveCredentials?.Invoke(RememberLogin ? new SavedLogin(Username.Trim(), Password, UseOtp) : null);
+                SaveCredentials?.Invoke(RememberLogin
+                    ? new SavedLogin(Username.Trim(), Password, UseOtp, IsSteamAccount,
+                        _steamTokens?.Account, _steamTokens?.RefreshToken, _steamTokens?.GuardData)
+                    : null);
             }
             catch (Exception ex)
             {
@@ -441,6 +477,9 @@ public partial class MainViewModel : ViewModelBase
                 Console.WriteLine($"XlaLauncher: could not set Full Screen: {ex.GetType().Name}");
             }
 
+            if (IsSteamAccount)
+                ApplySteamLaunchFlag(GamePath);
+
             IGameRunner runner = dalamudEnabled ? new DalamudGameRunner(safeMode) : new WineCmdGameRunner();
             // HoldForUpdate (inside DalamudGameRunner) spins waiting for Dalamud's download, so this
             // goes through Task.Run like the login call above rather than blocking the UI thread.
@@ -448,7 +487,7 @@ public partial class MainViewModel : ViewModelBase
                 result.UniqueId!,
                 result.OauthLogin!.Region,
                 result.OauthLogin.MaxExpansion,
-                isSteamServiceAccount: false,
+                isSteamServiceAccount: SteamServiceAccountForLaunch(IsSteamAccount),
                 additionalArguments: "",
                 gamePath,
                 ClientLanguage.English,
@@ -460,11 +499,17 @@ public partial class MainViewModel : ViewModelBase
         catch (Exception ex)
         {
             // The message never contains the password; the exception type tells OAuth errors
-            // (wrong password / OTP) apart from network or file problems.
-            Greeting = $"{ex.GetType().Name}: {ex.Message}";
+            // (wrong password / OTP) apart from network or file problems. Steam has its own set,
+            // which say nothing useful to a player as they come.
+            Greeting = ExplainLoginFailure(ex);
+            AppLog.Note($"Login failed: {ex.GetType().Name}: {ex.Message}");
         }
         finally
         {
+            CloseSteamPrompts();
+            // Square Enix checked the ticket during Login(), and the game never talks to Steam, so
+            // there is nothing left for the connection to do.
+            steam?.Dispose();
             IsBusy = false;
         }
     }

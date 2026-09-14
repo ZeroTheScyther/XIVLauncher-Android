@@ -74,6 +74,9 @@ public class MainActivity : AvaloniaMainActivity<App>
         // adb test hooks (am start --ez xla_autorun|xla_autologin true). Release builds ignore intent extras.
         XlaBoot.ViewModels.MainViewModel.AutoRunWineTest = Intent?.GetBooleanExtra("xla_autorun", false) ?? false;
         XlaBoot.ViewModels.MainViewModel.AutoLogin = Intent?.GetBooleanExtra("xla_autologin", false) ?? false;
+        // Checks the Steam client library on the device itself (no account needed); see SteamProbe.
+        if (Intent?.GetBooleanExtra("xla_steamprobe", false) ?? false)
+            _ = XlaBoot.Steam.SteamProbe.RunAsync();
 #endif
 
         // Settings screen: the same SharedPreferences the in-game menu uses, and Java's regeneration
@@ -641,6 +644,21 @@ public class MainActivity : AvaloniaMainActivity<App>
         public string? Iv { get; set; }
         public string? Password { get; set; }
         public bool UseOtp { get; set; }
+
+        // Steam. The account name is no more secret than the username above, so it stays in the clear;
+        // the refresh token and guard data get their own encrypted field rather than sharing the
+        // password's, so a login saved before Steam support still loads.
+        public bool IsSteam { get; set; }
+        public string? SteamAccount { get; set; }
+        public string? SteamIv { get; set; }
+        public string? SteamSecrets { get; set; }
+    }
+
+    /// <summary>The Steam half of a saved login, encrypted as one blob.</summary>
+    private sealed class StoredSteamSecrets
+    {
+        public string? RefreshToken { get; set; }
+        public string? GuardData { get; set; }
     }
 
     private static Java.Security.IKey GetOrCreateCredentialKey()
@@ -670,14 +688,14 @@ public class MainActivity : AvaloniaMainActivity<App>
             var stored = System.Text.Json.JsonSerializer.Deserialize<StoredLogin>(System.IO.File.ReadAllText(CredentialsPath));
             if (stored == null)
                 return null;
-            if (stored.Iv == null || stored.Password == null)
-                return new(stored.User, "", stored.UseOtp);
 
-            var cipher = Javax.Crypto.Cipher.GetInstance("AES/GCM/NoPadding")!;
-            cipher.Init(Javax.Crypto.CipherMode.DecryptMode, GetOrCreateCredentialKey(),
-                new Javax.Crypto.Spec.GCMParameterSpec(128, System.Convert.FromBase64String(stored.Iv)));
-            var plain = cipher.DoFinal(System.Convert.FromBase64String(stored.Password))!;
-            return new(stored.User, System.Text.Encoding.UTF8.GetString(plain), stored.UseOtp);
+            var steam = DecryptSteamSecrets(stored);
+            var password = "";
+            if (stored.Iv != null && stored.Password != null)
+                password = System.Text.Encoding.UTF8.GetString(Decrypt(stored.Iv, stored.Password));
+
+            return new(stored.User, password, stored.UseOtp,
+                stored.IsSteam, stored.SteamAccount, steam?.RefreshToken, steam?.GuardData);
         }
         catch (System.Exception)
         {
@@ -696,16 +714,64 @@ public class MainActivity : AvaloniaMainActivity<App>
             return;
         }
 
-        var stored = new StoredLogin { User = login.User, UseOtp = login.UseOtp };
-        if (!string.IsNullOrEmpty(login.Password))
+        var stored = new StoredLogin
         {
-            var cipher = Javax.Crypto.Cipher.GetInstance("AES/GCM/NoPadding")!;
-            cipher.Init(Javax.Crypto.CipherMode.EncryptMode, GetOrCreateCredentialKey());
-            stored.Iv = System.Convert.ToBase64String(cipher.GetIV()!);
-            stored.Password = System.Convert.ToBase64String(cipher.DoFinal(System.Text.Encoding.UTF8.GetBytes(login.Password))!);
+            User = login.User,
+            UseOtp = login.UseOtp,
+            IsSteam = login.IsSteam,
+            SteamAccount = login.SteamAccount,
+        };
+
+        if (!string.IsNullOrEmpty(login.Password))
+            (stored.Iv, stored.Password) = Encrypt(System.Text.Encoding.UTF8.GetBytes(login.Password));
+
+        if (!string.IsNullOrEmpty(login.SteamRefreshToken))
+        {
+            var secrets = System.Text.Json.JsonSerializer.Serialize(new StoredSteamSecrets
+            {
+                RefreshToken = login.SteamRefreshToken,
+                GuardData = login.SteamGuardData,
+            });
+            (stored.SteamIv, stored.SteamSecrets) = Encrypt(System.Text.Encoding.UTF8.GetBytes(secrets));
         }
 
         System.IO.File.WriteAllText(CredentialsPath, System.Text.Json.JsonSerializer.Serialize(stored));
+    }
+
+    private static (string Iv, string Payload) Encrypt(byte[] plain)
+    {
+        var cipher = Javax.Crypto.Cipher.GetInstance("AES/GCM/NoPadding")!;
+        cipher.Init(Javax.Crypto.CipherMode.EncryptMode, GetOrCreateCredentialKey());
+        return (System.Convert.ToBase64String(cipher.GetIV()!),
+                System.Convert.ToBase64String(cipher.DoFinal(plain)!));
+    }
+
+    private static byte[] Decrypt(string iv, string payload)
+    {
+        var cipher = Javax.Crypto.Cipher.GetInstance("AES/GCM/NoPadding")!;
+        cipher.Init(Javax.Crypto.CipherMode.DecryptMode, GetOrCreateCredentialKey(),
+            new Javax.Crypto.Spec.GCMParameterSpec(128, System.Convert.FromBase64String(iv)));
+        return cipher.DoFinal(System.Convert.FromBase64String(payload))!;
+    }
+
+    /// <summary>
+    /// A refresh token that will not decrypt is not worth failing the whole load over: the user can
+    /// sign in to Steam again, but losing the Square Enix login with it would be a worse outcome.
+    /// </summary>
+    private static StoredSteamSecrets? DecryptSteamSecrets(StoredLogin stored)
+    {
+        if (stored.SteamIv == null || stored.SteamSecrets == null)
+            return null;
+
+        try
+        {
+            var plain = System.Text.Encoding.UTF8.GetString(Decrypt(stored.SteamIv, stored.SteamSecrets));
+            return System.Text.Json.JsonSerializer.Deserialize<StoredSteamSecrets>(plain);
+        }
+        catch (System.Exception)
+        {
+            return null;
+        }
     }
 
     protected override void OnResume()

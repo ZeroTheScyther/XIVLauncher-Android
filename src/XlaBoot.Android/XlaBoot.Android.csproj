@@ -26,6 +26,12 @@
     <PublishTrimmed>false</PublishTrimmed>
     <AndroidLinkMode>None</AndroidLinkMode>
     <RunAOTCompilation>false</RunAOTCompilation>
+    <!-- Marshal methods (on by default in Release, absent in Debug) generates the native JNI stubs at
+         build time. With SteamKit2 and protobuf-net in the assembly set it silently produces an APK
+         whose MainActivity has no n_onCreate implementation, so the app dies on launch with
+         java.lang.UnsatisfiedLinkError while the identical Debug build runs. Costs a little startup
+         time to turn off; the alternative is a Release build that does not start at all. -->
+    <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(XLA_KEYSTORE)' != ''">
     <AndroidKeyStore>true</AndroidKeyStore>
