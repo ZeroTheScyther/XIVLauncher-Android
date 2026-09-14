@@ -221,9 +221,6 @@
               <TextBlock Text="Free trial account" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
-          <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5" Margin="36,-4,0,0"
-                     IsVisible="{Binding IsSteamAccount}"
-                     Text="The Free Trial is a separate app on Steam. This has to match what your Steam account owns."/>
 
           <Button Classes="check" Command="{Binding ToggleRememberLoginCommand}" IsEnabled="{Binding !IsBusy}">
             <StackPanel Orientation="Horizontal" Spacing="12">
