@@ -50,7 +50,6 @@ public static class Icons
     private static readonly Dictionary<string, Geometry> BySettingTitle = new()
     {
         ["Game install location"] = Folder,
-        ["Steam launch flag"] = Bolt,
         ["Dalamud"] = Extension,
         ["Run in safe mode"] = Shield,
         ["In-game helper"] = Chip,

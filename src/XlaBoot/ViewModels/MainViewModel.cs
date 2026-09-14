@@ -482,9 +482,6 @@ public partial class MainViewModel : ViewModelBase
                 Console.WriteLine($"XlaLauncher: could not set Full Screen: {ex.GetType().Name}");
             }
 
-            if (IsSteamAccount)
-                ApplySteamLaunchFlag(GamePath);
-
             IGameRunner runner = dalamudEnabled ? new DalamudGameRunner(safeMode) : new WineCmdGameRunner();
             // HoldForUpdate (inside DalamudGameRunner) spins waiting for Dalamud's download, so this
             // goes through Task.Run like the login call above rather than blocking the UI thread.
@@ -492,7 +489,13 @@ public partial class MainViewModel : ViewModelBase
                 result.UniqueId!,
                 result.OauthLogin!.Region,
                 result.OauthLogin.MaxExpansion,
-                isSteamServiceAccount: SteamServiceAccountForLaunch(IsSteamAccount),
+                // Never, even for a Steam service account. It sets IsSteam=1 and
+                // IS_FFXIV_LAUNCH_FROM_STEAM=1, at which point the game loads A:\boot\steam_api64.dll
+                // and waits on a Steam client that cannot exist on Android: the process stays up at idle
+                // CPU, never ticks its main loop, and the screen stays black. Measured 2026-09-14.
+                // Nothing is lost by leaving it off - the session is already authenticated by now, and
+                // every Steam feature it would enable needs the client we do not have.
+                isSteamServiceAccount: false,
                 additionalArguments: "",
                 gamePath,
                 ClientLanguage.English,

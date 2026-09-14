@@ -350,46 +350,4 @@ public partial class MainViewModel : ISteamPrompts
 
         _ => $"{ex.GetType().Name}: {ex.Message}",
     };
-
-    // ---- Launch flag -------------------------------------------------------------------------
-
-    /// <summary>
-    /// Whether to tell the game it was started from Steam. Settings > Account > "Steam launch flag";
-    /// see that row for why it can be turned off.
-    /// </summary>
-    private static bool SteamServiceAccountForLaunch(bool isSteamAccount)
-        => isSteamAccount && AppHost.Get("steam_launch_flag", "ON") != "OFF";
-
-    /// <summary>
-    /// "On + DLL": the game loads steam_api64.dll by name from its own folder, but the game ships it in
-    /// boot/ instead, so with the Steam flag set the load fails. Copying Square Enix's own file across
-    /// lets it succeed. Best effort: a launch is never worth failing over this.
-    /// </summary>
-    private static void ApplySteamLaunchFlag(string gamePath)
-    {
-        if (AppHost.Get("steam_launch_flag", "ON") != "DLL")
-            return;
-
-        try
-        {
-            var source = Path.Combine(gamePath, "boot", "steam_api64.dll");
-            var target = Path.Combine(gamePath, "game", "steam_api64.dll");
-
-            if (!File.Exists(source))
-            {
-                AppLog.Note("Steam launch flag: boot/steam_api64.dll is not in this install; skipping the copy.");
-                return;
-            }
-
-            if (File.Exists(target) && new FileInfo(target).Length == new FileInfo(source).Length)
-                return;
-
-            File.Copy(source, target, overwrite: true);
-            AppLog.Note("Steam launch flag: copied steam_api64.dll next to the game.");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Note($"Steam launch flag: could not copy steam_api64.dll: {ex.GetType().Name}: {ex.Message}");
-        }
-    }
 }
