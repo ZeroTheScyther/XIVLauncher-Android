@@ -92,7 +92,6 @@ public sealed class SteamSession : IDisposable
     public async Task<SteamTokens> SignInAsync(SteamTokens? saved, ISteamPrompts prompts, CancellationToken ct = default)
     {
         StartPump();
-        await ConnectAsync(ct).ConfigureAwait(false);
 
         var account = saved?.Account;
         var refreshToken = saved?.RefreshToken;
@@ -104,6 +103,9 @@ public sealed class SteamSession : IDisposable
         {
             if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(account))
             {
+                // Asked before connecting, deliberately. Steam closes a connection that has not logged
+                // on within a few seconds, and typing a password takes longer than that, so connecting
+                // first leaves nothing but a dead socket by the time the user is done.
                 var credentials = await prompts.AskCredentialsAsync(account ?? "", previousWasWrong: attempt > 0)
                                       .ConfigureAwait(false)
                                   ?? throw new SteamSignInException("Steam sign-in cancelled.");
@@ -223,23 +225,35 @@ public sealed class SteamSession : IDisposable
     private async Task<AuthPollResult> AuthenticateAsync(
         SteamCredentials credentials, string? guardData, ISteamPrompts prompts, CancellationToken ct)
     {
-        try
+        // Steam hangs up on connections that have not logged on, and the Steam Guard step can easily
+        // outlast one. SteamKit reports that as InvalidOperationException("must be connected"), so
+        // reconnect and ask again rather than making the user retype the password.
+        for (var tries = 0; ; tries++)
         {
-            var session = await _client.Authentication.BeginAuthSessionViaCredentialsAsync(new AuthSessionDetails
-            {
-                Username = credentials.Account,
-                Password = credentials.Password,
-                IsPersistentSession = true,
-                GuardData = guardData,
-                DeviceFriendlyName = "XIVLauncher Android",
-                Authenticator = new PromptAuthenticator(prompts),
-            }).ConfigureAwait(false);
+            await ConnectAsync(ct).ConfigureAwait(false);
 
-            return await session.PollingWaitForResultAsync(ct).ConfigureAwait(false);
-        }
-        catch (AuthenticationException ex)
-        {
-            throw new SteamSignInException(SteamSignInException.Explain(ex.Result), ex.Result, ex);
+            try
+            {
+                var session = await _client.Authentication.BeginAuthSessionViaCredentialsAsync(new AuthSessionDetails
+                {
+                    Username = credentials.Account,
+                    Password = credentials.Password,
+                    IsPersistentSession = true,
+                    GuardData = guardData,
+                    DeviceFriendlyName = "XIVLauncher Android",
+                    Authenticator = new PromptAuthenticator(prompts),
+                }).ConfigureAwait(false);
+
+                return await session.PollingWaitForResultAsync(ct).ConfigureAwait(false);
+            }
+            catch (AuthenticationException ex)
+            {
+                throw new SteamSignInException(SteamSignInException.Explain(ex.Result), ex.Result, ex);
+            }
+            catch (InvalidOperationException ex) when (tries == 0)
+            {
+                Console.WriteLine($"XlaSteam: Steam dropped the connection during sign-in; reconnecting. ({ex.Message})");
+            }
         }
     }
 
