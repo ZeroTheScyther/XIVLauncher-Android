@@ -389,10 +389,7 @@ public partial class MainViewModel : ViewModelBase
             var result = await Task.Run(() => launcher.Login(
                 Username.Trim(), Password, otp,
                 isSteam: IsSteamAccount, useCache: false, gamePath,
-                // Only meaningful for Steam: it picks which Steam app the ticket is for. A standalone
-                // free trial logs in without it, and the checkbox is hidden there, so it must not carry
-                // over from an earlier Steam login.
-                forceBaseVersion: false, isFreeTrial: IsSteamAccount && IsFreeTrial, ClientLanguage.English));
+                forceBaseVersion: false, isFreeTrial: IsFreeTrial, ClientLanguage.English));
 
             // Login() returned without throwing, so Square Enix accepted these credentials.
             try
@@ -489,14 +486,17 @@ public partial class MainViewModel : ViewModelBase
                 result.UniqueId!,
                 result.OauthLogin!.Region,
                 result.OauthLogin.MaxExpansion,
-                // Never, even for a Steam service account. It sets IsSteam=1 and
-                // IS_FFXIV_LAUNCH_FROM_STEAM=1, at which point the game loads A:\boot\steam_api64.dll
-                // and waits on a Steam client that cannot exist on Android: the process stays up at idle
-                // CPU, never ticks its main loop, and the screen stays black. Measured 2026-09-14.
-                // Nothing is lost by leaving it off - the session is already authenticated by now, and
-                // every Steam feature it would enable needs the client we do not have.
-                isSteamServiceAccount: false,
-                additionalArguments: "",
+                // Required for a Steam service account: IsSteam=1 is the only way the game can declare
+                // the Steam platform, and the lobby refuses an account whose entitlement does not match
+                // ("not yet been registered on this platform"). IS_FFXIV_LAUNCH_FROM_STEAM rides along
+                // but ffxiv_dx11.exe never reads it; only ffxivboot does.
+                isSteamServiceAccount: IsSteamAccount,
+                // XIVLauncher.Common knows about IsSteam but not IsFreeTrial, and the game takes both.
+                // Without it a trial account reaches the title screen and is then turned away at Start
+                // with "not yet been registered on this platform or your subscription has expired":
+                // the lobby has no entitlement to match. Added through additionalArguments, which
+                // LaunchGame parses into the same argument list.
+                additionalArguments: IsFreeTrial ? "IsFreeTrial=1" : "",
                 gamePath,
                 ClientLanguage.English,
                 // Plain arguments: the encrypted form keys off GetTickCount, which is not guaranteed to

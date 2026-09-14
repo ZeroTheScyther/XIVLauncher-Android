@@ -210,10 +210,8 @@
           <TextBlock Classes="dim" Text="{Binding SteamStatus}" TextWrapping="Wrap" FontSize="12.5"
                      Margin="36,-4,0,0" IsVisible="{Binding IsSteamAccount}"/>
 
-          <!-- Steam accounts only: the Free Trial is a separate app on Steam, and asking about the wrong
-               one fails the login. It changes nothing for a standalone account, so it stays out of sight. -->
-          <Button Classes="check" Command="{Binding ToggleIsFreeTrialCommand}" IsEnabled="{Binding !IsBusy}"
-                  IsVisible="{Binding IsSteamAccount}">
+          <!-- Shown for every account: the lobby checks the trial entitlement whatever the platform. -->
+          <Button Classes="check" Command="{Binding ToggleIsFreeTrialCommand}" IsEnabled="{Binding !IsBusy}">
             <StackPanel Orientation="Horizontal" Spacing="12">
               <Border Classes="box" Classes.checked="{Binding IsFreeTrial}">
                 <Path Classes="tick" IsVisible="{Binding IsFreeTrial}"/>

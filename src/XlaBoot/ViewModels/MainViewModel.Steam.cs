@@ -61,10 +61,11 @@ public partial class MainViewModel : ISteamPrompts
     }
 
     /// <summary>
-    /// "Free trial account" on the login page. Square Enix is told either way, but it matters most to
-    /// Steam: the Free Trial is a separate Steam app from the full game, and Steam will only issue a
-    /// ticket for the one the account actually owns. Getting it wrong fails the login outright, which is
-    /// why it sits next to the Steam box rather than in the settings screen.
+    /// "Free trial account" on the login page. It describes the account, so it applies to standalone and
+    /// Steam accounts alike: the lobby checks the entitlement and turns away anyone whose claim does not
+    /// match, whatever the platform. For Steam it does double duty, picking which of the two Steam apps
+    /// (full game or Free Trial) the auth ticket is asked for. Getting it wrong fails the login or the
+    /// lobby, which is why it sits on the login page rather than in the settings screen.
     /// </summary>
     [ObservableProperty]
     private bool _isFreeTrial;
