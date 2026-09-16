@@ -10,9 +10,10 @@ are supported.
 > repository's [Releases page](https://github.com/ZeroTheScyther/XIVLauncher-Android/releases). It is not
 > distributed through any website, app store, mirror, Discord server or file host.
 >
-> The app handles your Square Enix login. An APK from anywhere else may be modified to **steal your FFXIV account**
+> The app handles your Square Enix login and potentially your Steam login. An APK from anywhere else may be modified to **steal your FFXIV account**
 > or **install malware on your device**. If you got it somewhere else, uninstall it, change your Square Enix
 > password and enable the one-time password.
+> For the safety of your account and your peace of mind (and mine) **ENABLE 2FA**
 
 > [!NOTE]
 > **Alpha.** Expect rough edges. Please send logs with bug reports (Logs tab → download button).
