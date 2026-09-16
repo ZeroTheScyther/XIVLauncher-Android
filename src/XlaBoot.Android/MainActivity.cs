@@ -196,6 +196,13 @@ public class MainActivity : AvaloniaMainActivity<App>
             Window?.SetBackgroundDrawable(new global::Android.Graphics.Drawables.ColorDrawable(
                 new global::Android.Graphics.Color(unchecked((int)argb))));
         });
+#if DEBUG
+        // Points provisioning at a runtime bundle other than the release host, e.g. a local copy pushed
+        // with adb (/sdcard/xla-bundle), so a new runtime is tested through the real update path.
+        var bundleBase = Intent?.GetStringExtra("xla_bundle_base");
+        if (!string.IsNullOrEmpty(bundleBase))
+            AppHost.SetSetting?.Invoke("bundle_base", bundleBase);
+#endif
         try { XServerHost.SyncSettings(this); }
         catch (System.Exception e) { System.Console.WriteLine("XlaLauncher: settings sync failed: " + e.GetType().Name); }
 
