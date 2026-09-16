@@ -35,11 +35,23 @@ public static class RuntimeInstaller
     private static readonly string[] Order =
         { "wine", "prefix", "overlay", "rootfs", "vkextra", "alsa", "pulseaudio" };
 
+    /// <summary>
+    /// The oldest runtime this build of the app works with. An install older than this is not provisioned,
+    /// so the next start runs the installer, which updates only the packages whose bytes changed. Without
+    /// it an installed runtime is never checked again and an app update cannot reach the runtime.
+    /// 2: Proton 11.0-2, whose ARM64EC cooperative suspend fixes the random freeze with Dalamud.
+    /// </summary>
+    public const int RequiredRuntimeVersion = 2;
+
     /// <summary>Headroom over the extracted size, for the packages in the cache and the shader cache.</summary>
     private const long SpareBytes = 512L * 1024 * 1024;
 
-    public static bool IsProvisioned(string filesDir) =>
-        RuntimeState.Load(filesDir).Complete && PrefixSetup.Verify(filesDir).Count == 0;
+    public static bool IsProvisioned(string filesDir)
+    {
+        var state = RuntimeState.Load(filesDir);
+        return state.Complete && state.RuntimeVersion >= RequiredRuntimeVersion
+                              && PrefixSetup.Verify(filesDir).Count == 0;
+    }
 
     /// <summary>
     /// Brings the runtime up to date. Safe to call repeatedly: components already installed from the same
@@ -51,6 +63,12 @@ public static class RuntimeInstaller
         var baseUri = RuntimeManifest.BaseUri();
         report?.Invoke(new ProvisionProgress("Checking for the runtime", 0, 0));
         var manifest = await RuntimeManifest.FetchAsync(baseUri, http, cancel).ConfigureAwait(false);
+        // Installing an older runtime would leave the app unprovisioned again on the next start, and the
+        // user in a loop with no explanation.
+        if (manifest.RuntimeVersion < RequiredRuntimeVersion)
+            throw new InvalidDataException(
+                $"The runtime on the server (version {manifest.RuntimeVersion}) is older than this version of the app "
+                + $"needs (version {RequiredRuntimeVersion}).");
 
         var state = RuntimeState.Load(filesDir);
         var components = Order
@@ -95,6 +113,13 @@ public static class RuntimeInstaller
 
         if (todo.Count == 0 && state.Complete)
         {
+            // A version bump with no changed package still has to be recorded, or IsProvisioned keeps
+            // sending every start back here.
+            if (state.RuntimeVersion != manifest.RuntimeVersion)
+            {
+                state.RuntimeVersion = manifest.RuntimeVersion;
+                state.Save(filesDir);
+            }
             // The launch script ships in the APK, not the bundle, so an app update must still replace it here:
             // returning before WriteLaunchScript kept every existing install on its first-setup copy.
             PrefixSetup.WriteLaunchScript(filesDir, runWineSh);
@@ -131,6 +156,12 @@ public static class RuntimeInstaller
             // A stale driver must not survive beside the new one and be picked up by name.
             if (component.Name == "vkextra")
                 PrefixSetup.ClearBundledDriver(filesDir);
+
+            // Unpacking a new Wine over an old one leaves every file the new build dropped, and
+            // LinkBuiltins links whatever it finds into system32. An old PE half loaded against a new
+            // unix half does not work, so the old tree goes first.
+            if (component.Name == "wine")
+                ClearDirectory(Path.Combine(filesDir, component.Dest));
 
             var unpackBase = completed;
             await ArchiveExtractor.ExtractAsync(archive, Path.Combine(filesDir, component.Dest),
@@ -216,5 +247,15 @@ public static class RuntimeInstaller
     {
         try { File.Delete(path); }
         catch (Exception) { /* the cache dir is Android's to reclaim */ }
+    }
+
+    /// <summary>
+    /// Deletes a component's directory before it is reinstalled. Not best-effort: unpacking over a tree
+    /// that could not be cleared is exactly the mixed install this exists to prevent.
+    /// </summary>
+    private static void ClearDirectory(string path)
+    {
+        if (Directory.Exists(path))
+            Directory.Delete(path, recursive: true);
     }
 }
