@@ -1,0 +1,70 @@
+--- a/dlls/ntdll/unix/unix_private.h
++++ b/dlls/ntdll/unix/unix_private.h
+@@ -477,12 +477,7 @@
+             (char *)sp <= (char *)get_syscall_frame());
+ }
+ 
+-static inline BOOL is_ec_code( ULONG_PTR ptr )
+-{
+-    const UINT64 *map = (const UINT64 *)peb->EcCodeBitMap;
+-    ULONG_PTR page = ptr / page_size;
+-    return (map[page / 64] >> (page & 63)) & 1;
+-}
++extern BOOL is_emulated_code( ULONG_PTR ptr );
+ 
+ static inline void mutex_lock( pthread_mutex_t *mutex )
+ {
+--- a/dlls/ntdll/unix/virtual.c
++++ b/dlls/ntdll/unix/virtual.c
+@@ -3067,6 +3067,19 @@
+ #ifdef __aarch64__
+ 
+ /***********************************************************************
++ *           is_emulated_code
++ */
++BOOL is_emulated_code( ULONG_PTR ptr )
++{
++    const UINT64 *map;
++    ULONG_PTR page = ptr / page_size;
++    if (!is_arm64ec() || !arm64ec_view || ptr >= (ULONG_PTR)user_space_limit) return FALSE;
++    map = arm64ec_view->base;
++    return !((map[page / 64] >> (page & 63)) & 1);
++}
++
++
++/***********************************************************************
+  *           alloc_arm64ec_map
+  */
+ static void alloc_arm64ec_map(void)
+@@ -3081,7 +3094,7 @@
+         ERR( "failed to allocate ARM64EC map: %08x\n", status );
+         exit(1);
+     }
+-    peb->EcCodeBitMap = arm64ec_view->base;
++    if (peb) peb->EcCodeBitMap = arm64ec_view->base;
+ }
+ 
+ 
+@@ -4362,6 +4375,7 @@
+     data_size = 2 * block_size;
+     NtAllocateVirtualMemory( NtCurrentProcess(), (void **)&ptr, 0, &data_size, MEM_COMMIT, PAGE_READWRITE );
+     peb = (PEB *)((char *)teb_block + 31 * block_size + (is_win64 ? 0 : page_size));
++    if (arm64ec_view) peb->EcCodeBitMap = arm64ec_view->base;
+     teb = init_teb( ptr, FALSE );
+     pthread_key_create( &teb_key, NULL );
+     pthread_setspecific( teb_key, teb );
+--- a/dlls/ntdll/unix/signal_arm64.c
++++ b/dlls/ntdll/unix/signal_arm64.c
+@@ -378,10 +378,11 @@
+     if (!status && (context->ContextFlags & CONTEXT_INTEGER) == CONTEXT_INTEGER) /* TODO: also check with susp */
+         frame->restore_flags |= CONTEXT_INTEGER;
+ 
+-    if (is_arm64ec() && !is_ec_code( frame->pc ))
++    if (is_emulated_code( frame->pc ))
+     {
+         CONTEXT *user_context = (CONTEXT *)((frame->sp - sizeof(CONTEXT)) & ~15);
+ 
++        NtCurrentTeb()->ChpeV2CpuAreaInfo->InSimulation = 1;
+         user_context->ContextFlags = CONTEXT_FULL;
+         NtGetContextThread( GetCurrentThread(), user_context );
+         frame->sp = (ULONG_PTR)user_context;

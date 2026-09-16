@@ -5,8 +5,9 @@
 # whole output directory to the runtime host; runtime-manifest.json references its siblings by name.
 #
 # Inputs are the staged runtime trees under $XLA_RUNTIME_SRC (default: work/ beside this repo): the Proton
-# arm64ec .wcp, the prepared Wine prefix, the bionic rootfs stage, the overlay (fonts, DXVK, vkd3d), the Vulkan
-# wrapper/Turnip files, ALSA config and PulseAudio. Their upstream sources are listed in THIRD_PARTY.md.
+# arm64ec .wcp (Wine and its prefixPack), the FEXCore DLLs, the bionic rootfs stage, the overlay (fonts,
+# DXVK, vkd3d), the Vulkan wrapper/Turnip files, ALSA config and PulseAudio. Their upstream sources are
+# listed in THIRD_PARTY.md.
 #
 # Everything is .tar.zst (zstd -19 --long): measured smallest AND fastest to decode of the candidates on a
 # phone - 207 MB and ~15 s for the Wine tree, against xz's 251 MB and ~131 s.
@@ -23,7 +24,8 @@ set -euo pipefail
 P="$(cd "$(dirname "$0")/.." && pwd)"
 SRCROOT="${XLA_RUNTIME_SRC:-$P/work}"
 OUT="$SRCROOT/bundle"
-RUNTIME_VERSION=1
+# Bump together with RuntimeInstaller.RequiredRuntimeVersion when the app needs the new runtime.
+RUNTIME_VERSION=2
 ZSTD_ARGS=(-19 --long=27 -T0 -q)
 
 MANIFEST_ONLY=0
@@ -90,29 +92,62 @@ pack() {
     printf '    %s  %s bytes\n' "pkg/$(basename "$dest")" "$(stat -c%s "$dest")"
 }
 
+# Wine: GameNative's Proton 11.0-2 with runtime/wine-patches, built by scripts/build-wine.sh. 11.0-2 is the
+# first GameNative ARM64EC build with Wine's cooperative suspend for syscall callbacks; without it a .NET GC
+# suspension can land while FEX holds its ThreadCreationMutex and deadlock the whole process (the random
+# startup freeze with Dalamud).
+WINE_WCP="${XLA_WINE_WCP:-$SRCROOT/wine-wcp/proton-11.0-2-xla-arm64ec.wcp}"
+
+# FEXCore, as GameNative packages it: the Windows DLLs go into the prefix's system32 and the unix libs into
+# Wine's aarch64-unix. Proton 11.0-2 added a loader for FEX's unix half, so the FEX build has to ship one.
+FEX_WCP="${XLA_FEX_WCP:-$SRCROOT/fexcore-2609/FEXCore-2609.wcp}"
+
+# GameNative has shipped both xz and zstd .wcp files, so go by the magic bytes rather than the name.
+decompress() {
+    case "$(head -c 4 "$1" | od -An -tx1 | tr -d ' ')" in
+        28b52ffd) zstd -dc -- "$1" ;;
+        fd377a58) xz -dc -- "$1" ;;
+        *) echo "unrecognised compression: $1" >&2; return 1 ;;
+    esac
+}
+
 # --- wine: the ARM64EC Wine tree, extracted from the upstream .wcp so the pipeline is reproducible
 #     rather than depending on a hand-extracted directory of unknown provenance.
 if want wine; then
-    echo "==> wine  (unpacking proton-10.0-arm64ec.wcp)"
+    echo "==> wine  (unpacking $(basename "$WINE_WCP"))"
     mkdir -p "$TMP/wine"
-    # prefixPack.tzst and profile.json are Winlator container metadata we do not use; the prefix
-    # ships as its own component, already populated with FEXCore and the registry.
-    xz -dc "$SRCROOT/wine-wcp/proton-10.0-arm64ec.wcp" \
-        | tar -x "${EXCLUDES[@]}" -C "$TMP/wine" bin lib share
+    # profile.json is Winlator container metadata we do not use, and the prefix is its own component.
+    decompress "$WINE_WCP" | tar -x "${EXCLUDES[@]}" -C "$TMP/wine" bin lib share
+    mkdir -p "$TMP/fex"
+    decompress "$FEX_WCP" | tar -x "${EXCLUDES[@]}" -C "$TMP/fex" ./aarch64-unix
+    cp -p -- "$TMP"/fex/aarch64-unix/*.so "$TMP/wine/lib/wine/aarch64-unix/"
+    # The FEX archive ships these 0660; match Wine's own unix libs rather than rely on dlopen not caring.
+    chmod 0755 "$TMP"/wine/lib/wine/aarch64-unix/lib*fex.so
     normalise_dir_times "$TMP/wine"
     pack wine "$TMP/wine" bin lib share
 fi
 
-# --- prefix: the Wine prefix, minus every dosdevices link. PrefixSetup recreates c:, z: and a: from
-#     the real FilesDir and the chosen game folder; the image's own links are stale Winlator paths
-#     (z: and e: point into com.winlator.cmod) and must not ship.
+# --- prefix: the .wcp's own prefixPack plus the FEXCore DLLs from FEX_WCP, minus every dosdevices link.
+#     That is the whole recipe: the previous prefix differed from its prefixPack by exactly those two
+#     DLLs. A prefix has to come from the same Wine build it runs under, so it is rebuilt here from
+#     WINE_WCP rather than kept as a separate tree. PrefixSetup recreates c:, z: and a: from the real
+#     FilesDir and the chosen game folder; the image's own links are stale Winlator paths.
 if want prefix; then
+    echo "==> prefix  (prefixPack from $(basename "$WINE_WCP") + FEXCore)"
+    mkdir -p "$TMP/prefixpack" "$TMP/prefix"
+    decompress "$WINE_WCP" | tar -x "${EXCLUDES[@]}" -C "$TMP/prefixpack" --wildcards 'prefixPack.*'
+    PACKFILE="$(ls "$TMP"/prefixpack/prefixPack.* | head -1)"
+    decompress "$PACKFILE" | tar -x "${EXCLUDES[@]}" -C "$TMP/prefix"
+    mkdir -p "$TMP/fexdll"
+    decompress "$FEX_WCP" | tar -x "${EXCLUDES[@]}" -C "$TMP/fexdll" ./system32/libarm64ecfex.dll ./system32/libwow64fex.dll
+    cp -p -- "$TMP"/fexdll/system32/*.dll "$TMP/prefix/.wine/drive_c/windows/system32/"
+    normalise_dir_times "$TMP/prefix"
     # Packed from INSIDE .wine, so the entries are relative to the component's dest (prefix/.wine) -
     # the same invariant every other package follows. Packing the .wine directory itself instead put
     # everything in prefix/.wine/.wine/, which silently lost the registry and the FEXCore DLLs while
     # still looking healthy, because the builtin links and the overlay recreate the paths around them.
     PACK_EXTRA=(--exclude='./dosdevices')
-    pack prefix "$SRCROOT/prefix-build/prefix/.wine" .
+    pack prefix "$TMP/prefix/.wine" .
 fi
 
 # --- rootfs: the bionic userspace (libX11, libvulkan, libandroid-sysvshm, ...). 417 relative symlinks.

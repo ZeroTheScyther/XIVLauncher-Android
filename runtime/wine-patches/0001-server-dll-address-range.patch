@@ -1,0 +1,15 @@
+--- a/server/mapping.c
++++ b/server/mapping.c
+@@ -298,7 +298,11 @@
+ {
+     host_page_mask = sysconf( _SC_PAGESIZE ) - 1;
+     free_map_addr( 0x60000000, 0x1c000000 );
+-    free_available_high_map_addr( 0x600000000000, 0x100000000000 );
++    /* Proton 10's range. On a 39-bit Android address space 0x600000000000 halves down to 0x6000000000,
++     * which is inside the region bionic randomizes host libraries into. A process whose host mappings
++     * land there cannot use the shared DLL addresses, so kernel32 loads at a different base than in
++     * other processes and code that assumes a shared base (Dalamud's entry point rewrite) crashes. */
++    free_available_high_map_addr( 0x400000000000, 0x100000000000 );
+ }
+ 
+ static void ranges_dump( struct object *obj, int verbose )
