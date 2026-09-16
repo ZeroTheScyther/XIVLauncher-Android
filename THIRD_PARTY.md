@@ -32,8 +32,9 @@ The runtime is hosted at `xivlauncher.aetherworks.uk` and described by `runtime-
 
 | Component | Upstream | Licence |
 |---|---|---|
-| Wine / Proton 10.0 (ARM64EC build) | [ValveSoftware/Proton](https://github.com/ValveSoftware/Proton), [Wine](https://gitlab.winehq.org/wine/wine), ARM64EC build as distributed by GameNative | LGPL-2.1+ (Wine); Proton components under their own licences |
-| FEX-Emu (FEXCore ARM64EC DLLs) | [FEX-Emu/FEX](https://github.com/FEX-Emu/FEX) | MIT |
+| Wine / Proton 11.0-2 (ARM64EC build) | [GameNative/proton-wine](https://github.com/GameNative/proton-wine) @ `0971187`, based on [ValveSoftware/Proton](https://github.com/ValveSoftware/Proton) and [Wine](https://gitlab.winehq.org/wine/wine). Modified: patches in `runtime/wine-patches`, built by `scripts/build-wine.sh`. | LGPL-2.1+ (Wine); Proton components under their own licences |
+| ntsync-android | [GameNative/ntsync-android](https://github.com/GameNative/ntsync-android) @ `7ce6435` | LGPL-3.0 |
+| FEX-Emu (FEXCore 2609) | [FEX-Emu/FEX](https://github.com/FEX-Emu/FEX), as packaged by GameNative | MIT |
 | DXVK 2.4.1 (gplasync) | [doitsujin/dxvk](https://github.com/doitsujin/dxvk), [gplasync patches](https://gitlab.com/Ph42oN/dxvk-gplasync) | zlib |
 | vkd3d-proton 2.14.1 | [HansKristian-Work/vkd3d-proton](https://github.com/HansKristian-Work/vkd3d-proton) | LGPL-2.1 |
 | Mesa Turnip (Adreno Vulkan driver) | [Mesa](https://gitlab.freedesktop.org/mesa/mesa) | MIT |
