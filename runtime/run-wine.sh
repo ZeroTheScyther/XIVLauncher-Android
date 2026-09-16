@@ -21,6 +21,13 @@ export USER=xuser
 # libX11 here is the Termux-patched build: it looks for the X socket under $TMPDIR,
 # not /tmp, which is what lets DISPLAY=:0 reach the in-app X server.
 export TMPDIR="$ROOT/tmp"
+# Userspace ntsync keeps its state in a shared file under $TMPDIR. A wineserver killed while holding that
+# file's lock (the app force-closed, or Android killing it) leaves the lock taken, since bionic does not
+# recover robust mutexes, and the next wineserver waits on it forever: no game window, nothing logged.
+# With no server running nothing can be using the file, so start from a fresh one.
+if ! pidof wineserver >/dev/null 2>&1; then
+    rm -f "$TMPDIR"/ntsync_userspace*.shm
+fi
 export DISPLAY=:0
 export PATH="$WINE/bin:$ROOT/usr/bin:/system/bin"
 export LD_LIBRARY_PATH="$ROOT/usr/lib:/system/lib64:$WINE/lib"
