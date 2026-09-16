@@ -511,6 +511,9 @@ public partial class MainViewModel : ViewModelBase
             // which say nothing useful to a player as they come.
             Greeting = ExplainLoginFailure(ex);
             AppLog.Note($"Login failed: {ex.GetType().Name}: {ex.Message}");
+            // Wrappers like "Updater returned no integrity." say nothing without the cause they carry.
+            if (ex.InnerException is { } inner)
+                AppLog.Note($"  caused by {inner.GetType().Name}: {inner.Message}");
         }
         finally
         {
