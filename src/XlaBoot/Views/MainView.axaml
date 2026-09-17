@@ -68,6 +68,17 @@
     <Style Selector="Button.kofi:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="#E04A48"/>
     </Style>
+    <Style Selector="Button.discord">
+      <Setter Property="Background" Value="#5865F2"/>
+      <Setter Property="CornerRadius" Value="20"/>
+      <Setter Property="Padding" Value="16,9"/>
+    </Style>
+    <Style Selector="Button.discord:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#5865F2"/>
+    </Style>
+    <Style Selector="Button.discord:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#4752C4"/>
+    </Style>
     <Style Selector="Border.accentTile">
       <Setter Property="Background" Value="{StaticResource XlaAccentBrush}"/>
     </Style>
@@ -341,6 +352,14 @@
             <StackPanel Orientation="Horizontal" Spacing="8">
               <PathIcon Data="{x:Static views:Icons.Coffee}" Width="18" Height="18" Foreground="White"/>
               <TextBlock Text="Buy me a coffee" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+
+          <!-- Opens the Discord server in the browser. -->
+          <Button Classes="discord" Command="{Binding OpenDiscordCommand}" HorizontalAlignment="Center" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{x:Static views:Icons.Discord}" Width="18" Height="18" Foreground="White"/>
+              <TextBlock Text="Join the Discord" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
 

@@ -70,6 +70,10 @@ public partial class MainViewModel
     [RelayCommand]
     private void OpenKofi() => AppHost.OpenUrl?.Invoke(new System.Uri("https://ko-fi.com/zerothescyther"));
 
+    /// <summary>About page's Discord button.</summary>
+    [RelayCommand]
+    private void OpenDiscord() => AppHost.OpenUrl?.Invoke(new System.Uri("https://discord.gg/FghfnnhRV8"));
+
     // ---- Home ------------------------------------------------------------------------------------
 
     [ObservableProperty]
