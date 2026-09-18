@@ -42,7 +42,11 @@ public partial class MainViewModel : ViewModelBase
 
     // Status lines also go to logcat (tag DOTNET), so adb-driven test launches can see why a login
     // stopped. They never contain the password: they are fixed texts or exception type + message.
-    partial void OnGreetingChanged(string value) => Console.WriteLine($"XlaLauncher: {value}");
+    partial void OnGreetingChanged(string value)
+    {
+        Console.WriteLine($"XlaLauncher: {value}");
+        _steamStatusSink?.Invoke(value);
+    }
 
     [ObservableProperty]
     private string _username = "";
@@ -157,6 +161,8 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
+        Settings.FetchLossless = FetchLosslessAsync;
+
         // Android records why a process died, which is the only account of a kill the app could not log itself
         // (out of memory with the game running). Written to the launcher log, where the Logs page shows it.
         ProcessExits.Report();

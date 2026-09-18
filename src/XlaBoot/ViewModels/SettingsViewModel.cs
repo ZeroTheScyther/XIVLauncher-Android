@@ -4,8 +4,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using XlaBoot.Steam;
 
 namespace XlaBoot.ViewModels;
 
@@ -52,6 +54,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     /// <summary>The Dalamud Repos tab only exists while Dalamud is on.</summary>
     public bool ShowReposTab => AppHost.Get("dalamud_enabled", OffOn[0]) == "ON";
+
+    /// <summary>
+    /// Signs in to Steam and fetches Lossless.dll, reporting progress through the callback. True when a
+    /// new copy was downloaded. Set by MainViewModel, which owns the Steam sign-in overlays.
+    /// </summary>
+    public Func<Action<string>, Task<bool>>? FetchLossless { get; set; }
+
+    private bool _fetchingLossless;
 
     /// <summary>Second tap confirms deleting an imported driver, like the in-game menu's Exit row.</summary>
     private bool _removeArmed;
@@ -231,6 +241,8 @@ public partial class SettingsViewModel : ViewModelBase
             "Keeps compiled pipelines on disk. Leave on: a cold cache costs minutes of CPU and a lot of heat on every "
             + "launch. Turn it off only to rule the cache out after a driver change."));
 
+        BuildFrameGeneration();
+
         // FFXIV.cfg only exists once the game has run, so the row shows greyed out until then.
         var config = GameSettingsPreset.ConfigPath(AppHost.FilesDir);
         Rows.Add(new SettingsHeader("Game settings"));
@@ -255,6 +267,58 @@ public partial class SettingsViewModel : ViewModelBase
             IsAvailable = File.Exists(config),
         };
         Rows.Add(optimize);
+    }
+
+    private void BuildFrameGeneration()
+    {
+        // lsfg-vk extracts its shaders from the player's own Lossless.dll, so nothing else here works
+        // until that has been downloaded. xla.XlaSettings also checks for the file before arming the layer.
+        Rows.Add(new SettingsHeader("Frame generation"));
+        var installed = LosslessFetch.IsInstalled(AppHost.FilesDir);
+        Rows.Add(new SettingsRow("Lossless Scaling", DownloadLossless)
+        {
+            Value = _fetchingLossless ? "Downloading" : installed ? "Update" : "Download",
+            IsAvailable = !_fetchingLossless && FetchLossless != null,
+        });
+        if (!installed)
+            return;
+
+        Rows.Add(Choice("lsfg_enabled", "Frame generation", OffOn, OffOnLabels, ""));
+        Rows.Add(Choice("lsfg_multiplier", "Multiplier",
+            new[] { "2", "3", "4" }, new[] { "2x", "3x", "4x" }, ""));
+        Rows.Add(Choice("lsfg_flow_scale", "Flow scale",
+            new[] { "0.80", "1.00", "0.65", "0.50" }, new[] { "80%", "100%", "65%", "50%" }, ""));
+        Rows.Add(Choice("lsfg_performance", "Performance mode", OnOff, OnOffLabels, ""));
+    }
+
+    private async Task DownloadLossless()
+    {
+        if (FetchLossless == null || _fetchingLossless)
+            return;
+
+        _fetchingLossless = true;
+        Rebuild();
+        try
+        {
+            // Progress arrives from SteamKit's threads.
+            var downloaded = await FetchLossless(m => Dispatcher.UIThread.Post(() => Status = m));
+            Status = downloaded ? "Lossless.dll downloaded." : "Lossless.dll is up to date.";
+        }
+        catch (OperationCanceledException)
+        {
+            Status = "Steam sign-in cancelled.";
+        }
+        catch (Exception ex)
+        {
+            // SteamSignInException carries wording meant for the player; anything else is a plain failure.
+            Status = ex is SteamSignInException ? ex.Message : $"Download failed: {ex.GetType().Name}: {ex.Message}";
+        }
+        finally
+        {
+            _fetchingLossless = false;
+            if (IsGraphicsTab)
+                Rebuild();
+        }
     }
 
     private void BuildAdvanced()

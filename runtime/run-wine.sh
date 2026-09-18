@@ -145,6 +145,34 @@ export DXVK_FRAME_RATE="${XLA_FPS_CAP:-30}"
 export DXVK_ASYNC="${XLA_DXVK_ASYNC:-1}"
 export DXVK_GPLASYNCCACHE="${XLA_DXVK_ASYNC:-1}"
 
+# Settings: frame generation. lsfg-vk is an implicit Vulkan layer on the game's swapchain; it builds its
+# shaders from the player's own Lossless.dll, which the launcher downloads into files/lsfg. The loader is
+# stock Khronos, where VK_LAYER_PATH covers explicit layers only, so the manifest goes in a directory of
+# its own named by VK_ADD_IMPLICIT_LAYER_PATH. Off means that variable is never set and the loader never
+# sees the layer. The manifest and conf.toml are rewritten every launch from the real install paths,
+# like the ICD manifest above.
+LSFG_DLL="$HOME/lsfg/Lossless.dll"
+LSFG_LIB="$NATIVE_LIB_DIR/liblsfg-vk-layer.so"
+if [ "${XLA_LSFG:-0}" = "1" ] && [ -f "$LSFG_DLL" ] && [ -f "$LSFG_LIB" ]; then
+    mkdir -p "$HOME/lsfg/layer" "$HOME/.config/lsfg-vk"
+    printf '{\n  "file_format_version": "1.0.0",\n  "layer": {\n    "name": "VK_LAYER_LS_frame_generation",\n    "type": "GLOBAL",\n    "api_version": "1.4.313",\n    "library_path": "%s",\n    "implementation_version": "1",\n    "description": "Lossless Scaling frame generation layer",\n    "functions": {\n      "vkGetInstanceProcAddr": "layer_vkGetInstanceProcAddr",\n      "vkGetDeviceProcAddr": "layer_vkGetDeviceProcAddr"\n    },\n    "disable_environment": {\n      "DISABLE_LSFG": "1"\n    }\n  }\n}\n' \
+        "$LSFG_LIB" > "$HOME/lsfg/layer/lsfg.json"
+    export VK_ADD_IMPLICIT_LAYER_PATH="$HOME/lsfg/layer"
+    # The layer matches a [[game]] entry by process name, and under Wine /proc/self/exe is the Wine
+    # loader, so every Vulkan process here reports this fixed name instead.
+    export LSFG_PROCESS=xla-lsfg
+    export LSFG_CONFIG="$HOME/.config/lsfg-vk/conf.toml"
+    # The layer takes over the present mode from MESA_VK_WSI_PRESENT_MODE (it unsets that). The base frame
+    # rate stays DXVK's cap; fps_limit 0 leaves the layer's own limiter off, as GameNative ships it.
+    # Written whole and renamed: the layer rereads the file when its mtime changes.
+    PERF=false; [ "${XLA_LSFG_PERFORMANCE:-1}" = "1" ] && PERF=true
+    printf 'version = 1\n\n[global]\ndll = "%s"\nno_fp16 = false\n\n[[game]]\nexe = "xla-lsfg"\nmultiplier = %s\nflow_scale = %s\nperformance_mode = %s\nhdr_mode = false\nfps_limit = 0\nexperimental_present_mode = "%s"\n' \
+        "$LSFG_DLL" "${XLA_LSFG_MULTIPLIER:-2}" "${XLA_LSFG_FLOW_SCALE:-0.80}" "$PERF" "$MESA_VK_WSI_PRESENT_MODE" \
+        > "$LSFG_CONFIG.tmp" && mv -f "$LSFG_CONFIG.tmp" "$LSFG_CONFIG"
+else
+    XLA_LSFG=0
+fi
+
 # Turnip's shader/pipeline disk cache. Mesa leaves it off unless asked (GameNative's FFXIV container sets the same
 # variables). Without it every launch recompiled every pipeline: ~5 CPU cores of dxvk-shader threads for minutes,
 # CPU throttled to half, battery +2C/min. With a warm cache the title screen needs ~1.4 cores in total.
@@ -192,7 +220,7 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "ADRENOTOOLS_DRIVER_PATH=$ADRENOTOOLS_DRIVER_PATH ADRENOTOOLS_DRIVER_NAME=$ADRENOTOOLS_DRIVER_NAME"
   echo "FEX preset=$XLA_FEX_PRESET multiblock=$FEX_MULTIBLOCK DXVK_FRAME_RATE=$DXVK_FRAME_RATE async=$DXVK_ASYNC"
   echo "present=$MESA_VK_WSI_PRESENT_MODE bcn=$WRAPPER_EMULATE_BCN shaderCacheDisable=$MESA_SHADER_CACHE_DISABLE esync=$WINEESYNC"
-  echo "game=$GAME dalamud=${XLA_DALAMUD:-0}"
+  echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x${XLA_LSFG_MULTIPLIER:-2} flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
   echo "xsock: $XSOCK"
   echo "--- run ---"

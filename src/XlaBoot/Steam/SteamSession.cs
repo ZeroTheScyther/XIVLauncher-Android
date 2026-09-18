@@ -76,6 +76,9 @@ public sealed class SteamSession : IDisposable
     /// <summary>True once Steam has accepted the logon and sent a game connect token.</summary>
     public bool IsSignedIn { get; private set; }
 
+    /// <summary>The signed-in connection, for LosslessFetch's depot download.</summary>
+    internal SteamClient Client => _client;
+
     /// <summary>The account name Steam reported, which can differ in case from what was typed.</summary>
     public string? Account { get; private set; }
 

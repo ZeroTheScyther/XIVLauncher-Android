@@ -12,6 +12,7 @@ it comes from, and under which licence. The app itself is licensed under the GNU
 | Winlator X server, input and audio (Java) | [utkarshdalal/GameNative](https://github.com/utkarshdalal/GameNative) @ `cd5ecbc8e`, derived from [brunodev85/winlator](https://github.com/brunodev85/winlator) | GPL-3.0 | Vendored in `src/XlaBoot.Android/java/com/winlator`, modified. |
 | Winlator native libraries (`libwinlator*.so`, `libxconnectorpatch.so`, `libahbimage.so`, `libasurface_renderer.so`, `libextras.so`, `libevshim.so`) | GameNative / Winlator | GPL-3.0 | Prebuilt, `src/native/arm64-v8a`. |
 | Vulkan renderer (`libvulkan_renderer.so`) | GameNative | GPL-3.0 | Source in `src/native/vulkan_renderer`, built by `scripts/build-native.sh`. |
+| lsfg-vk frame generation layer (`liblsfg-vk-layer.so`) | [GameNative/lsfg-vk-android](https://github.com/GameNative/lsfg-vk-android) @ `ea1e3f9` (v1.0.4-android), based on [PancakeTAS/lsfg-vk](https://github.com/PancakeTAS/lsfg-vk) 1.0.0. Bundles volk (MIT), pe-parse (MIT), toml11 (MIT) and dxbc from DXVK (zlib). | MIT | Vulkan layer for frame generation, built by `scripts/build-lsfg.sh`. |
 | Snapdragon Game Super Resolution shader | [SnapdragonStudios/snapdragon-gsr](https://github.com/SnapdragonStudios/snapdragon-gsr) | BSD-3-Clause | Upscaler pass in the renderer. |
 | `winhandler.exe` | GameNative imagefs (Winlator) | GPL-3.0 | `runtime/winhandler.exe`, mouse input helper inside Wine. |
 | PulseAudio, libsndfile, libltdl | [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/), [libsndfile](https://github.com/libsndfile/libsndfile), [libtool](https://www.gnu.org/software/libtool/), as built by GameNative | LGPL-2.1+ | Audio server, `src/native/arm64-v8a`. |
@@ -19,7 +20,7 @@ it comes from, and under which licence. The app itself is licensed under the GNU
 | Avalonia UI | [AvaloniaUI/Avalonia](https://github.com/AvaloniaUI/Avalonia) | MIT | Launcher UI. |
 | CommunityToolkit.Mvvm | [CommunityToolkit/dotnet](https://github.com/CommunityToolkit/dotnet) | MIT | View models. |
 | ZstdSharp | [oleg-st/ZstdSharp](https://github.com/oleg-st/ZstdSharp) | MIT | Unpacking the runtime. |
-| SteamKit2 | [SteamRE/SteamKit](https://github.com/SteamRE/SteamKit) | LGPL-2.1 | Steam sign-in and auth session tickets, for Steam service accounts. |
+| SteamKit2 | [SteamRE/SteamKit](https://github.com/SteamRE/SteamKit) | LGPL-2.1 | Steam sign-in and auth session tickets for Steam service accounts, and the player's own Lossless.dll download. |
 | protobuf-net | [protobuf-net/protobuf-net](https://github.com/protobuf-net/protobuf-net) | Apache-2.0 | Steam message serialisation (SteamKit2 dependency). |
 | AndroidX libraries | [Android Jetpack](https://developer.android.com/jetpack) | Apache-2.0 | Splash screen, collections. |
 | Material Design icons | [google/material-design-icons](https://github.com/google/material-design-icons) | Apache-2.0 | Launcher icons. |
@@ -47,6 +48,9 @@ The runtime is hosted at `xivlauncher.aetherworks.uk` and described by `runtime-
 
 - **Dalamud** ([goatcorp/Dalamud](https://github.com/goatcorp/Dalamud), AGPL-3.0) and its .NET runtime are downloaded
   by XIVLauncher.Common from goatcorp's servers when the player enables it.
+- **Lossless.dll** from [Lossless Scaling](https://store.steampowered.com/app/993090/Lossless_Scaling/) (THS, proprietary) is
+  downloaded from Steam with the player's own account, only if that account owns it. The frame generation layer reads its
+  shaders at runtime. It is never bundled or redistributed.
 - **FINAL FANTASY XIV** is downloaded from Square Enix's servers, or copied by the player. This project is not
   affiliated with or endorsed by Square Enix. FINAL FANTASY is a registered trademark of Square Enix Holdings Co., Ltd.
 

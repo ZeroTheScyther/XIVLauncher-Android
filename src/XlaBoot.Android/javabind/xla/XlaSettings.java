@@ -50,10 +50,13 @@ final class XlaSettings {
 
     private final SharedPreferences prefs;
     private final File launchFile;
+    /** Downloaded by the launcher (XlaBoot.Steam.LosslessFetch); frame generation stays off without it. */
+    private final File losslessDll;
 
     XlaSettings(Context context) {
         prefs = context.getSharedPreferences("xla_settings", Context.MODE_PRIVATE);
         launchFile = new File(context.getFilesDir(), "xla-settings.sh");
+        losslessDll = new File(context.getFilesDir(), "lsfg/Lossless.dll");
         writeLaunchFile();
     }
 
@@ -158,7 +161,11 @@ final class XlaSettings {
                 + "XLA_WINE_LOG=" + wineLog + "\n"
                 + "XLA_DRIVER_DIR=" + quote(text("driver_dir", "")) + "\n"
                 + "XLA_GAME_DIR=" + quote(text("game_path", DEFAULT_GAME_PATH)) + "\n"
-                + "XLA_DALAMUD=" + flag("dalamud_enabled", false) + "\n";
+                + "XLA_DALAMUD=" + flag("dalamud_enabled", false) + "\n"
+                + "XLA_LSFG=" + (losslessDll.isFile() ? flag("lsfg_enabled", false) : "0") + "\n"
+                + "XLA_LSFG_MULTIPLIER=" + text("lsfg_multiplier", "2") + "\n"
+                + "XLA_LSFG_FLOW_SCALE=" + text("lsfg_flow_scale", "0.80") + "\n"
+                + "XLA_LSFG_PERFORMANCE=" + flag("lsfg_performance", true) + "\n";
         try (FileWriter w = new FileWriter(launchFile, false)) {
             w.write(content);
         } catch (IOException e) {

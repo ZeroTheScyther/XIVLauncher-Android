@@ -123,6 +123,57 @@ public partial class MainViewModel : ISteamPrompts
         }
     }
 
+    // ---- Lossless Scaling --------------------------------------------------------------------
+
+    /// <summary>While set, the Steam status lines go here instead of only to the login page's greeting.</summary>
+    private Action<string>? _steamStatusSink;
+
+    /// <summary>
+    /// Settings > Graphics > Lossless Scaling: signs in to Steam and fetches the player's own Lossless.dll.
+    /// A saved sign-in is used and refreshed. A fresh one is not kept: the account that owns Lossless
+    /// Scaling need not be the one the game logs in with, and storing it would switch the game login to it.
+    /// </summary>
+    private async Task<bool> FetchLosslessAsync(Action<string> status)
+    {
+        var saved = _steamTokens;
+        var session = new SteamSession(SteamLoginId);
+        _steamStatusSink = status;
+        try
+        {
+            for (var attempt = 0; ; attempt++)
+            {
+                _steamSignIn = new CancellationTokenSource();
+                try
+                {
+                    var tokens = await session.SignInAsync(saved, this, _steamSignIn.Token);
+                    if (saved != null)
+                    {
+                        _steamTokens = tokens;
+                        OnPropertyChanged(nameof(SteamStatus));
+                    }
+                    return await LosslessFetch.FetchAsync(session, AppHost.FilesDir, status, _steamSignIn.Token);
+                }
+                catch (OperationCanceledException) when (_preferSteamGuardCode && attempt == 0)
+                {
+                    // "Enter a code instead": same restart as SignInToSteamAsync.
+                    session.Dispose();
+                    session = new SteamSession(SteamLoginId);
+                }
+                finally
+                {
+                    _steamSignIn.Dispose();
+                    _steamSignIn = null;
+                    CloseSteamPrompts();
+                }
+            }
+        }
+        finally
+        {
+            _steamStatusSink = null;
+            session.Dispose();
+        }
+    }
+
     // ---- Steam password overlay --------------------------------------------------------------
 
     [ObservableProperty]
