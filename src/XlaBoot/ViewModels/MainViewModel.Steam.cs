@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -128,16 +129,74 @@ public partial class MainViewModel : ISteamPrompts
     /// <summary>While set, the Steam status lines go here instead of only to the login page's greeting.</summary>
     private Action<string>? _steamStatusSink;
 
+    private const string GameSignInReason =
+        "Your Square Enix account is linked to Steam, so Steam has to vouch for this login. Your Steam password is not saved.";
+
+    private const string LosslessSignInReason =
+        "In order to use this feature you must have Lossless Scaling on Steam. Please connect to your Steam account to download it.";
+
+    /// <summary>Red line for the next sign-in dialog when it is not a wrong password, e.g. an account without the app.</summary>
+    private string? _steamSignInNotice;
+
+    /// <summary>The line under "Sign in to Steam": why the dialog is asking.</summary>
+    [ObservableProperty]
+    private string _steamSignInReason = GameSignInReason;
+
     /// <summary>
     /// Settings > Graphics > Lossless Scaling: signs in to Steam and fetches the player's own Lossless.dll.
-    /// A saved sign-in is used and refreshed. A fresh one is not kept: the account that owns Lossless
-    /// Scaling need not be the one the game logs in with, and storing it would switch the game login to it.
+    ///
+    /// The sign-in is kept in its own slot (MainActivity's lsfg-steam.json), never in the saved game login:
+    /// the account that owns Lossless Scaling need not be the one the game logs in with, and storing it there
+    /// would switch the game login to it. Tried in order: that slot, then the game's saved Steam sign-in, then
+    /// a fresh sign-in. An account that does not own the app is dropped and the next one is tried, so a game
+    /// account without Lossless Scaling leads to the sign-in dialog rather than a dead end.
     /// </summary>
     private async Task<bool> FetchLosslessAsync(Action<string> status)
     {
-        var saved = _steamTokens;
-        var session = new SteamSession(SteamLoginId);
+        var cached = LoadLosslessSteam?.Invoke();
+        var candidates = new[] { cached, _steamTokens, null }
+            .Where((t, i) => i == 2 || t != null)
+            .DistinctBy(t => t?.Account.ToLowerInvariant())
+            .ToList();
+
         _steamStatusSink = status;
+        SteamSignInReason = LosslessSignInReason;
+        try
+        {
+            for (var i = 0; ; i++)
+            {
+                var saved = candidates[i];
+                try
+                {
+                    var (tokens, downloaded) = await FetchLosslessWithAsync(saved, status);
+                    SaveLosslessSteam?.Invoke(tokens);
+                    if (saved != null && ReferenceEquals(saved, _steamTokens))
+                    {
+                        _steamTokens = tokens; // refreshed, same account
+                        OnPropertyChanged(nameof(SteamStatus));
+                    }
+                    return downloaded;
+                }
+                catch (SteamSignInException ex) when (ex.NotOwned && saved != null && i + 1 < candidates.Count)
+                {
+                    if (ReferenceEquals(saved, cached))
+                        SaveLosslessSteam?.Invoke(null);
+                    // Shown in the sign-in dialog that comes next, so it is clear why it is asking again.
+                    _steamSignInNotice = LosslessFetch.NotOwnedMessage;
+                }
+            }
+        }
+        finally
+        {
+            _steamStatusSink = null;
+            _steamSignInNotice = null;
+            SteamSignInReason = GameSignInReason;
+        }
+    }
+
+    private async Task<(SteamTokens Tokens, bool Downloaded)> FetchLosslessWithAsync(SteamTokens? saved, Action<string> status)
+    {
+        var session = new SteamSession(SteamLoginId);
         try
         {
             for (var attempt = 0; ; attempt++)
@@ -146,12 +205,8 @@ public partial class MainViewModel : ISteamPrompts
                 try
                 {
                     var tokens = await session.SignInAsync(saved, this, _steamSignIn.Token);
-                    if (saved != null)
-                    {
-                        _steamTokens = tokens;
-                        OnPropertyChanged(nameof(SteamStatus));
-                    }
-                    return await LosslessFetch.FetchAsync(session, AppHost.FilesDir, status, _steamSignIn.Token);
+                    var downloaded = await LosslessFetch.FetchAsync(session, AppHost.FilesDir, status, _steamSignIn.Token);
+                    return (tokens, downloaded);
                 }
                 catch (OperationCanceledException) when (_preferSteamGuardCode && attempt == 0)
                 {
@@ -169,7 +224,6 @@ public partial class MainViewModel : ISteamPrompts
         }
         finally
         {
-            _steamStatusSink = null;
             session.Dispose();
         }
     }
@@ -325,7 +379,8 @@ public partial class MainViewModel : ISteamPrompts
             SteamPasswordInput = "";
             SteamSignInError = previousWasWrong
                 ? "The saved Steam sign-in is no longer valid. Enter your password again."
-                : "";
+                : _steamSignInNotice ?? "";
+            _steamSignInNotice = null;
             Greeting = "Waiting for your Steam sign-in...";
             IsSteamSignInOpen = true;
         });

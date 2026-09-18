@@ -433,14 +433,14 @@
       </Border>
     </Border>
 
-    <!-- Steam sign-in. Only ever shown for a Steam service account, and only when there is no usable
-         saved Steam session; the password is handed straight to Steam and never stored. -->
+    <!-- Steam sign-in, for a Steam service account's login or the Lossless Scaling download, only when there is
+         no usable saved Steam session; the password is handed straight to Steam and never stored. -->
     <Border Grid.RowSpan="2" IsVisible="{Binding IsSteamSignInOpen}" Background="#B0000000">
       <Border Classes="dialog" MaxWidth="400">
         <StackPanel Spacing="12">
           <TextBlock Text="Sign in to Steam" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
           <TextBlock Classes="dim" TextWrapping="Wrap"
-                     Text="Your Square Enix account is linked to Steam, so Steam has to vouch for this login. Your Steam password is not saved."/>
+                     Text="{Binding SteamSignInReason}"/>
 
           <TextBlock Classes="caption" Text="Steam account name"/>
           <TextBox Text="{Binding SteamAccountInput}"/>

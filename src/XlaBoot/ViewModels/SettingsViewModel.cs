@@ -340,8 +340,7 @@ public partial class SettingsViewModel : ViewModelBase
             + "untextured geometry."));
         Rows.Add(Choice("wine_log", "Wine log",
             new[] { "OFF", "ERRORS", "FULL" }, new[] { "Off", "Errors only", "Everything" },
-            "Writes to files/wine-test.log. Off while playing — logging is slow. Turn it on when the game will not start "
-            + "at all: that log is what says why."));
+            "Enable wine logging (Slow). Turn it on when the game will not start at all to see why."));
     }
 
     private void BuildRepos()

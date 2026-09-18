@@ -70,6 +70,8 @@ public class MainActivity : AvaloniaMainActivity<App>
         XlaBoot.ViewModels.MainViewModel.ShowXServer = ShowXServer;
         XlaBoot.ViewModels.MainViewModel.LoadCredentials = LoadCredentials;
         XlaBoot.ViewModels.MainViewModel.SaveCredentials = SaveCredentials;
+        XlaBoot.ViewModels.MainViewModel.LoadLosslessSteam = LoadLosslessSteam;
+        XlaBoot.ViewModels.MainViewModel.SaveLosslessSteam = SaveLosslessSteam;
 #if DEBUG
         // adb test hooks (am start --ez xla_autorun|xla_autologin true). Release builds ignore intent extras.
         XlaBoot.ViewModels.MainViewModel.AutoRunWineTest = Intent?.GetBooleanExtra("xla_autorun", false) ?? false;
@@ -779,6 +781,61 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             return null;
         }
+    }
+
+    // ---- Lossless Scaling Steam sign-in ------------------------------------------------------
+    // Kept apart from the saved login so the Steam account that owns Lossless Scaling never becomes the one
+    // the game logs in with. Same Keystore key and encryption as the Steam half of the saved login.
+
+    private string LosslessSteamPath => System.IO.Path.Combine(FilesDir!.AbsolutePath, "lsfg-steam.json");
+
+    private sealed class StoredLosslessSteam
+    {
+        public string Account { get; set; } = "";
+        public string? Iv { get; set; }
+        public string? Secrets { get; set; }
+    }
+
+    private XlaBoot.Steam.SteamTokens? LoadLosslessSteam()
+    {
+        try
+        {
+            if (!System.IO.File.Exists(LosslessSteamPath))
+                return null;
+            var stored = System.Text.Json.JsonSerializer.Deserialize<StoredLosslessSteam>(
+                System.IO.File.ReadAllText(LosslessSteamPath));
+            if (stored?.Iv == null || stored.Secrets == null)
+                return null;
+            var secrets = System.Text.Json.JsonSerializer.Deserialize<StoredSteamSecrets>(
+                System.Text.Encoding.UTF8.GetString(Decrypt(stored.Iv, stored.Secrets)));
+            return string.IsNullOrEmpty(secrets?.RefreshToken)
+                ? null
+                : new XlaBoot.Steam.SteamTokens(stored.Account, secrets.RefreshToken, secrets.GuardData);
+        }
+        catch (System.Exception)
+        {
+            // Undecryptable after a key reset: sign in again rather than fail the download.
+            try { System.IO.File.Delete(LosslessSteamPath); } catch { /* nothing to clean up */ }
+            return null;
+        }
+    }
+
+    private void SaveLosslessSteam(XlaBoot.Steam.SteamTokens? tokens)
+    {
+        if (tokens == null)
+        {
+            System.IO.File.Delete(LosslessSteamPath);
+            return;
+        }
+
+        var secrets = System.Text.Json.JsonSerializer.Serialize(new StoredSteamSecrets
+        {
+            RefreshToken = tokens.RefreshToken,
+            GuardData = tokens.GuardData,
+        });
+        var stored = new StoredLosslessSteam { Account = tokens.Account };
+        (stored.Iv, stored.Secrets) = Encrypt(System.Text.Encoding.UTF8.GetBytes(secrets));
+        System.IO.File.WriteAllText(LosslessSteamPath, System.Text.Json.JsonSerializer.Serialize(stored));
     }
 
     protected override void OnResume()

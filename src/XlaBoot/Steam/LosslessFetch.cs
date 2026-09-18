@@ -23,6 +23,9 @@ public static class LosslessFetch
 {
     public const uint AppId = 993090;
     public const string DllName = "Lossless.dll";
+
+    public const string NotOwnedMessage =
+        "This Steam account doesn't own Lossless Scaling. Please use an account that does or buy Lossless Scaling on Steam.";
     private const string Branch = "public";
 
     // Enough to step past a bad CDN node or two without making a real outage take minutes to report.
@@ -101,7 +104,7 @@ public static class LosslessFetch
         }
 
         if (!anyKey)
-            throw new SteamSignInException("This Steam account does not own Lossless Scaling.",
+            throw new SteamSignInException(NotOwnedMessage,
                 EResult.AccessDenied) { NotOwned = true };
         throw new SteamSignInException("Steam's copy of Lossless Scaling has no Lossless.dll.");
     }

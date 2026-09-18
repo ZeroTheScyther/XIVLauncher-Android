@@ -66,16 +66,17 @@
             <DataTemplate DataType="vm:SettingsRow">
               <Button Classes="card" Classes.warning="{Binding IsWarning}" Command="{Binding Tap}"
                       IsEnabled="{Binding IsAvailable}" Margin="0,0,0,10">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                  <Border Grid.Column="0" Classes="tile" Margin="0,0,14,0" VerticalAlignment="Top">
+                <!-- The detail gets a row of its own across the full width. Beside the value it was squeezed
+                     into whatever a long value (Mailbox (low latency)) left, a word or two per line. -->
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
+                  <Border Grid.Column="0" Grid.RowSpan="2" Classes="tile" Margin="0,0,14,0" VerticalAlignment="Top">
                     <PathIcon Data="{Binding Icon}"/>
                   </Border>
-                  <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                    <TextBlock Classes="title" Text="{Binding Title}" FontSize="16" FontWeight="SemiBold"
-                               TextWrapping="Wrap"/>
-                    <TextBlock Classes="dim" Text="{Binding Detail}" FontSize="12.5" TextWrapping="Wrap"
-                               IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                  </StackPanel>
+                  <TextBlock Grid.Column="1" Classes="title" Text="{Binding Title}" FontSize="16" FontWeight="SemiBold"
+                             TextWrapping="Wrap" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Classes="dim" Text="{Binding Detail}"
+                             FontSize="12.5" TextWrapping="Wrap" Margin="0,4,0,0"
+                             IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                   <TextBlock Grid.Column="2" Classes="value" Text="{Binding Value}" FontSize="14"
                              Margin="12,2,4,0" VerticalAlignment="Top" TextAlignment="End" MaxWidth="150"
                              TextWrapping="Wrap" Foreground="{StaticResource XlaAccentBrush}"

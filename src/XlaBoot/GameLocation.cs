@@ -104,7 +104,7 @@ public static class GameLocation
             using var file = File.OpenRead(exe);
             if (file.ReadByte() < 0)
                 return new GameCheck(GameStatus.Missing, "",
-                    "game\\ffxiv_dx11.exe is empty here — the game cannot start from this folder.");
+                    "game\\ffxiv_dx11.exe is empty here. The game cannot start from this folder.");
         }
         catch (UnauthorizedAccessException)
         {
@@ -114,7 +114,7 @@ public static class GameLocation
         catch (FileNotFoundException)
         {
             return new GameCheck(GameStatus.Missing, "",
-                "No game\\ffxiv_dx11.exe here — the game cannot start from this folder.");
+                "No game\\ffxiv_dx11.exe here. The game cannot start from this folder.");
         }
         catch (DirectoryNotFoundException)
         {

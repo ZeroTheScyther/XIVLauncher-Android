@@ -157,6 +157,12 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>Set by MainActivity: stores the login; null forgets it.</summary>
     public static Action<SavedLogin?>? SaveCredentials;
 
+    /// <summary>Set by MainActivity: the Steam sign-in kept for the Lossless Scaling download, or null.</summary>
+    public static Func<Steam.SteamTokens?>? LoadLosslessSteam;
+
+    /// <summary>Set by MainActivity: stores that sign-in; null forgets it.</summary>
+    public static Action<Steam.SteamTokens?>? SaveLosslessSteam;
+
     private bool _pendingAutoLogin;
 
     public MainViewModel()
