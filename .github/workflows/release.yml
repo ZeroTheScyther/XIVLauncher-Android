@@ -1,6 +1,8 @@
 name: Release
 
-# Push a tag like v0.1.0 (or v0.1.0-alpha.1 for a pre-release) to build a signed APK and publish it.
+# Push a tag like v0.1.0 or v0.1.0-alpha.1 to build a signed APK and publish it.
+# Every release is published as the latest, alphas included: the app's update check reads
+# releases/latest, which skips pre-releases.
 on:
   push:
     tags: ['v*']
@@ -81,8 +83,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          PRERELEASE=""
-          [[ "$TAG" == *-* ]] && PRERELEASE="--prerelease"
           cat > notes.md <<'NOTES'
           > [!CAUTION]
           > This GitHub repository is the only official source of XIVLauncher Android. APKs from any other website, mirror
@@ -91,4 +91,4 @@ jobs:
           > Official APKs are signed with certificate SHA-256 `ec57f9d5961252b5c09b973c6cd746ba126f1165179b9ee9be4cad419851d943`.
           NOTES
           gh release create "$TAG" release/XIVLauncher.apk release/app-version.json release/XIVLauncher.apk.sha256 \
-            --title "XIVLauncher Android ${TAG#v}" --notes-file notes.md --generate-notes $PRERELEASE
+            --title "XIVLauncher Android ${TAG#v}" --notes-file notes.md --generate-notes --latest
