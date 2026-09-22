@@ -45,7 +45,8 @@ final class XlaSettings {
     /** Defaults for the launcher-owned keys. Kept in step with SettingsViewModel's option lists. */
     static final String DEFAULT_GAME_PATH = "/storage/emulated/0/Emulation/windows/import/FFXIV";
     private static final String DEFAULT_RESOLUTION = "1280x720";
-    private static final String DEFAULT_FPS_CAP = "30";
+    /** The launcher's fps_cap_hz values, default first: 60 on screen is the ceiling, 30 the stable target. */
+    private static final String[] FPS_CAPS = {"30", "60"};
     private static final String DEFAULT_FEX_PRESET = "INTERMEDIATE";
 
     private final SharedPreferences prefs;
@@ -150,7 +151,7 @@ final class XlaSettings {
         String content = "# Written by xla.XlaSettings (launcher settings screen + in-game menu).\n"
                 + "# Sourced by run-wine.sh before Wine starts; MainViewModel parses XLA_RESOLUTION.\n"
                 + "XLA_RESOLUTION=" + text("resolution", DEFAULT_RESOLUTION) + "\n"
-                + "XLA_FPS_CAP=" + text("fps_cap_hz", DEFAULT_FPS_CAP) + "\n"
+                + "XLA_FPS_CAP=" + choice("fps_cap_hz", FPS_CAPS) + "\n"
                 + "XLA_FEX_PRESET=" + text("fex_preset", DEFAULT_FEX_PRESET) + "\n"
                 + "XLA_FEX_MULTIBLOCK=" + flag("fex_multiblock", true) + "\n"
                 + "XLA_PRESENT_MODE=" + text("present_mode", "MAILBOX").toLowerCase(Locale.US) + "\n"
@@ -163,7 +164,6 @@ final class XlaSettings {
                 + "XLA_GAME_DIR=" + quote(text("game_path", DEFAULT_GAME_PATH)) + "\n"
                 + "XLA_DALAMUD=" + flag("dalamud_enabled", false) + "\n"
                 + "XLA_LSFG=" + (losslessDll.isFile() ? flag("lsfg_enabled", false) : "0") + "\n"
-                + "XLA_LSFG_MULTIPLIER=" + text("lsfg_multiplier", "2") + "\n"
                 + "XLA_LSFG_FLOW_SCALE=" + text("lsfg_flow_scale", "0.80") + "\n"
                 + "XLA_LSFG_PERFORMANCE=" + flag("lsfg_performance", true) + "\n";
         try (FileWriter w = new FileWriter(launchFile, false)) {

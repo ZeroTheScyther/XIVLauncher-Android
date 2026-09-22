@@ -162,12 +162,15 @@ if [ "${XLA_LSFG:-0}" = "1" ] && [ -f "$LSFG_DLL" ] && [ -f "$LSFG_LIB" ]; then
     # loader, so every Vulkan process here reports this fixed name instead.
     export LSFG_PROCESS=xla-lsfg
     export LSFG_CONFIG="$HOME/.config/lsfg-vk/conf.toml"
-    # The layer takes over the present mode from MESA_VK_WSI_PRESENT_MODE (it unsets that). The base frame
-    # rate stays DXVK's cap; fps_limit 0 leaves the layer's own limiter off, as GameNative ships it.
+    # The layer takes over the present mode from MESA_VK_WSI_PRESENT_MODE (it unsets that).
+    # Frame generation is 2x and the frame cap is the on-screen rate, so DXVK caps the game's real frames at
+    # half of it (60 on screen = 30 rendered). The layer's own limiter stays off (fps_limit 0): it snaps a late
+    # frame to the next fixed slot and drops generated frames whenever the game cannot hold the cap.
     # Written whole and renamed: the layer rereads the file when its mtime changes.
+    export DXVK_FRAME_RATE=$(( (DXVK_FRAME_RATE + 1) / 2 ))
     PERF=false; [ "${XLA_LSFG_PERFORMANCE:-1}" = "1" ] && PERF=true
-    printf 'version = 1\n\n[global]\ndll = "%s"\nno_fp16 = false\n\n[[game]]\nexe = "xla-lsfg"\nmultiplier = %s\nflow_scale = %s\nperformance_mode = %s\nhdr_mode = false\nfps_limit = 0\nexperimental_present_mode = "%s"\n' \
-        "$LSFG_DLL" "${XLA_LSFG_MULTIPLIER:-2}" "${XLA_LSFG_FLOW_SCALE:-0.80}" "$PERF" "$MESA_VK_WSI_PRESENT_MODE" \
+    printf 'version = 1\n\n[global]\ndll = "%s"\nno_fp16 = false\n\n[[game]]\nexe = "xla-lsfg"\nmultiplier = 2\nflow_scale = %s\nperformance_mode = %s\nhdr_mode = false\nfps_limit = 0\nexperimental_present_mode = "%s"\n' \
+        "$LSFG_DLL" "${XLA_LSFG_FLOW_SCALE:-0.80}" "$PERF" "$MESA_VK_WSI_PRESENT_MODE" \
         > "$LSFG_CONFIG.tmp" && mv -f "$LSFG_CONFIG.tmp" "$LSFG_CONFIG"
 else
     XLA_LSFG=0
@@ -220,7 +223,7 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "ADRENOTOOLS_DRIVER_PATH=$ADRENOTOOLS_DRIVER_PATH ADRENOTOOLS_DRIVER_NAME=$ADRENOTOOLS_DRIVER_NAME"
   echo "FEX preset=$XLA_FEX_PRESET multiblock=$FEX_MULTIBLOCK DXVK_FRAME_RATE=$DXVK_FRAME_RATE async=$DXVK_ASYNC"
   echo "present=$MESA_VK_WSI_PRESENT_MODE bcn=$WRAPPER_EMULATE_BCN shaderCacheDisable=$MESA_SHADER_CACHE_DISABLE esync=$WINEESYNC"
-  echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x${XLA_LSFG_MULTIPLIER:-2} flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
+  echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x2 flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
   echo "xsock: $XSOCK"
   echo "--- run ---"

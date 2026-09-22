@@ -32,6 +32,8 @@ public partial class SettingsViewModel : ViewModelBase
     private static readonly string[] OffOn = { "OFF", "ON" };
     private static readonly string[] OnOffLabels = { "On", "Off" };
     private static readonly string[] OffOnLabels = { "Off", "On" };
+    private static readonly string[] PresentModes = { "MAILBOX", "FIFO", "IMMEDIATE" };
+    private static readonly string[] PresentModeLabels = { "Mailbox (low latency)", "FIFO (v-synced)", "Immediate (may tear)" };
 
 
     [ObservableProperty]
@@ -221,18 +223,16 @@ public partial class SettingsViewModel : ViewModelBase
             new[] { "1280x720", "1560x720 (19.5:9)", "1170x540 (19.5:9)", "960x540" },
             "The Wine desktop the game renders into; the display scales it to the panel. Lower is faster and cooler."));
         Rows.Add(Choice("fps_cap_hz", "Frame rate cap",
-            new[] { "30", "60", "0" }, new[] { "30 fps", "60 fps", "Uncapped" },
-            "DXVK's limiter. A cap the device can actually hold beats an uncapped rate it cannot."));
+            new[] { "30", "60" }, new[] { "30 fps", "60 fps" }, ""));
         Rows.Add(Choice("renderer", "Renderer",
             new[] { "VULKAN", "GL" }, new[] { "Vulkan", "OpenGL (fallback)" },
             "How the app itself presents the game's window. Vulkan hands the buffer to the display with no copy; "
             + "OpenGL is the fallback for a device the Vulkan path cannot drive."));
 
         Rows.Add(new SettingsHeader("Compatibility"));
-        Rows.Add(Choice("present_mode", "Present mode",
-            new[] { "MAILBOX", "FIFO", "IMMEDIATE" },
-            new[] { "Mailbox (low latency)", "FIFO (v-synced)", "Immediate (may tear)" },
-            "Mailbox is the default. Try FIFO on a driver that stutters or tears."));
+        var presentMode = Choice("present_mode", "Present mode", PresentModes, PresentModeLabels,
+            "Mailbox is the default. Try FIFO on a driver that stutters or tears.");
+        Rows.Add(presentMode);
         Rows.Add(Choice("bcn_emulation", "Decompress BC textures",
             new[] { "AUTO", "ON", "OFF" }, new[] { "Auto", "Always", "Never" },
             "Transcodes the game's BC-compressed textures on the CPU. Needed on a GPU with no native BC support; "
@@ -241,7 +241,7 @@ public partial class SettingsViewModel : ViewModelBase
             "Keeps compiled pipelines on disk. Leave on: a cold cache costs minutes of CPU and a lot of heat on every "
             + "launch. Turn it off only to rule the cache out after a driver change."));
 
-        BuildFrameGeneration();
+        BuildFrameGeneration(presentMode);
 
         // FFXIV.cfg only exists once the game has run, so the row shows greyed out until then.
         var config = GameSettingsPreset.ConfigPath(AppHost.FilesDir);
@@ -269,7 +269,7 @@ public partial class SettingsViewModel : ViewModelBase
         Rows.Add(optimize);
     }
 
-    private void BuildFrameGeneration()
+    private void BuildFrameGeneration(SettingsRow presentMode)
     {
         // lsfg-vk extracts its shaders from the player's own Lossless.dll, so nothing else here works
         // until that has been downloaded. xla.XlaSettings also checks for the file before arming the layer.
@@ -283,9 +283,23 @@ public partial class SettingsViewModel : ViewModelBase
         if (!installed)
             return;
 
-        Rows.Add(Choice("lsfg_enabled", "Frame generation", OffOn, OffOnLabels, ""));
-        Rows.Add(Choice("lsfg_multiplier", "Multiplier",
-            new[] { "2", "3", "4" }, new[] { "2x", "3x", "4x" }, ""));
+        // lsfg-vk judders on FIFO and holds steady on Mailbox, so turning it on moves FIFO over. The player
+        // can still pick FIFO again afterwards.
+        SettingsRow? enabled = null;
+        enabled = new SettingsRow("Frame generation", () =>
+        {
+            var value = AppHost.Cycle("lsfg_enabled", OffOn);
+            enabled!.Value = LabelOf(value, OffOn, OffOnLabels);
+            if (value == "ON" && AppHost.Get("present_mode", PresentModes[0]) == "FIFO")
+            {
+                AppHost.Set("present_mode", "MAILBOX");
+                presentMode.Value = LabelOf("MAILBOX", PresentModes, PresentModeLabels);
+            }
+        })
+        {
+            Value = LabelOf(AppHost.Get("lsfg_enabled", OffOn[0]), OffOn, OffOnLabels),
+        };
+        Rows.Add(enabled);
         Rows.Add(Choice("lsfg_flow_scale", "Flow scale",
             new[] { "0.80", "1.00", "0.65", "0.50" }, new[] { "80%", "100%", "65%", "50%" }, ""));
         Rows.Add(Choice("lsfg_performance", "Performance mode", OnOff, OnOffLabels, ""));
@@ -465,8 +479,10 @@ public partial class SettingsViewModel : ViewModelBase
 
     private static string LabelOf(string value, string[] options, string[] labels)
     {
+        // A stored value that is no longer an option (a cap of 120 from an older build) launches as the
+        // first one, so show that.
         var index = Array.IndexOf(options, value);
-        return index >= 0 && index < labels.Length ? labels[index] : value;
+        return index >= 0 && index < labels.Length ? labels[index] : labels[0];
     }
 
     // ---- Pickers ------------------------------------------------------------------------------
