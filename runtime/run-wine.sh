@@ -214,6 +214,27 @@ if [ -f "$HOME/xla-env.sh" ]; then
     while IFS= read -r line; do XLA_OVERRIDES="$XLA_OVERRIDES$line; "; done < "$HOME/xla-env.sh"
 fi
 
+# Prefixes each line with local wall-clock time (HH:MM:SS.mmm), so the log lines up with dalamud.log.
+# Fork-free on purpose: mksh's EPOCHREALTIME plus arithmetic, one date call up front for the zone offset.
+# A date per line would make this reader slow, and a full pipe blocks whichever game thread is writing.
+stamp() {
+    if [ -z "$EPOCHREALTIME" ]; then
+        cat
+        return
+    fi
+    set -- $(date '+%H %M %S %s')
+    local off=$(( ${1#0} * 3600 + ${2#0} * 60 + ${3#0} - $4 % 86400 ))
+    local t d h m s ms line
+    while IFS= read -r line || [ -n "$line" ]; do
+        t=$EPOCHREALTIME
+        d=$(( ((${t%.*} + off) % 86400 + 86400) % 86400 ))
+        h=$((d / 3600)); m=$((d / 60 % 60)); s=$((d % 60))
+        [ $h -lt 10 ] && h=0$h; [ $m -lt 10 ] && m=0$m; [ $s -lt 10 ] && s=0$s
+        ms=${t#*.}; ms=${ms%???}
+        print -r -- "$h:$m:$s.$ms $line"
+    done
+}
+
 NOW="$(date)"
 XSOCK="$(ls -la "$TMPDIR/.X11-unix/" 2>&1)"
 WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
@@ -229,7 +250,7 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "--- run ---"
   eval "LD_PRELOAD=\"\$WINE_PRELOAD\" \"\$WINE/bin/wine\" $TARGET"
   echo "--- exit=$? ---"
-} >>"$LOG" 2>&1
+} 2>&1 | stamp >>"$LOG"
 
 echo "log: $(wc -l < "$LOG") lines"
 tail -4 "$LOG"

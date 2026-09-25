@@ -31,7 +31,8 @@ import java.util.Locale;
  * its HUD.
  *
  * Every sample also goes to files/perf.csv (rewritten each session), visible or not, so heat can be
- * compared between runs.
+ * compared between runs. It is also the session's heartbeat: the clock column lines it up with wine-test.log
+ * and dalamud.log, and a freeze shows as fps dropping to 0 at a known time. The Logs page exports it.
  */
 final class PerfHud {
     private static final String TAG = "XlaPerfHud";
@@ -97,7 +98,7 @@ final class PerfHud {
         startMillis = System.currentTimeMillis();
         try (FileWriter w = new FileWriter(logFile, false)) {
             // gpu_pwrlevel: 0 = unthrottled; cpu_max_mhz: each cpufreq policy's current cap (thermal throttling).
-            w.write("t_s,fps,cpu_c,gpu_c,battery_c,gpu_busy_pct,gpu_mhz,gpu_pwrlevel,cpu_max_mhz,battery_ma,battery_mv\n");
+            w.write("t_s,fps,cpu_c,gpu_c,battery_c,gpu_busy_pct,gpu_mhz,gpu_pwrlevel,cpu_max_mhz,battery_ma,battery_mv,clock\n");
         } catch (IOException e) {
             Log.w(TAG, "perf log unavailable", e);
         }
@@ -142,13 +143,14 @@ final class PerfHud {
                     battery == null ? "--" : String.format(Locale.US, "%.0f°C", battery));
             ui.post(() -> view.setText(text));
 
-            appendLog(String.format(Locale.US, "%.0f,%.1f,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+            appendLog(String.format(Locale.US, "%.0f,%.1f,%s,%s,%s,%s,%s,%s,%s,%s,%s,%tT\n",
                     (System.currentTimeMillis() - startMillis) / 1000f, fps,
                     cpu == null ? "" : cpu, gpu == null ? "" : gpu,
                     battery == null ? "" : String.format(Locale.US, "%.1f", battery),
                     readGpuBusy(), readScaled(GPU_FREQ_PATH, 1_000_000), readScaled(GPU_THERMAL_LEVEL_PATH, 1),
                     readCpuMaxMhz(), readBatteryCurrentMa(),
-                    batteryStatus == null ? "" : batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)));
+                    batteryStatus == null ? "" : batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0),
+                    System.currentTimeMillis()));
 
             Handler w = worker;
             if (w != null) w.postDelayed(this, INTERVAL_MS);

@@ -499,8 +499,13 @@ public class MainActivity : AvaloniaMainActivity<App>
                 // builds - Samsung's among them - so the description is what names the killer.
                 || (code == global::Android.App.ApplicationExitInfoReason.Signaled
                     && described.Contains("lmk", System.StringComparison.OrdinalIgnoreCase));
+            // Set by the in-game menu's Exit game (XServerHost.exitGame) just before it kills the app.
+            var summary = record.GetProcessStateSummary();
+            var exitGame = summary != null
+                && System.Text.Encoding.ASCII.GetString(summary) == "exit-game";
             var reason = code switch
             {
+                _ when exitGame => "the player chose Exit game",
                 _ when outOfMemory =>
                     "Android closed the app because the phone ran out of memory. Close other apps, "
                     + "turn on RAM Plus, or lower the game resolution and texture settings.",
@@ -521,6 +526,10 @@ public class MainActivity : AvaloniaMainActivity<App>
             var parts = new System.Collections.Generic.List<string>();
             if (described.Length > 0)
                 parts.Add(described);
+            // For a signal kill Status is the signal number: 9 is a kill from outside (or Exit game), 6 an abort,
+            // 11 a segfault.
+            if (code == global::Android.App.ApplicationExitInfoReason.Signaled && record.Status > 0)
+                parts.Add($"signal {record.Status}");
             if (record.Rss > 0)
                 parts.Add($"using {record.Rss / 1024.0:F0} MB");
             exits.Add(new XlaBoot.ProcessExit(when, reason, string.Join(", ", parts), outOfMemory));

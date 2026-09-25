@@ -48,6 +48,8 @@ import java.io.FileReader;
 public final class XServerHost {
 
     private static final String TAG = "XlaXServerHost";
+    /** Process state summary set by the menu's Exit game; MainActivity.RecentExits matches on it. */
+    private static final String EXIT_GAME_SUMMARY = "exit-game";
     /** GameNative's DEFAULT_FPS_LIMITER_TARGET_HZ. */
     private static final int DISPLAY_FPS_LIMIT = 60;
     /**
@@ -479,6 +481,13 @@ public final class XServerHost {
      * /proc only shows our own uid's processes to an app, and killProcess is allowed for them.
      */
     private static void exitGame(Context context) {
+        // Android records killProcess(myPid) as a SIGKILL, the same as any outside kill. The summary is stored
+        // with the exit record, which is how the next launch (MainActivity.RecentExits) tells the two apart.
+        if (Build.VERSION.SDK_INT >= 30) {
+            android.app.ActivityManager am =
+                (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) am.setProcessStateSummary(EXIT_GAME_SUMMARY.getBytes());
+        }
         killOtherProcesses(false);
         if (context instanceof Activity) ((Activity) context).finishAndRemoveTask();
         android.os.Process.killProcess(myPid());
