@@ -77,6 +77,7 @@ public static class Icons
         ["No custom repos yet"] = Extension,
         ["Add repo"] = Add,
         ["Import from dalamudConfig.json"] = Download,
+        ["Import plugin configs"] = Download,
     };
 
     /// <summary>The icon for a settings row, by its title; a plain tune icon for anything new.</summary>

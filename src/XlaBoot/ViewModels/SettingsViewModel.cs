@@ -396,6 +396,7 @@ public partial class SettingsViewModel : ViewModelBase
             Value = "Pick file",
             Detail = "Adds every repo from a dalamudConfig.json copied from your PC that isn't already here.",
         });
+        Rows.Add(new SettingsRow("Import plugin configs", ImportPluginConfigs) { Value = "Pick zip" });
     }
 
     private void AddRepo(string config, RepoInputRow input)
@@ -459,6 +460,38 @@ public partial class SettingsViewModel : ViewModelBase
         finally
         {
             // The picker copied the file out of the content provider; nothing needs the copy now.
+            if (file != null)
+            {
+                try { File.Delete(file.Path); }
+                catch (Exception) { /* the cache dir is Android's to reclaim */ }
+            }
+        }
+    }
+
+    private async Task ImportPluginConfigs()
+    {
+        if (AppHost.PickFile == null)
+        {
+            Status = "No file picker on this platform.";
+            return;
+        }
+        PickedFile? file = null;
+        try
+        {
+            file = await AppHost.PickFile();
+            if (file == null)
+                return;
+            Status = "Importing plugin configs...";
+            var path = file.Path;
+            var count = await Task.Run(() => PluginConfigs.Import(path, AppHost.FilesDir));
+            Status = $"Imported configs for {count} plugin{(count == 1 ? "" : "s")}.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            Status = ex is InvalidDataException ? ex.Message : "Could not import: " + ex.Message;
+        }
+        finally
+        {
             if (file != null)
             {
                 try { File.Delete(file.Path); }
