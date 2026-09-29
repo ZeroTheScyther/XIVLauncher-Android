@@ -78,6 +78,20 @@ public final class XServerHost {
     private static GameKeyboard keyboard;
     private static XlaSettings settings;
     private static VulkanRenderer vulkanRenderer;
+    private static android.hardware.input.InputManager inputManager;
+
+    /** A mouse plugged in or unplugged mid-game: the cursor and the grab follow it without opening the menu. */
+    private static final android.hardware.input.InputManager.InputDeviceListener mouseListener =
+            new android.hardware.input.InputManager.InputDeviceListener() {
+                @Override public void onInputDeviceAdded(int deviceId) { onDevicesChanged(); }
+                @Override public void onInputDeviceRemoved(int deviceId) { onDevicesChanged(); }
+                @Override public void onInputDeviceChanged(int deviceId) { onDevicesChanged(); }
+            };
+
+    private static void onDevicesChanged() {
+        updateCursorVisibility();
+        updateMouseCapture();
+    }
 
     private XServerHost() {}
 
@@ -151,6 +165,14 @@ public final class XServerHost {
             if (l != null && !l.isDismissed() && isGameWindow(windowId)) {
                 Log.i(TAG, "game window up after " + (android.os.SystemClock.uptimeMillis() - launchMillis) + " ms");
                 l.dismiss();
+                // Until the X pointer moves inside the game window once, the Windows cursor stays pinned at (0,0)
+                // and ignores winhandler's relative moves, so the cursor sits unseen in the corner until the first
+                // tap. Doing the move half of that tap here (no click) unpins it.
+                View v = view;
+                if (v != null) v.post(() -> {
+                    XServer s = xServer;
+                    if (s != null) s.injectPointerMove(s.screenInfo.width / 2, s.screenInfo.height / 2);
+                });
             }
         };
 
@@ -197,6 +219,10 @@ public final class XServerHost {
 
         applyInputSettings();
         hideSystemBars();
+
+        inputManager = (android.hardware.input.InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        if (inputManager != null)
+            inputManager.registerInputDeviceListener(mouseListener, new android.os.Handler(android.os.Looper.getMainLooper()));
 
         Log.i(TAG, "created " + width + "x" + height
                 + " renderer=" + (renderer == null ? "null" : renderer.getClass().getSimpleName()));
@@ -267,19 +293,21 @@ public final class XServerHost {
     }
 
     /**
-     * Draws the game's own pointer. VulkanRenderer starts with cursorVisible = false and nothing
-     * here ever turned it on, so the pointer moved around invisibly - hover tooltips fired but there
-     * was no cursor to see. Note this is a RENDERER setting, which is why it looked
-     * identical in both Mouse modes: those only route input.
+     * Draws the game's own pointer. VulkanRenderer starts with cursorVisible = false, so without this
+     * the pointer moves around invisibly - hover tooltips fire but there is no cursor to see.
      *
-     * Hidden again while the on-screen pad is up, where play is gamepad-only and a parked cursor is
-     * just clutter. A client that hides its own cursor is still respected - sendCursorToNative
-     * clears visibility whenever the current X Cursor reports itself invisible.
+     * Hidden while the on-screen pad is up and no mouse is attached, where play is gamepad-only and a
+     * parked cursor is just clutter. The pad being up does not mean there is no mouse: AUTO shows it
+     * whenever no controller is attached, so a mouse-only player had no cursor at all. A client that
+     * hides its own cursor is still respected - sendCursorToNative clears visibility whenever the
+     * current X Cursor reports itself invisible.
      */
     private static void updateCursorVisibility() {
         if (vulkanRenderer == null) return;
         boolean padUp = touchControls != null && touchControls.getVisibility() == View.VISIBLE;
-        vulkanRenderer.setCursorVisible(!padUp);
+        boolean visible = !padUp || hasExternalMouse();
+        MouseTrace.log("cursor visible=" + visible + " padUp=" + padUp);
+        vulkanRenderer.setCursorVisible(visible);
     }
 
     /**
@@ -411,6 +439,10 @@ public final class XServerHost {
     }
 
     public static void stop() {
+        if (inputManager != null) {
+            inputManager.unregisterInputDeviceListener(mouseListener);
+            inputManager = null;
+        }
         if (keyboard != null) {
             keyboard.dispose();
             keyboard = null;
