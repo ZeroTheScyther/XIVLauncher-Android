@@ -205,9 +205,8 @@ public final class XServerHost {
         }
         int fit;
         switch (settings.getScreenFit()) {
-            case "FILL":    fit = VulkanRenderer.SCALE_FILL; break;
-            case "STRETCH": fit = VulkanRenderer.SCALE_STRETCH; break;
-            default:        fit = VulkanRenderer.SCALE_FIT; break;
+            case "FIT": fit = VulkanRenderer.SCALE_FIT; break;
+            default:    fit = VulkanRenderer.SCALE_STRETCH; break;
         }
         vulkanRenderer.setEffect(effect, sharpness, fit);
         // Touch and mouse coordinates have to use the same mapping the renderer just took.
@@ -265,10 +264,8 @@ public final class XServerHost {
         final View v = view;
         if (v == null || settings == null || Build.VERSION.SDK_INT < 26) return;
 
-        boolean want = "CAPTURE".equals(settings.getMouseMode())
-                && hasExternalMouse()
-                && (menu == null || !menu.isOpen());
-        MouseTrace.log("capture wanted=" + want + " mode=" + settings.getMouseMode()
+        boolean want = hasExternalMouse() && (menu == null || !menu.isOpen());
+        MouseTrace.log("capture wanted=" + want
                 + " externalMouse=" + hasExternalMouse() + " menuOpen=" + (menu != null && menu.isOpen()));
 
         if (!want) {
@@ -297,7 +294,7 @@ public final class XServerHost {
     private static void onUncapturedMouse() {
         View v = view;
         if (v == null || settings == null || Build.VERSION.SDK_INT < 26) return;
-        if (!"CAPTURE".equals(settings.getMouseMode()) || (menu != null && menu.isOpen())) return;
+        if (menu != null && menu.isOpen()) return;
         long now = android.os.SystemClock.uptimeMillis();
         if (now - lastCaptureRetry < 500) return;
         lastCaptureRetry = now;

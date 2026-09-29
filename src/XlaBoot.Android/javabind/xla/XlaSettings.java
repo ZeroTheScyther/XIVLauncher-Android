@@ -13,7 +13,7 @@ import java.util.Locale;
  * The app's whole settings store, shared by two very different front ends:
  *
  *  - the in-game side menu (xla.GameMenu), which owns the settings that apply live while the game
- *    runs: overlay, upscaler, screen fit, on-screen pad, mouse mode, stick dead zone. Those keep
+ *    runs: overlay, upscaler, screen fit, on-screen pad, stick dead zone. Those keep
  *    their value lists here, because the menu cycles them.
  *  - the launcher's settings screen (C#, XlaBoot.ViewModels.SettingsViewModel), which owns everything
  *    that can only take effect on the next launch: game location, graphics driver, resolution, frame
@@ -29,13 +29,12 @@ final class XlaSettings {
 
     /** Compositor upscaler. OFF keeps the zero-copy scanout path (the display hardware scales the game). */
     private static final String[] UPSCALERS = {"OFF", "SGSR", "FSR"};
-    private static final String[] SCREEN_FITS = {"FIT", "FILL", "STRETCH"};
+    /** Stretch first: it is the default. */
+    private static final String[] SCREEN_FITS = {"STRETCH", "FIT"};
     /** On-screen pad: AUTO shows it only while no physical controller is attached. */
     private static final String[] TOUCH_CONTROLS = {"AUTO", "ON", "OFF"};
     /** TOUCH = GameNative's "FPS" sticks, raised under the thumb; FIXED = always drawn in place. */
     private static final String[] STICK_MODES = {"TOUCH", "FIXED"};
-    /** Grab the mouse so Android hides its cursor and the game gets raw motion (needed to drag the camera). */
-    private static final String[] MOUSE_MODES = {"CAPTURE", "CURSOR"};
     /**
      * Stick dead zone, percent of full deflection. Pads on this phone report flat=0, so without one
      * the sticks drift; 15 is GameNative's value and the default.
@@ -86,10 +85,6 @@ final class XlaSettings {
     String getStickMode() { return choice("stick_mode", STICK_MODES); }
 
     void cycleStickMode() { cycle("stick_mode", STICK_MODES); }
-
-    String getMouseMode() { return choice("mouse_mode", MOUSE_MODES); }
-
-    void cycleMouseMode() { cycle("mouse_mode", MOUSE_MODES); }
 
     int getDeadZonePercent() {
         int value = prefs.getInt("dead_zone", DEAD_ZONES[0]);
@@ -181,12 +176,9 @@ final class XlaSettings {
             case "SGSR": return "Snapdragon GSR";
             case "FSR": return "AMD FSR 1";
             case "FIT": return "Fit";
-            case "FILL": return "Fill (crop)";
             case "STRETCH": return "Stretch";
             case "TOUCH": return "Under thumb";
             case "FIXED": return "Fixed";
-            case "CAPTURE": return "Capture (raw)";
-            case "CURSOR": return "Cursor";
             default: return id;
         }
     }

@@ -53,7 +53,6 @@ final class GameMenu extends FrameLayout {
     private final TextView fitRow;
     private final TextView touchControlsRow;
     private final TextView stickModeRow;
-    private final TextView mouseModeRow;
     private final TextView deadZoneRow;
     private final TextView exitRow;
     private boolean exitArmed;
@@ -116,11 +115,6 @@ final class GameMenu extends FrameLayout {
         });
         stickModeRow = row(v -> {
             settings.cycleStickMode();
-            actions.applyInputSettings();
-            refresh();
-        });
-        mouseModeRow = row(v -> {
-            settings.cycleMouseMode();
             actions.applyInputSettings();
             refresh();
         });
@@ -221,7 +215,6 @@ final class GameMenu extends FrameLayout {
         fitRow.setText("Screen fit: " + XlaSettings.label(settings.getScreenFit()));
         touchControlsRow.setText("On-screen pad: " + XlaSettings.label(settings.getTouchControls()));
         stickModeRow.setText("On-screen sticks: " + XlaSettings.label(settings.getStickMode()));
-        mouseModeRow.setText("Mouse: " + XlaSettings.label(settings.getMouseMode()));
         deadZoneRow.setText("Stick dead zone: " + settings.getDeadZonePercent() + "%");
         exitRow.setText(exitArmed ? "Tap again to exit" : "Exit game");
     }
