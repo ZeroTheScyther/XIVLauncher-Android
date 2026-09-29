@@ -14,5 +14,9 @@
 	     app mid-download anyway and logged "disable frozen app ... wakelock". Being on the battery
 	     exemption list is what actually stops it, so the app asks for it before long work. -->
 	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-	<application android:label="XIVLauncher" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:requestLegacyExternalStorage="true" android:networkSecurityConfig="@xml/network_security_config" />
+	<application android:label="XIVLauncher" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:requestLegacyExternalStorage="true" android:networkSecurityConfig="@xml/network_security_config">
+		<!-- Replaces the app process with a fresh one after a game session; see xla.RestartActivity. -->
+		<activity android:name="xla.RestartActivity" android:process=":restart" android:exported="false"
+		          android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true" />
+	</application>
 </manifest>

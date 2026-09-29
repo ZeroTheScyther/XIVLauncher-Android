@@ -59,6 +59,8 @@ public final class XServerHost {
     private static final long CAPTURE_DELAY_MS = 100;
     /** WM_CLASS Wine gives the game's windows (the exe name). */
     private static final String GAME_WM_CLASS = "ffxiv_dx11.exe";
+    /** How often the game-exit watcher looks for the game window. */
+    private static final long GAME_WATCH_MS = 1000;
 
     private static XServer xServer;
     private static XServerComponent xServerComponent;
@@ -79,6 +81,8 @@ public final class XServerHost {
     private static XlaSettings settings;
     private static VulkanRenderer vulkanRenderer;
     private static android.hardware.input.InputManager inputManager;
+    private static Thread gameWatcher;
+    private static boolean returning;
 
     /** A mouse plugged in or unplugged mid-game: the cursor and the grab follow it without opening the menu. */
     private static final android.hardware.input.InputManager.InputDeviceListener mouseListener =
@@ -434,11 +438,15 @@ public final class XServerHost {
         new Thread(() -> PulseAudioServer.start(appContext, pulseSocket, tmpDir), "xla-pulseaudio").start();
 
         if (hud != null) hud.start(new File(appContext.getFilesDir(), "perf.csv"));
+        startGameWatcher();
 
         Log.i(TAG, "listening on " + rootPath + UnixSocketConfig.XSERVER_PATH);
     }
 
     public static void stop() {
+        Thread watcher = gameWatcher;
+        gameWatcher = null;
+        if (watcher != null) watcher.interrupt();
         if (inputManager != null) {
             inputManager.unregisterInputDeviceListener(mouseListener);
             inputManager = null;
@@ -535,10 +543,14 @@ public final class XServerHost {
     }
 
     /**
-     * Kills every other process of this app's uid (wineserver, the game, FEX helpers), then the app.
-     * /proc only shows our own uid's processes to an app, and killProcess is allowed for them.
+     * Shuts the game down and brings the launcher back. Kills every other process of this app's uid (wineserver,
+     * the game, FEX helpers), then has RestartActivity replace this process with a fresh one. The X server,
+     * renderer and audio were built to live for one session, so a new process is the clean way back to the
+     * launcher. /proc only shows our own uid's processes to an app, and killProcess is allowed for them.
      */
     private static void exitGame(Context context) {
+        if (returning) return;
+        returning = true;
         // Android records killProcess(myPid) as a SIGKILL, the same as any outside kill. The summary is stored
         // with the exit record, which is how the next launch (MainActivity.RecentExits) tells the two apart.
         if (Build.VERSION.SDK_INT >= 30) {
@@ -547,8 +559,56 @@ public final class XServerHost {
             if (am != null) am.setProcessStateSummary(EXIT_GAME_SUMMARY.getBytes());
         }
         killOtherProcesses(false);
-        if (context instanceof Activity) ((Activity) context).finishAndRemoveTask();
-        android.os.Process.killProcess(myPid());
+        RestartActivity.restart(context, myPid());
+    }
+
+    /**
+     * Returns to the launcher once the game has closed by itself (the game's own Exit, or a crash). Wine's virtual
+     * desktop and helpers outlive the game, so without this the player is left looking at an empty desktop.
+     *
+     * Watches the game's WINDOW, not its process: after the in-game Exit, ffxiv_dx11.exe tears its window down and
+     * Dalamud unloads, but the process itself can hang in exit under Wine for good. exitGame kills it anyway.
+     * The game counts as gone after three checks in a row without a mapped window (a brief unmap, e.g. a mode
+     * switch, is not an exit), and not while Dalamud's crash handler has a window up, so a crash report stays readable until the player closes it. (The crash handler
+     * PROCESS runs for the whole session, so only its window means anything.)
+     */
+    private static void startGameWatcher() {
+        final Activity a = activity;
+        if (a == null) return;
+        Thread t = new Thread(() -> {
+            boolean seen = false;
+            int missing = 0;
+            while (gameWatcher == Thread.currentThread()) {
+                try { Thread.sleep(GAME_WATCH_MS); }
+                catch (InterruptedException e) { return; }
+                XServer server = xServer;
+                if (server == null) return;
+                boolean game, crashHandler;
+                try (com.winlator.xserver.XLock lock = server.lock(XServer.Lockable.WINDOW_MANAGER)) {
+                    com.winlator.xserver.Window root = server.windowManager.rootWindow;
+                    game = hasMappedWindow(root, GAME_WM_CLASS);
+                    crashHandler = hasMappedWindow(root, "dalamudcrashhandler.exe");
+                }
+                if (game) { seen = true; missing = 0; continue; }
+                if (!seen || crashHandler || ++missing < 3) continue;
+                Log.i(TAG, "game window gone, returning to launcher");
+                a.runOnUiThread(() -> exitGame(a));
+                return;
+            }
+        }, "xla-game-watcher");
+        t.setDaemon(true);
+        gameWatcher = t;
+        t.start();
+    }
+
+    /** True when a mapped window under parent has a WM_CLASS containing the given exe name. Hold the window lock. */
+    private static boolean hasMappedWindow(com.winlator.xserver.Window parent, String exe) {
+        for (com.winlator.xserver.Window w : parent.getChildren()) {
+            if (!w.attributes.isMapped()) continue;
+            if (w.getClassName().toLowerCase(java.util.Locale.ROOT).contains(exe)) return true;
+            if (hasMappedWindow(w, exe)) return true;
+        }
+        return false;
     }
 
     /**
