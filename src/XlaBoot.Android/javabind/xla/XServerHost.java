@@ -57,6 +57,8 @@ public final class XServerHost {
      * requestPointerCapture behind the same delay for the same reason.
      */
     private static final long CAPTURE_DELAY_MS = 100;
+    /** WM_CLASS Wine gives the game's windows (the exe name). */
+    private static final String GAME_WM_CLASS = "ffxiv_dx11.exe";
 
     private static XServer xServer;
     private static XServerComponent xServerComponent;
@@ -70,6 +72,8 @@ public final class XServerHost {
     private static Context appContext;
     private static Activity activity;
     private static PerfHud hud;
+    private static LoadingScreen loading;
+    private static long launchMillis;
     private static GameMenu menu;
     private static GameKeyboard keyboard;
     private static XlaSettings settings;
@@ -138,9 +142,16 @@ public final class XServerHost {
         applyDisplaySettings();
         hud = new PerfHud(context);
         hud.setVisible(settings.isHudVisible());
+        loading = new LoadingScreen(context);
+        launchMillis = android.os.SystemClock.uptimeMillis();
         PresentExtension.presentListener = windowId -> {
             PerfHud h = hud;
             if (h != null) h.onPresent(windowId);
+            LoadingScreen l = loading;
+            if (l != null && !l.isDismissed() && isGameWindow(windowId)) {
+                Log.i(TAG, "game window up after " + (android.os.SystemClock.uptimeMillis() - launchMillis) + " ms");
+                l.dismiss();
+            }
         };
 
         menu = new GameMenu(context, settings, new GameMenu.Actions() {
@@ -174,6 +185,9 @@ public final class XServerHost {
         int margin = PerfHud.dp(context, 8);
         hudParams.setMargins(margin, margin, margin, margin);
         root.addView(hud.getView(), hudParams);
+        // Over the game, pad and HUD until the first frame; under the menu, so Exit game stays reachable.
+        root.addView(loading, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         // Top of the screen, above everything but the menu: the IME covers the bottom, and the game window is
         // adjustNothing so nothing moves out of its way.
         root.addView(keyboard, new FrameLayout.LayoutParams(
@@ -187,6 +201,20 @@ public final class XServerHost {
         Log.i(TAG, "created " + width + "x" + height
                 + " renderer=" + (renderer == null ? "null" : renderer.getClass().getSimpleName()));
         return root;
+    }
+
+    /**
+     * True when the window, or one of its ancestors, belongs to the game. Inside Wine's virtual desktop the
+     * swapchain is a child window, so the WM_CLASS Wine sets from the exe name may sit a level or two up.
+     */
+    private static boolean isGameWindow(int windowId) {
+        XServer server = xServer;
+        if (server == null) return false;
+        com.winlator.xserver.Window root = server.windowManager.rootWindow;
+        for (com.winlator.xserver.Window w = server.windowManager.getWindow(windowId); w != null && w != root; w = w.getParent()) {
+            if (w.getClassName().toLowerCase(java.util.Locale.ROOT).contains(GAME_WM_CLASS)) return true;
+        }
+        return false;
     }
 
     /**
@@ -388,6 +416,7 @@ public final class XServerHost {
             keyboard = null;
         }
         if (hud != null) hud.stop();
+        loading = null;
         if (touchControls != null) touchControls.releaseAll();
         if (view != null && Build.VERSION.SDK_INT >= 26) view.releasePointerCapture();
         if (alsaComponent != null) { alsaComponent.stop(); alsaComponent = null; }
