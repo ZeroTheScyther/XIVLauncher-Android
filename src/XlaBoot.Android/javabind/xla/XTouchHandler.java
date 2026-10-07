@@ -1,8 +1,11 @@
 package xla;
 
+import android.os.SystemClock;
+import android.view.HapticFeedbackConstants;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 
 import com.winlator.renderer.VulkanRenderer;
 import com.winlator.winhandler.WinHandler;
@@ -12,8 +15,9 @@ import com.winlator.xserver.XServer;
 /**
  * Touch and physical-mouse bridge to the X pointer.
  *
- * A tap lands the X pointer where you touched and clicks; a USB/Bluetooth mouse moves the pointer
- * absolutely, with its real buttons and scroll wheel. Winlator does this in TouchpadView with
+ * A tap lands the X pointer where you touched and left-clicks, a drag is a left drag, a finger held
+ * still becomes the right button for as long as it stays down, and two fingers scroll the wheel.
+ * A USB/Bluetooth mouse moves the pointer absolutely, with its real buttons and scroll wheel. Winlator does this in TouchpadView with
  * several input modes (relative trackpad, gamepad overlays, ...); this is the direct-touch subset,
  * which is what a menu-driven game needs.
  *
@@ -33,6 +37,14 @@ final class XTouchHandler implements View.OnTouchListener {
      * a 250ms press clicked). Hold the button for at least this long, which covers ~3 frames at 30fps.
      */
     private static final long MIN_HOLD_MS = 100;
+    /** Two-finger travel per wheel notch, in dp. */
+    private static final float SCROLL_STEP_DP = 24f;
+
+    /**
+     * Where a touch gesture has got to. Nothing is pressed at PENDING: the left button cannot go down
+     * with the finger, or a hold would left-click whatever is under it before the right click arrives.
+     */
+    private static final int IDLE = 0, PENDING = 1, LEFT = 2, RIGHT = 3, SCROLL = 4;
 
     private final XServer xServer;
     private final int screenWidth;
@@ -42,6 +54,14 @@ final class XTouchHandler implements View.OnTouchListener {
     private boolean clicksEnabled = true;
     private long pressedAt;
     private Runnable pendingRelease;
+    private int gesture = IDLE;
+    private Runnable pendingHold;
+    /** View position of the first finger at touch-down, for the slop test. */
+    private float downX, downY;
+    /** X position of the last move while a button is held. */
+    private int lastX, lastY;
+    /** Mean finger height at the last scroll step; NaN after the finger count changed. */
+    private float scrollY = Float.NaN;
     private Runnable uncapturedMouseListener;
 
     /** Android position of the previous uncaptured mouse event, for relative drags; NaN when unknown. */
@@ -70,6 +90,12 @@ final class XTouchHandler implements View.OnTouchListener {
      */
     void setClicksEnabled(boolean enabled) {
         clicksEnabled = enabled;
+        if (enabled) return;
+        // The rest of a gesture in flight never arrives once touches stop being handled.
+        pendingHold = null;
+        if (gesture == LEFT) xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+        if (gesture == RIGHT) xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+        gesture = IDLE;
     }
 
     @Override
@@ -87,33 +113,117 @@ final class XTouchHandler implements View.OnTouchListener {
         int x = point[0], y = point[1];
 
         switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_DOWN: {
                 flushPendingRelease(v);
+                cancelHold(v);
                 xServer.injectPointerMove(x, y);
-                xServer.injectPointerButtonPress(Pointer.Button.BUTTON_LEFT);
-                pressedAt = event.getEventTime();
+                gesture = PENDING;
+                downX = event.getX();
+                downY = event.getY();
+                pendingHold = new Runnable() {
+                    @Override public void run() {
+                        if (pendingHold != this || gesture != PENDING) return;
+                        pendingHold = null;
+                        press(Pointer.Button.BUTTON_RIGHT, RIGHT, SystemClock.uptimeMillis());
+                        v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                    }
+                };
+                v.postDelayed(pendingHold, ViewConfiguration.getLongPressTimeout());
+                return true;
+            }
+            case MotionEvent.ACTION_POINTER_DOWN:
+                // A second finger turns whatever was going on into a scroll, for the rest of the touch.
+                cancelHold(v);
+                if (gesture == LEFT) xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+                if (gesture == RIGHT) xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+                gesture = SCROLL;
+                scrollY = Float.NaN;
+                return true;
+            case MotionEvent.ACTION_POINTER_UP:
+                scrollY = Float.NaN;
                 return true;
             case MotionEvent.ACTION_MOVE:
-                xServer.injectPointerMove(x, y);
+                if (gesture == SCROLL) {
+                    scroll(v, event);
+                } else if (gesture == PENDING) {
+                    int slop = ViewConfiguration.get(v.getContext()).getScaledTouchSlop();
+                    if (Math.hypot(event.getX() - downX, event.getY() - downY) <= slop) return true;
+                    // Pressed where the finger landed, so a drag starts on what was touched.
+                    cancelHold(v);
+                    press(Pointer.Button.BUTTON_LEFT, LEFT, event.getEventTime());
+                    drag(x, y);
+                } else if (gesture == LEFT || gesture == RIGHT) {
+                    drag(x, y);
+                }
                 return true;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL: {
-                xServer.injectPointerMove(x, y);
-                long remaining = MIN_HOLD_MS - (event.getEventTime() - pressedAt);
-                if (remaining <= 0) {
-                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
-                } else {
-                    pendingRelease = () -> {
-                        pendingRelease = null;
-                        xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
-                    };
-                    v.postDelayed(pendingRelease, remaining);
+                cancelHold(v);
+                if (gesture == PENDING && event.getActionMasked() == MotionEvent.ACTION_UP)
+                    press(Pointer.Button.BUTTON_LEFT, LEFT, event.getEventTime());
+                if (gesture == LEFT || gesture == RIGHT) {
+                    final Pointer.Button button = gesture == LEFT
+                            ? Pointer.Button.BUTTON_LEFT : Pointer.Button.BUTTON_RIGHT;
+                    long remaining = MIN_HOLD_MS - (event.getEventTime() - pressedAt);
+                    if (remaining <= 0) {
+                        xServer.injectPointerButtonRelease(button);
+                    } else {
+                        pendingRelease = () -> {
+                            pendingRelease = null;
+                            xServer.injectPointerButtonRelease(button);
+                        };
+                        v.postDelayed(pendingRelease, remaining);
+                    }
                 }
+                gesture = IDLE;
                 return true;
             }
             default:
                 return false;
         }
+    }
+
+    private void press(Pointer.Button button, int next, long time) {
+        xServer.injectPointerButtonPress(button);
+        pressedAt = time;
+        gesture = next;
+        lastX = xServer.pointer.getX();
+        lastY = xServer.pointer.getY();
+    }
+
+    /**
+     * Relative, like a held mouse button in onMouseEvent: FFXIV drags the camera by warping the cursor
+     * back to where the drag began, and an absolute position would overwrite each warp.
+     */
+    private void drag(int x, int y) {
+        xServer.injectPointerMoveDelta(x - lastX, y - lastY);
+        lastX = x;
+        lastY = y;
+    }
+
+    /** Fingers moving up scroll down, as a touchscreen list does. One wheel notch per SCROLL_STEP_DP. */
+    private void scroll(View v, MotionEvent event) {
+        float y = 0f;
+        for (int i = 0; i < event.getPointerCount(); i++) y += event.getY(i);
+        y /= event.getPointerCount();
+        if (Float.isNaN(scrollY)) {
+            scrollY = y;
+            return;
+        }
+        float step = SCROLL_STEP_DP * v.getResources().getDisplayMetrics().density;
+        while (Math.abs(y - scrollY) >= step) {
+            boolean up = y > scrollY;
+            Pointer.Button button = up ? Pointer.Button.BUTTON_SCROLL_UP : Pointer.Button.BUTTON_SCROLL_DOWN;
+            xServer.injectPointerButtonPress(button);
+            xServer.injectPointerButtonRelease(button);
+            scrollY += up ? step : -step;
+        }
+    }
+
+    private void cancelHold(View v) {
+        if (pendingHold == null) return;
+        v.removeCallbacks(pendingHold);
+        pendingHold = null;
     }
 
     /**
