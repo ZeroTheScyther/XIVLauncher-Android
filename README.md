@@ -29,6 +29,8 @@ are supported.
 - A FINAL FANTASY XIV account with an active subscription. Square Enix and Steam service accounts both work.
 - A controller / bluetooth keyboard and mouse.
 
+For a list of compatible devices check [DEVICES.md](DEVICES.md). This list will keep growing as more people report their results.
+
 ## Install
 
 1. Download `XIVLauncher.apk` from the [latest release](https://github.com/ZeroTheScyther/XIVLauncher-Android/releases/latest).
