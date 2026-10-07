@@ -184,6 +184,7 @@ public final class XServerHost {
             @Override public void setHudVisible(boolean visible) { if (hud != null) hud.setVisible(visible); }
             @Override public void applyDisplaySettings() { XServerHost.applyDisplaySettings(); }
             @Override public void applyInputSettings() { XServerHost.applyInputSettings(); }
+            @Override public void editTouchControls() { XServerHost.editTouchControls(); }
             @Override public void menuClosed() { hideSystemBars(); }
             @Override public void exitGame() { XServerHost.exitGame(context); }
             @Override public void showKeyboard() { if (keyboard != null) keyboard.openManually(); }
@@ -200,7 +201,7 @@ public final class XServerHost {
         // touches that miss a control, and a FrameLayout then keeps dispatching to the views behind
         // it, so the pad never blocks the rest of the overlay.
         if (gamepad != null) {
-            touchControls = new TouchControls(context, gamepad);
+            touchControls = new TouchControls(context, gamepad, settings);
             root.addView(touchControls, new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
             gamepad.setConnectionListener(connected -> updateTouchControls());
@@ -281,11 +282,18 @@ public final class XServerHost {
         updateMouseCapture();
     }
 
+    /** From the menu. The pad is put up for the edit whatever its setting, and goes back to it afterwards. */
+    private static void editTouchControls() {
+        if (touchControls == null) return;
+        touchControls.startEditing(XServerHost::updateTouchControls);
+        updateTouchControls();
+    }
+
     /** AUTO hides the on-screen pad whenever real hardware is attached. */
     private static void updateTouchControls() {
         if (touchControls == null || settings == null) return;
         String mode = settings.getTouchControls();
-        boolean show = "ON".equals(mode)
+        boolean show = touchControls.isEditing() || "ON".equals(mode)
                 || ("AUTO".equals(mode) && (gamepad == null || !gamepad.isPhysicalControllerConnected()));
         touchControls.setVisibility(show ? View.VISIBLE : View.GONE);
         // Only claim a pad exists while one is really usable, so FFXIV drops back to
@@ -494,7 +502,8 @@ public final class XServerHost {
     /**
      * Keys while the game is up. True when consumed.
      * - Menu open: the menu gets them (navigation keys fall through to Android focus handling).
-     * - Guide/PS button: toggles the menu.
+     * - Editing the on-screen pad: Back / Esc / B / Guide end the edit.
+ * - Guide/PS button: toggles the menu.
      * - Controller buttons: the Wine virtual pad (so B/Circle never turns into Back).
      * - A real keyboard: straight through to the X keyboard, so FFXIV sees a PC keyboard.
      * - Remaining Back (gesture, nav button): opens the menu. It must never reach Activity.finish().
@@ -507,6 +516,13 @@ public final class XServerHost {
         if (keyboard != null && keyboard.isOpen()) return keyboard.handleKey(event);
 
         int code = event.getKeyCode();
+        // Whatever would open or close the menu ends a layout edit instead.
+        if (touchControls != null && touchControls.isEditing()
+                && (code == KeyEvent.KEYCODE_BACK || code == KeyEvent.KEYCODE_ESCAPE
+                || code == KeyEvent.KEYCODE_BUTTON_B || code == KeyEvent.KEYCODE_BUTTON_MODE)) {
+            if (event.getAction() == KeyEvent.ACTION_UP) touchControls.stopEditing();
+            return true;
+        }
         if (menu != null && code == KeyEvent.KEYCODE_BUTTON_MODE) {
             if (event.getAction() == KeyEvent.ACTION_UP) openMenu();
             return true;

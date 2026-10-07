@@ -6,12 +6,17 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * On-screen gamepad, laid out to match GameNative's default profile (assets
@@ -30,6 +35,10 @@ import java.util.ArrayList;
  *
  * Touches that miss every control return false, so a FrameLayout keeps dispatching them to the
  * views behind (XServerHost disables tap-to-click while the pad is up, so they simply do nothing).
+ *
+ * GameNative's positions are only the defaults. In edit mode (side menu) every control can be
+ * dragged and pinched to a new place and size; the result is kept in XlaSettings, as fractions of
+ * the view like the profile's own, so it survives a resolution or orientation change.
  */
 final class TouchControls extends View {
 
@@ -51,7 +60,16 @@ final class TouchControls extends View {
     private static final int UP = GamepadBridge.UP, RIGHT = GamepadBridge.RIGHT,
             DOWN = GamepadBridge.DOWN, LEFT = GamepadBridge.LEFT;
 
+    /** Limits for a resized control, as multiples of its GameNative size. */
+    private static final float MIN_SCALE = 0.5f, MAX_SCALE = 3f;
+    private static final float SCALE_STEP = 0.1f;
+    /** Controls are drawn this solid while editing, whatever the overlay opacity. */
+    private static final float EDIT_OPACITY = 0.8f;
+    private static final long RESET_CONFIRM_MS = 3000;
+    private static final int BAR_SMALLER = 0, BAR_LARGER = 1, BAR_RESET = 2, BAR_DONE = 3;
+
     private final GamepadBridge gamepad;
+    private final XlaSettings settings;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path = new Path();
     private final ArrayList<Element> elements = new ArrayList<>();
@@ -65,9 +83,30 @@ final class TouchControls extends View {
     private String stickMode = STICKS_TOUCH;
     private int snapping = 1;
 
-    TouchControls(Context context, GamepadBridge gamepad) {
+    /** Moved or resized controls by element id: x, y, scale. Anything absent sits at its default. */
+    private final HashMap<String, float[]> layout = new HashMap<>();
+    private final RectF[] bar = {new RectF(), new RectF(), new RectF(), new RectF()};
+    private final float barTextSize;
+    private boolean editing;
+    private Runnable editDone;
+    private Element selected;
+    private int dragPointer = -1, pinchPointer = -1;
+    private float grabX, grabY, pinchStartSpan, pinchStartScale;
+    private int barPressed = -1;
+    private boolean resetArmed;
+
+    private final Runnable disarmReset = () -> {
+        resetArmed = false;
+        invalidate();
+    };
+
+    TouchControls(Context context, GamepadBridge gamepad, XlaSettings settings) {
         super(context);
         this.gamepad = gamepad;
+        this.settings = settings;
+        barTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 16,
+                context.getResources().getDisplayMetrics());
+        loadLayout(settings.getPadLayout());
         setFocusable(false);
         setClickable(false);
         paint.setTypeface(Typeface.DEFAULT);
@@ -105,6 +144,8 @@ final class TouchControls extends View {
         // held, so clearing first would leave a button latched down in the bridge after a resize.
         releaseAll();
         elements.clear();
+        selected = null;
+        dragPointer = pinchPointer = -1;
         if (w == 0 || h == 0) return;
         snapping = Math.max(1, w / 100);
 
@@ -131,9 +172,18 @@ final class TouchControls extends View {
             elements.add(new Stick(true, 0.78431374f, 0.73333335f, 1f, false));
         }
 
-        for (Element element : elements) element.layout(w, h);
+        for (Element element : elements) {
+            float[] saved = layout.get(element.id);
+            if (saved != null) {
+                element.nx = clamp(saved[0], 0f, 1f);
+                element.ny = clamp(saved[1], 0f, 1f);
+                element.scale = clamp(saved[2], MIN_SCALE, MAX_SCALE);
+            }
+            element.layout(w, h);
+        }
         floatingLeft.layout(w, h);
         floatingRight.layout(w, h);
+        layoutBar(w);
     }
 
     // ---- input ----------------------------------------------------------------------------------
@@ -141,6 +191,7 @@ final class TouchControls extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (getVisibility() != VISIBLE) return false;
+        if (editing) return onEditTouch(event);
 
         int index = event.getActionIndex();
         int pointerId = event.getPointerId(index);
@@ -219,21 +270,258 @@ final class TouchControls extends View {
         super.setVisibility(visibility);
     }
 
+    // ---- editing --------------------------------------------------------------------------------
+
+    boolean isEditing() {
+        return editing;
+    }
+
+    /** Controls stop driving the pad and can be dragged and pinched instead. onDone runs when editing ends. */
+    void startEditing(Runnable onDone) {
+        if (editing) return;
+        releaseAll();
+        editing = true;
+        editDone = onDone;
+        invalidate();
+    }
+
+    void stopEditing() {
+        if (!editing) return;
+        endDrag();
+        editing = false;
+        selected = null;
+        barPressed = -1;
+        resetArmed = false;
+        removeCallbacks(disarmReset);
+        invalidate();
+        if (editDone != null) editDone.run();
+    }
+
+    /** Every touch is consumed while editing, so nothing reaches the game through the overlay. */
+    private boolean onEditTouch(MotionEvent event) {
+        int index = event.getActionIndex();
+        int pointerId = event.getPointerId(index);
+        float x = event.getX(index), y = event.getY(index);
+
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                barPressed = barButtonAt(x, y);
+                if (barPressed != BAR_RESET) disarmReset.run();
+                if (barPressed >= 0) break;
+                selected = findEditable(x, y);
+                if (selected != null) {
+                    dragPointer = pointerId;
+                    grab(x, y);
+                }
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                // A second finger anywhere resizes whatever the first one is holding.
+                if (dragPointer != -1 && pinchPointer == -1) {
+                    pinchPointer = pointerId;
+                    pinchStartSpan = span(event);
+                    pinchStartScale = selected.scale;
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (dragPointer == -1) break;
+                if (pinchPointer != -1) {
+                    float span = span(event);
+                    if (pinchStartSpan > 0f && span > 0f)
+                        setScale(selected, pinchStartScale * span / pinchStartSpan);
+                } else {
+                    int i = event.findPointerIndex(dragPointer);
+                    if (i >= 0) moveTo(selected, event.getX(i) - grabX, event.getY(i) - grabY);
+                }
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                if (pointerId == pinchPointer) {
+                    pinchPointer = -1;
+                    // Re-grab, or the control would jump to wherever the first finger drifted during the pinch.
+                    int i = event.findPointerIndex(dragPointer);
+                    if (i >= 0) grab(event.getX(i), event.getY(i));
+                } else if (pointerId == dragPointer) {
+                    endDrag();
+                }
+                break;
+            case MotionEvent.ACTION_UP: {
+                int button = barPressed;
+                barPressed = -1;
+                endDrag();
+                if (button >= 0 && barButtonAt(x, y) == button) onBarButton(button);
+                break;
+            }
+            case MotionEvent.ACTION_CANCEL:
+                barPressed = -1;
+                endDrag();
+                break;
+            default:
+                break;
+        }
+        invalidate();
+        return true;
+    }
+
+    /** The whole bounding box counts while editing, so a small round button is still easy to pick up. */
+    private Element findEditable(float x, float y) {
+        for (int i = elements.size() - 1; i >= 0; i--) {
+            Element element = elements.get(i);
+            if (element.bounds.contains((int) x, (int) y)) return element;
+        }
+        return null;
+    }
+
+    private void grab(float x, float y) {
+        grabX = x - selected.bounds.centerX();
+        grabY = y - selected.bounds.centerY();
+    }
+
+    private float span(MotionEvent event) {
+        int a = event.findPointerIndex(dragPointer), b = event.findPointerIndex(pinchPointer);
+        if (a < 0 || b < 0) return 0f;
+        return (float) Math.hypot(event.getX(a) - event.getX(b), event.getY(a) - event.getY(b));
+    }
+
+    /** Centre stays on screen; the edges may hang off it, as GameNative's own shoulder buttons do. */
+    private void moveTo(Element element, float cx, float cy) {
+        element.nx = clamp(cx / getWidth(), 0f, 1f);
+        element.ny = clamp(cy / getHeight(), 0f, 1f);
+        element.layout(getWidth(), getHeight());
+    }
+
+    private void setScale(Element element, float scale) {
+        element.scale = clamp(scale, MIN_SCALE, MAX_SCALE);
+        element.layout(getWidth(), getHeight());
+    }
+
+    private void endDrag() {
+        if (dragPointer == -1) return;
+        dragPointer = pinchPointer = -1;
+        remember(selected);
+    }
+
+    private void onBarButton(int button) {
+        switch (button) {
+            case BAR_SMALLER:
+            case BAR_LARGER:
+                if (selected == null) break;
+                setScale(selected, selected.scale + (button == BAR_LARGER ? SCALE_STEP : -SCALE_STEP));
+                remember(selected);
+                break;
+            case BAR_RESET:
+                removeCallbacks(disarmReset);
+                if (resetArmed) {
+                    resetArmed = false;
+                    layout.clear();
+                    settings.setPadLayout("");
+                    rebuild(getWidth(), getHeight());
+                } else {
+                    resetArmed = true;
+                    postDelayed(disarmReset, RESET_CONFIRM_MS);
+                }
+                break;
+            case BAR_DONE:
+                stopEditing();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private int barButtonAt(float x, float y) {
+        for (int i = 0; i < bar.length; i++) if (bar[i].contains(x, y)) return i;
+        return -1;
+    }
+
+    private void layoutBar(int w) {
+        Context c = getContext();
+        float height = PerfHud.dp(c, 44), gap = PerfHud.dp(c, 8), top = PerfHud.dp(c, 16);
+        float[] widths = {PerfHud.dp(c, 56), PerfHud.dp(c, 56), PerfHud.dp(c, 112), PerfHud.dp(c, 96)};
+        float left = w - gap * (widths.length - 1);
+        for (float width : widths) left -= width;
+        left *= 0.5f;
+        for (int i = 0; i < bar.length; i++) {
+            bar[i].set(left, top, left + widths[i], top + height);
+            left += widths[i] + gap;
+        }
+    }
+
+    private void drawEditOverlay(Canvas canvas, float strokeWidth) {
+        if (selected != null) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(strokeWidth);
+            paint.setColor(0xFF8AB4F8);
+            canvas.drawRect(selected.bounds, paint);
+        }
+        String[] labels = {"−", "+", resetArmed ? "Tap again" : "Reset", "Done"};
+        float radius = PerfHud.dp(getContext(), 8);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(barTextSize);
+        for (int i = 0; i < bar.length; i++) {
+            RectF r = bar[i];
+            paint.setColor(i == barPressed ? 0xF2404249 : 0xF2202127);
+            canvas.drawRoundRect(r, radius, radius, paint);
+            boolean dimmed = (i == BAR_SMALLER || i == BAR_LARGER) && selected == null;
+            paint.setColor(dimmed ? 0xFF6F7378 : Color.WHITE);
+            canvas.drawText(labels[i], r.centerX(), r.centerY() - (paint.descent() + paint.ascent()) * 0.5f, paint);
+        }
+    }
+
+    // ---- saved layout ---------------------------------------------------------------------------
+
+    /** "id:x,y,scale;..." as saveLayout wrote it. Anything unreadable is skipped and keeps its default. */
+    private void loadLayout(String saved) {
+        for (String entry : saved.split(";")) {
+            String[] parts = entry.split("[:,]");
+            if (parts.length != 4) continue;
+            try {
+                layout.put(parts[0], new float[]{
+                        Float.parseFloat(parts[1]), Float.parseFloat(parts[2]), Float.parseFloat(parts[3])});
+            } catch (NumberFormatException ignored) {
+                // Falls back to the default position.
+            }
+        }
+    }
+
+    /**
+     * Kept in the map rather than read off the element list when saving: the fixed sticks are only in
+     * the list in FIXED mode, and an edit made in TOUCH mode must not forget where they were put.
+     */
+    private void remember(Element element) {
+        layout.put(element.id, new float[]{element.nx, element.ny, element.scale});
+        StringBuilder out = new StringBuilder();
+        for (Map.Entry<String, float[]> entry : layout.entrySet()) {
+            float[] v = entry.getValue();
+            if (out.length() > 0) out.append(';');
+            out.append(String.format(Locale.US, "%s:%.4f,%.4f,%.3f", entry.getKey(), v[0], v[1], v[2]));
+        }
+        settings.setPadLayout(out.toString());
+    }
+
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     // ---- drawing --------------------------------------------------------------------------------
 
     @Override
     protected void onDraw(Canvas canvas) {
         float strokeWidth = snapping * 0.25f;
+        if (editing) canvas.drawColor(0x66000000);
         for (Element element : elements) element.draw(canvas, strokeWidth);
         if (STICKS_TOUCH.equals(stickMode)) {
             if (floatingLeft.active) floatingLeft.draw(canvas, strokeWidth);
             if (floatingRight.active) floatingRight.draw(canvas, strokeWidth);
         }
+        if (editing) drawEditOverlay(canvas, strokeWidth);
+    }
+
+    private float drawOpacity() {
+        return editing ? EDIT_OPACITY : opacity;
     }
 
     /** GameNative's InputControlsView.getPrimaryColor: white at the overlay opacity. */
     private int primaryColor() {
-        return Color.argb((int) (opacity * 255), 255, 255, 255);
+        return Color.argb((int) (drawOpacity() * 255), 255, 255, 255);
     }
 
     private void strokePaint(float strokeWidth) {
@@ -261,10 +549,13 @@ final class TouchControls extends View {
     // ---- elements -------------------------------------------------------------------------------
 
     private abstract class Element {
-        final float nx, ny, scale;
+        /** Key of this control in the saved layout. */
+        final String id;
+        float nx, ny, scale;
         final Rect bounds = new Rect();
 
-        Element(float nx, float ny, float scale) {
+        Element(String id, float nx, float ny, float scale) {
+            this.id = id;
             this.nx = nx;
             this.ny = ny;
             this.scale = scale;
@@ -298,7 +589,7 @@ final class TouchControls extends View {
         private boolean down;
 
         CircleButton(float nx, float ny, float scale, String text, int sdlButton) {
-            super(nx, ny, scale);
+            super(text, nx, ny, scale);
             this.text = text;
             this.sdlButton = sdlButton;
         }
@@ -341,7 +632,7 @@ final class TouchControls extends View {
 
         RectButton(float nx, float ny, float scale, String text, int sdlButton,
                    boolean rightTrigger, boolean rounded) {
-            super(nx, ny, scale);
+            super(text, nx, ny, scale);
             this.text = text;
             this.sdlButton = sdlButton;
             this.rightTrigger = rightTrigger;
@@ -383,7 +674,7 @@ final class TouchControls extends View {
         private final boolean[] pressed = new boolean[4];
 
         DPad(float nx, float ny, float scale) {
-            super(nx, ny, scale);
+            super("DPAD", nx, ny, scale);
         }
 
         @Override int halfUnitsX() { return 7; }
@@ -467,7 +758,7 @@ final class TouchControls extends View {
         boolean active;
 
         Stick(boolean right, float nx, float ny, float scale, boolean floating) {
-            super(nx, ny, scale);
+            super(right ? "RS" : "LS", nx, ny, scale);
             this.right = right;
             this.floating = floating;
         }
@@ -538,7 +829,7 @@ final class TouchControls extends View {
             float thumbRadius = snapping * 3.5f * scale;
             float tx = active ? thumbX : cx, ty = active ? thumbY : cy;
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.argb((int) (opacity * 50), 255, 255, 255));
+            paint.setColor(Color.argb((int) (drawOpacity() * 50), 255, 255, 255));
             canvas.drawCircle(tx, ty, thumbRadius, paint);
             strokePaint(strokeWidth);
             canvas.drawCircle(tx, ty, thumbRadius + strokeWidth * 0.5f, paint);

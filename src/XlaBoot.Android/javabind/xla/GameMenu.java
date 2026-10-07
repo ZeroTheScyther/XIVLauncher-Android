@@ -34,6 +34,7 @@ final class GameMenu extends FrameLayout {
         void setHudVisible(boolean visible);
         void applyDisplaySettings();
         void applyInputSettings();
+        void editTouchControls();
         void menuClosed();
         void exitGame();
         void showKeyboard();
@@ -118,6 +119,11 @@ final class GameMenu extends FrameLayout {
             actions.applyInputSettings();
             refresh();
         });
+        TextView editRow = row(v -> {
+            hide();
+            actions.editTouchControls();
+        });
+        editRow.setText("Edit on-screen controls");
         deadZoneRow = row(v -> {
             settings.cycleDeadZone();
             actions.applyInputSettings();

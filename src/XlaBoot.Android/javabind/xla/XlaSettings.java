@@ -86,6 +86,13 @@ final class XlaSettings {
 
     void cycleStickMode() { cycle("stick_mode", STICK_MODES); }
 
+    /** Moved and resized on-screen controls, in TouchControls' own format. Empty is the stock layout. */
+    String getPadLayout() { return text("pad_layout", ""); }
+
+    void setPadLayout(String layout) {
+        prefs.edit().putString("pad_layout", layout).apply();
+    }
+
     int getDeadZonePercent() {
         int value = prefs.getInt("dead_zone", DEAD_ZONES[0]);
         for (int v : DEAD_ZONES) if (v == value) return value;
