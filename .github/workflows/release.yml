@@ -90,5 +90,8 @@ jobs:
           >
           > Official APKs are signed with certificate SHA-256 `ec57f9d5961252b5c09b973c6cd746ba126f1165179b9ee9be4cad419851d943`.
           NOTES
+          # The section of CHANGELOG.md headed with this version, if there is one.
+          CHANGES=$(awk -v h="## ${TAG#v}" '$0 == h {on=1; next} /^## / {on=0} on && NF' CHANGELOG.md)
+          if [ -n "$CHANGES" ]; then printf '\n## Changes\n\n%s\n' "$CHANGES" >> notes.md; fi
           gh release create "$TAG" release/XIVLauncher.apk release/app-version.json release/XIVLauncher.apk.sha256 \
             --title "XIVLauncher Android ${TAG#v}" --notes-file notes.md --generate-notes --latest
