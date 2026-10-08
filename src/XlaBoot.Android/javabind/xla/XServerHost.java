@@ -277,6 +277,7 @@ public final class XServerHost {
         if (settings == null) return;
         if (gamepad != null) gamepad.setDeadZone(settings.getDeadZone());
         if (touchControls != null) touchControls.setStickMode(settings.getStickMode());
+        if (touchHandler != null) touchHandler.setTouchpad("TOUCHPAD".equals(settings.getTouchMode()));
         updateTouchControls();
         updateCursorVisibility();
         updateMouseCapture();

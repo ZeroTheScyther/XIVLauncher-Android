@@ -13,7 +13,7 @@ import java.util.Locale;
  * The app's whole settings store, shared by two very different front ends:
  *
  *  - the in-game side menu (xla.GameMenu), which owns the settings that apply live while the game
- *    runs: overlay, upscaler, screen fit, on-screen pad, stick dead zone. Those keep
+ *    runs: overlay, upscaler, screen fit, on-screen pad, touchscreen mode, stick dead zone. Those keep
  *    their value lists here, because the menu cycles them.
  *  - the launcher's settings screen (C#, XlaBoot.ViewModels.SettingsViewModel), which owns everything
  *    that can only take effect on the next launch: game location, graphics driver, resolution, frame
@@ -33,6 +33,8 @@ final class XlaSettings {
     private static final String[] SCREEN_FITS = {"STRETCH", "FIT"};
     /** On-screen pad: AUTO shows it only while no physical controller is attached. */
     private static final String[] TOUCH_CONTROLS = {"AUTO", "ON", "OFF"};
+    /** Touchscreen as a mouse: TAP clicks where the finger lands, TOUCHPAD moves the pointer by swiping. */
+    private static final String[] TOUCH_MODES = {"TAP", "TOUCHPAD"};
     /** TOUCH = GameNative's "FPS" sticks, raised under the thumb; FIXED = always drawn in place. */
     private static final String[] STICK_MODES = {"TOUCH", "FIXED"};
     /**
@@ -81,6 +83,10 @@ final class XlaSettings {
     String getTouchControls() { return choice("touch_controls", TOUCH_CONTROLS); }
 
     void cycleTouchControls() { cycle("touch_controls", TOUCH_CONTROLS); }
+
+    String getTouchMode() { return choice("touch_mode", TOUCH_MODES); }
+
+    void cycleTouchMode() { cycle("touch_mode", TOUCH_MODES); }
 
     String getStickMode() { return choice("stick_mode", STICK_MODES); }
 
@@ -186,6 +192,8 @@ final class XlaSettings {
             case "STRETCH": return "Stretch";
             case "TOUCH": return "Under thumb";
             case "FIXED": return "Fixed";
+            case "TAP": return "Tap-to-click";
+            case "TOUCHPAD": return "Touchpad";
             default: return id;
         }
     }
