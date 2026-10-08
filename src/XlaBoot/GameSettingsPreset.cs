@@ -107,13 +107,17 @@ public static class GameSettingsPreset
     public static int Apply(string path) => Set(path, Values, backup: true);
 
     /// <summary>
-    /// Run before every launch: the game always starts in Full Screen at the launcher's resolution. Windowed mode shows
+    /// Run before every launch: the game always starts borderless, filling the Wine desktop. Windowed mode shows
     /// Wine's window frame, which a thumb near the screen edge grabs and resizes the game by accident. A player who
-    /// picks windowed in game gets Full Screen again next launch - that is the point. Returns the values changed.
+    /// picks windowed in game gets borderless again next launch - that is the point. Returns the values changed.
+    ///
+    /// Not exclusive Full Screen (mode 1): under Wine that leaves the game window a title bar taller than the
+    /// desktop (1280x747 on 1280x720). The picture is then stretched down past the bottom edge while clicks are
+    /// not, so the cursor sits above what it hits, by more the further down the screen it is.
     /// </summary>
     public static int ForceFullScreen(string path, int width, int height) => Set(path, new Dictionary<string, string>
     {
-        ["ScreenMode"] = "1",
+        ["ScreenMode"] = "2",
         ["FullScreenWidth"] = width.ToString(),
         ["FullScreenHeight"] = height.ToString(),
     }, backup: false);

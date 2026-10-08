@@ -480,7 +480,7 @@ public partial class MainViewModel : ViewModelBase
                         + $", Dalamud {(dalamudEnabled ? safeMode ? "on (safe mode)" : "on" : "off")}"
                         + $", driver {GraphicsDrivers.Selected(GraphicsDrivers.All()).Label}");
 
-            // Always Full Screen (GameSettingsPreset.ForceFullScreen). FFXIV.cfg only exists after the game's first
+            // Always borderless (GameSettingsPreset.ForceFullScreen). FFXIV.cfg only exists after the game's first
             // run; until then the game picks its own mode. Never worth failing a launch over.
             try
             {
@@ -488,7 +488,7 @@ public partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                Console.WriteLine($"XlaLauncher: could not set Full Screen: {ex.GetType().Name}");
+                Console.WriteLine($"XlaLauncher: could not set the screen mode: {ex.GetType().Name}");
             }
 
             IGameRunner runner = dalamudEnabled ? new DalamudGameRunner(safeMode) : new WineCmdGameRunner();
