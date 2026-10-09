@@ -9,3 +9,7 @@
 ## 0.2.6-alpha.1
 
 - Implemented touchpad mode for mouse in the back menu.
+
+## 0.2.7-alpha.1
+
+- Fixed DS4 touchpad compatibility.
