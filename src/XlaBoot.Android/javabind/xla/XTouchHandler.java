@@ -460,9 +460,9 @@ final class XTouchHandler implements View.OnTouchListener {
     }
 
     /**
-     * A real mouse or trackpad, and not a game controller. A DualShock 4 reports SOURCE_MOUSE and
-     * SOURCE_TOUCHPAD on the same device as its sticks, so its touchpad must not drive the cursor
-     * while it is being used as a pad.
+     * A mouse or trackpad event, and not a stick or pad button. This is the event's own source, so a
+     * DualShock 4's touchpad counts: it arrives as plain SOURCE_MOUSE and moves the cursor through the
+     * uncaptured path. XServerHost.hasExternalMouse goes by the device and never captures for it.
      */
     static boolean isMouse(MotionEvent event) {
         int source = event.getSource();

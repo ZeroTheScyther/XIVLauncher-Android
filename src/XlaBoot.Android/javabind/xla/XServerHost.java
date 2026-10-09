@@ -359,11 +359,17 @@ public final class XServerHost {
      * A mouse event arrived through the absolute path. If the grab should be held, it was lost or never
      * taken - a request made before the view was attached and focused is refused silently, and Android
      * drops capture on some focus changes - so ask again. Throttled; requests are cheap but not free.
+     *
+     * Only for what updateMouseCapture would grab. A DualShock 4's touchpad sends mouse events without
+     * counting as a mouse there, so asking here took a grab that the device-changed callback it causes
+     * released at once: twice a second the cursor flipped between the relative and absolute routes and
+     * jumped.
      */
     private static void onUncapturedMouse() {
         View v = view;
         if (v == null || settings == null || Build.VERSION.SDK_INT < 26) return;
         if (menu != null && menu.isOpen()) return;
+        if (!hasExternalMouse()) return;
         long now = android.os.SystemClock.uptimeMillis();
         if (now - lastCaptureRetry < 500) return;
         lastCaptureRetry = now;
