@@ -34,3 +34,7 @@
 ## 0.2.11-alpha
 
 - Updated the download and patching logic of the game for better in-app game install speed.
+
+## 0.2.12-alpha
+
+- Added FEX code cache for faster game startup.
