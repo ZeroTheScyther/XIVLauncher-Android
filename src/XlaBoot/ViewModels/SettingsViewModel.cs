@@ -402,16 +402,15 @@ public partial class SettingsViewModel : ViewModelBase
             + "Performance drops the remaining barriers (faster, can break); Compatibility keeps them all (slower, cooler code paths)."));
         Rows.Add(Choice("fex_multiblock", "Multi-block recompilation", OnOff, OnOffLabels,
             "Lets FEX compile past a branch into one block. Faster; off is a debugging step for a device that crashes early."));
-                Rows.Add(new SettingsHeader("DXVK"));
+        Rows.Add(new SettingsHeader("DXVK"));
         var dxvkVersions = ComponentImporter.DxvkVersions(AppHost.FilesDir);
         var dxvkLabels = dxvkVersions
             .Select(v => v == ComponentImporter.SelectedVersion(AppHost.FilesDir) ? v + " (active)" : v)
-            .Select(v => v.StartsWith("dxvk-", StringComparison.OrdinalIgnoreCase) ? v["dxvk-".Length..] : v)
             .Prepend("Stock (runtime default)")
             .ToArray();
-                var selected = ComponentImporter.SelectedVersion(AppHost.FilesDir);
+        var selected = ComponentImporter.SelectedVersion(AppHost.FilesDir);
         var selectedIndex = selected == "stock" ? 0 : dxvkVersions.ToList().IndexOf(selected) + 1;
-        
+
         Rows.Add(Dropdown("DXVK version", dxvkLabels,
             () => selectedIndex,
             index =>
@@ -423,39 +422,40 @@ public partial class SettingsViewModel : ViewModelBase
             }));
         Rows.Add(new SettingsRow("Import DXVK", ImportDxvk)
         {
-            Value = "Pick zip",
+            Value = "Pick zip/tar.gz",
             Detail = ComponentImporter.SelectedVersion(AppHost.FilesDir) == "stock"
                 ? "Using the runtime's built-in DXVK."
-                : "Active: " + ComponentImporter.SelectedVersion(AppHost.FilesDir) + ". Drop a new zip to add another.",
+                : "Active: " + ComponentImporter.SelectedVersion(AppHost.FilesDir) + ".",
         });
 
-        var dxvkSel = ComponentImporter.SelectedVersion(AppHost.FilesDir);
-        if (dxvkSel != "stock")
+        if (dxvkVersions.Length > 0)
         {
-            Rows.Add(new SettingsRow("Remove DXVK", () =>
-            {
-                if (!_removeDxvkArmed)
+            var deleteLabels = dxvkVersions
+                .Select(v => v == ComponentImporter.SelectedVersion(AppHost.FilesDir) ? v + " (active)" : v)
+                .ToArray();
+            Rows.Add(Dropdown("Delete DXVK", deleteLabels.Prepend("— select version —").ToArray(),
+                () => 0,
+                index =>
                 {
-                    _removeDxvkArmed = true;
-                    Status = $"Tap again to delete {dxvkSel}.";
-                    return;
-                }
-                try
-                {
-                    ComponentImporter.RemoveDxvk(AppHost.FilesDir, dxvkSel);
-                    Status = $"Removed {dxvkSel}; back on the runtime's DXVK.";
-                }
-                catch (Exception ex)
-                {
-                    Status = $"Could not remove it: {ex.GetType().Name}: {ex.Message}";
-                }
-                Rebuild();
-            })
-            {
-                Value = "Delete",
-                Detail = $"Deletes the imported DXVK {dxvkSel}.",
-                IsWarning = true,
-            });
+                    if (index == 0) return;
+                    var version = dxvkVersions[index - 1];
+                    if (!_removeDxvkArmed)
+                    {
+                        _removeDxvkArmed = true;
+                        Status = $"Tap again to delete {version}.";
+                        return;
+                    }
+                    try
+                    {
+                        ComponentImporter.RemoveDxvk(AppHost.FilesDir, version);
+                        Status = $"Removed {version}; back on the runtime's DXVK.";
+                    }
+                    catch (Exception ex)
+                    {
+                        Status = $"Could not remove it: {ex.GetType().Name}: {ex.Message}";
+                    }
+                    Rebuild();
+                }));
         }
         Rows.Add(new SettingsHeader("Wine"));
         Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels,

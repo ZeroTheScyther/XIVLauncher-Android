@@ -169,7 +169,6 @@ final class XlaSettings {
                 + "XLA_ESYNC=" + flag("esync", true) + "\n"
                 + "XLA_WINE_LOG=" + wineLog + "\n"
                 + "XLA_DRIVER_DIR=" + quote(text("driver_dir", "")) + "\n"
-                + "XLA_VULKAN_VERSION=" + quote(text("driver_vulkan_version", "")) + "\n"
                 + "XLA_GAME_DIR=" + quote(text("game_path", DEFAULT_GAME_PATH)) + "\n"
                 + "XLA_DALAMUD=" + flag("dalamud_enabled", false) + "\n"
                 + "XLA_LSFG=" + (losslessDll.isFile() ? flag("lsfg_enabled", false) : "0") + "\n"

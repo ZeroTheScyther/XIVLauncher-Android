@@ -12,7 +12,7 @@ namespace XlaBoot;
 /// <param name="Id">Its folder name: under rootfs/usr/lib for a bundled one, under files/drivers for an import.</param>
 /// <param name="Directory">Absolute path handed to adrenotools as ADRENOTOOLS_DRIVER_PATH.</param>
 /// <param name="IsBundled">Part of the runtime, so it cannot be deleted from the launcher.</param>
-public sealed record GraphicsDriver(string Id, string Label, string Detail, string Directory, bool IsBundled, string? VulkanVersion = null);
+public sealed record GraphicsDriver(string Id, string Label, string Detail, string Directory, bool IsBundled);
 
 /// <summary>
 /// The Vulkan drivers the game can run on. Wine's guest-side Vulkan goes through Mesa's wrapper ICD,
@@ -29,7 +29,6 @@ public static class GraphicsDrivers
 {
     /// <summary>Set by the launcher settings screen; read by run-wine.sh through XLA_DRIVER_DIR.</summary>
     private const string SelectedKey = "driver_dir";
-    private const string VulkanVersionKey = "driver_vulkan_version";
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -41,11 +40,6 @@ public static class GraphicsDrivers
     public const string DefaultBundled = "turnip";
     public const string MrPurple = "turnip-mrpurple";
     private static readonly string[] Bundled = { DefaultBundled, MrPurple };
-    private static readonly Dictionary<string, string> BundledVulkanVersions = new()
-    {
-        [DefaultBundled] = "1.3.289",
-        [MrPurple] = "1.4.359"
-    };
 
     private static string BundledDirectory(string id) => Path.Combine(AppHost.FilesDir, "rootfs", "usr", "lib", id);
 
@@ -92,7 +86,6 @@ public static class GraphicsDrivers
     public static void Select(GraphicsDriver driver)
     {
         AppHost.Set(SelectedKey, driver.Id == DefaultBundled && driver.IsBundled ? "" : driver.Directory);
-        AppHost.Set(VulkanVersionKey, driver.VulkanVersion ?? "");
     }
 
     /// <summary>
@@ -182,8 +175,7 @@ public static class GraphicsDrivers
             // No or unreadable meta.json: the folder name and driver-name are enough to run it.
         }
         parts.Add(bundled ? "shipped with the app" : "imported");
-        var vkVer = meta?.VulkanVersion ?? (bundled && BundledVulkanVersions.TryGetValue(id, out var bv) ? bv : null);
-        return new GraphicsDriver(id, label, string.Join(" - ", parts), directory, bundled, vkVer);
+        return new GraphicsDriver(id, label, string.Join(" - ", parts), directory, bundled);
     }
 
     /// <summary>A folder name from the package's own name, so a re-import lands on the same folder.</summary>
@@ -204,6 +196,5 @@ public static class GraphicsDrivers
         [JsonPropertyName("description")] public string? Description { get; set; }
         [JsonPropertyName("driverVersion")] public string? DriverVersion { get; set; }
         [JsonPropertyName("libraryName")] public string? LibraryName { get; set; }
-        [JsonPropertyName("vulkanVersion")] public string? VulkanVersion { get; set; }
     }
 }

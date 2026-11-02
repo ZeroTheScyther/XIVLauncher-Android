@@ -4,7 +4,7 @@
     <TargetFramework>net10.0-android</TargetFramework>
     <SupportedOSPlatformVersion>26</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
-    <ApplicationId>uk.aetherworks.xivlauncher.debug</ApplicationId>
+    <ApplicationId>uk.aetherworks.xivlauncher</ApplicationId>
     <!-- versionCode: build time as yyDDDHHmm (year, day of year, UTC hour and minute), so every build is newer than
          the last - Android refuses to update to a lower code, and the in-app update check compares these.
          Fits an int until 2099. Pass -p:ApplicationVersion=N to pin one. -->

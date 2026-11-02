@@ -115,11 +115,6 @@ public static class PrefixSetup
     public static void WriteLaunchScript(string filesDir, byte[] runWineSh)
     {
         var path = Path.Combine(filesDir, "run-wine.sh");
-        if (File.Exists(path))
-        {
-            Console.WriteLine("XlaLauncher: preserving existing run-wine.sh");
-            return;
-        }
         File.WriteAllBytes(path, runWineSh);
         try
         {

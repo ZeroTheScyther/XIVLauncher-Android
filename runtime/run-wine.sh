@@ -2,7 +2,7 @@
 # Runs inside the app process, after xla.XServerHost is already listening.
 # Env contract mirrors GameNative's BionicProgramLauncherComponent so the bionic rootfs,
 # the vendored X server and FEXCore all line up.
-HOME=${HOME:-/data/user/0/uk.aetherworks.xivlauncher.debug/files}
+HOME=${HOME:-/data/user/0/uk.aetherworks.xivlauncher/files}
 LOG="$HOME/wine-test.log"
 : > "$LOG"
 
@@ -294,6 +294,16 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
               fi
           done
           echo "XLA-DXVK-SEL: stock (restored from backup)"
+      else
+          # No backup exists; fall back to the runtime's bundled DXVK.
+          for d in x32 x64; do
+              src="$HOME/wine/lib/wine"
+              [ "$d" = "x32" ] && src="$src/i386-windows" || src="$src/aarch64-windows"
+              dest="$WINEPREFIX/drive_c/windows"
+              [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
+              cp -f "$src"/*.dll "$dest/" 2>/dev/null || true
+          done
+          echo "XLA-DXVK-SEL: stock (runtime fallback)"
       fi
       # XLA-DXVK-IMPORT
   elif [ -d "$HOME/dxvk-import/$DXVK_SEL" ]; then
@@ -303,7 +313,7 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
           for d in x32 x64; do
               dest="$WINEPREFIX/drive_c/windows"
               [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
-              for f in d3d11.dll dxgi.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d8.dll; do
+              for f in *.dll; do
                   [ -f "$dest/$f" ] && cp -f "$dest/$f" "$HOME/dxvk-import/stock-backup/$d/" 2>/dev/null || true
               done
           done
