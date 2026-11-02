@@ -282,29 +282,19 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
   echo "xsock: $XSOCK"
   # DXVK import: when a version is selected, copy it over the prefix; when stock is selected,
-  # restore the runtime overlay DLLs so the prefix never keeps a stale imported build.
+  # copy the runtime bundled DLLs into the prefix and refresh the backup so it never goes stale.
   DXVK_SEL="$(cat "$HOME/dxvk-import/selected.txt" 2>/dev/null || echo stock)"
   if [ "$DXVK_SEL" = "stock" ]; then
-      if [ -d "$HOME/dxvk-import/stock-backup" ]; then
-          for d in x32 x64; do
-              if [ -d "$HOME/dxvk-import/stock-backup/$d" ]; then
-                  dest="$WINEPREFIX/drive_c/windows"
-                  [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
-                  cp -f "$HOME/dxvk-import/stock-backup/$d"/*.dll "$dest/" 2>/dev/null || true
-              fi
-          done
-          echo "XLA-DXVK-SEL: stock (restored from backup)"
-      else
-          # No backup exists; fall back to the runtime's bundled DXVK.
-          for d in x32 x64; do
-              src="$HOME/wine/lib/wine"
-              [ "$d" = "x32" ] && src="$src/i386-windows" || src="$src/aarch64-windows"
-              dest="$WINEPREFIX/drive_c/windows"
-              [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
-              cp -f "$src"/*.dll "$dest/" 2>/dev/null || true
-          done
-          echo "XLA-DXVK-SEL: stock (runtime fallback)"
-      fi
+      mkdir -p "$HOME/dxvk-import/stock-backup/x32" "$HOME/dxvk-import/stock-backup/x64"
+      for d in x32 x64; do
+          src="$HOME/wine/lib/wine"
+          [ "$d" = "x32" ] && src="$src/i386-windows" || src="$src/aarch64-windows"
+          dest="$WINEPREFIX/drive_c/windows"
+          [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
+          cp -f "$src"/*.dll "$dest/" 2>/dev/null || true
+          cp -f "$src"/*.dll "$HOME/dxvk-import/stock-backup/$d/" 2>/dev/null || true
+      done
+      echo "XLA-DXVK-SEL: stock (runtime)"
       # XLA-DXVK-IMPORT
   elif [ -d "$HOME/dxvk-import/$DXVK_SEL" ]; then
       # Back up the current prefix DLLs on first import so we can restore them later.

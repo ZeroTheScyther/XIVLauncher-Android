@@ -234,11 +234,9 @@ public static class ComponentImporter
                 }
             }
 
+            if (size > 0) Skip(tarStream, size);
             long pad = (512 - (size % 512)) % 512;
             if (pad > 0) Skip(tarStream, pad);
-            if (size > 0) Skip(tarStream, size);
-            long pad2 = (512 - (size % 512)) % 512;
-            if (pad2 > 0) Skip(tarStream, pad2);
         }
         return null;
     }
