@@ -430,32 +430,34 @@ public partial class SettingsViewModel : ViewModelBase
 
         if (dxvkVersions.Length > 0)
         {
-            var deleteLabels = dxvkVersions
-                .Select(v => v == ComponentImporter.SelectedVersion(AppHost.FilesDir) ? v + " (active)" : v)
-                .ToArray();
-            Rows.Add(Dropdown("Delete DXVK", deleteLabels.Prepend("— select version —").ToArray(),
-                () => 0,
-                index =>
+            var dxvkSel = ComponentImporter.SelectedVersion(AppHost.FilesDir);
+            if (dxvkSel != "stock")
+            {
+                Rows.Add(new SettingsRow("Remove this DXVK", () =>
                 {
-                    if (index == 0) return;
-                    var version = dxvkVersions[index - 1];
                     if (!_removeDxvkArmed)
                     {
                         _removeDxvkArmed = true;
-                        Status = $"Tap again to delete {version}.";
+                        Status = $"Tap again to delete {dxvkSel}.";
                         return;
                     }
                     try
                     {
-                        ComponentImporter.RemoveDxvk(AppHost.FilesDir, version);
-                        Status = $"Removed {version}; back on the runtime's DXVK.";
+                        ComponentImporter.RemoveDxvk(AppHost.FilesDir, dxvkSel);
+                        Status = $"Removed {dxvkSel}; back on the runtime's DXVK.";
                     }
                     catch (Exception ex)
                     {
                         Status = $"Could not remove it: {ex.GetType().Name}: {ex.Message}";
                     }
                     Rebuild();
-                }));
+                })
+                {
+                    Value = "Delete",
+                    Detail = $"Deletes the imported DXVK {dxvkSel}.",
+                    IsWarning = true,
+                });
+            }
         }
         Rows.Add(new SettingsHeader("Wine"));
         Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels,
