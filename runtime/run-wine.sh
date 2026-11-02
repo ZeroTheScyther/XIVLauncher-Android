@@ -212,6 +212,10 @@ esac
 export FEX_TSOENABLED=$1 FEX_VECTORTSOENABLED=$2 FEX_MEMCPYSETTSOENABLED=$3
 export FEX_HALFBARRIERTSOENABLED=$4 FEX_X87REDUCEDPRECISION=$5
 export FEX_MULTIBLOCK="${XLA_FEX_MULTIBLOCK:-1}"
+# Keep translated code on disk between launches. Settings > Code cache. Anonymous code (.NET's JIT
+# output) is left out: it lands at new addresses every run, never hits, and grew the cache ~115 MB a launch.
+export FEX_DISKCACHE="${XLA_FEX_DISKCACHE:-1}"
+export FEX_DISKCACHEANONCACHING=0
 
 GAME="${XLA_GAME_DIR:-/storage/emulated/0/Emulation/windows/import/FFXIV}"
 TARGET="winecfg /?"

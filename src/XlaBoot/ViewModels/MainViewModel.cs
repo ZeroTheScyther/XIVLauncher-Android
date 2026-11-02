@@ -492,6 +492,16 @@ public partial class MainViewModel : ViewModelBase
                 Console.WriteLine($"XlaLauncher: could not set the screen mode: {ex.GetType().Name}");
             }
 
+            try
+            {
+                if (Provisioning.PrefixSetup.TrimFexDiskCache(FilesDir, 1L << 30) is { } trimmed)
+                    AppLog.Note($"FEX disk cache was {trimmed / (1 << 20)} MB, deleted");
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Console.WriteLine($"XlaLauncher: could not trim the FEX disk cache: {ex.GetType().Name}");
+            }
+
             IGameRunner runner = dalamudEnabled ? new DalamudGameRunner(safeMode) : new WineCmdGameRunner();
             // HoldForUpdate (inside DalamudGameRunner) spins waiting for Dalamud's download, so this
             // goes through Task.Run like the login call above rather than blocking the UI thread.

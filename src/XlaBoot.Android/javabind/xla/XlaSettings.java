@@ -162,6 +162,7 @@ final class XlaSettings {
                 + "XLA_FPS_CAP=" + choice("fps_cap_hz", FPS_CAPS) + "\n"
                 + "XLA_FEX_PRESET=" + text("fex_preset", DEFAULT_FEX_PRESET) + "\n"
                 + "XLA_FEX_MULTIBLOCK=" + flag("fex_multiblock", true) + "\n"
+                + "XLA_FEX_DISKCACHE=" + flag("fex_diskcache", true) + "\n"
                 + "XLA_PRESENT_MODE=" + text("present_mode", "MAILBOX").toLowerCase(Locale.US) + "\n"
                 + "XLA_EMULATE_BCN=" + bcn + "\n"
                 + "XLA_SHADER_CACHE=" + flag("shader_cache", true) + "\n"

@@ -72,6 +72,7 @@ public static class Icons
         ["Performance mode"] = Bolt,
         ["Preset"] = Bolt,
         ["Multi-block recompilation"] = Chip,
+        ["Code cache"] = Chip,
         ["Esync"] = Sync,
         ["DXVK async shaders"] = Layers,
         ["Wine log"] = Bug,

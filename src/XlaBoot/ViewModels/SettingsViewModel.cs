@@ -400,6 +400,8 @@ public partial class SettingsViewModel : ViewModelBase
             + "Performance drops the remaining barriers (faster, can break); Compatibility keeps them all (slower, cooler code paths)."));
         Rows.Add(Choice("fex_multiblock", "Multi-block recompilation", OnOff, OnOffLabels,
             "Lets FEX compile past a branch into one block. Faster; off is a debugging step for a device that crashes early."));
+        Rows.Add(Choice("fex_diskcache", "Code cache", OnOff, OnOffLabels,
+            "Keeps translated code between launches. Faster startup; off if the game misbehaves after a cached launch."));
 
         Rows.Add(new SettingsHeader("Wine"));
         Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels,
