@@ -276,4 +276,25 @@ public static class PrefixSetup
         foreach (var dll in WrappedDlls)
             yield return Path.Combine(DriveC(filesDir), "windows", directory, dll + ".dll");
     }
+
+    /// <summary>FEX's translated-code cache (FEX_DISKCACHE in run-wine.sh), one folder per FEX config.</summary>
+    private static string FexDiskCache(string filesDir) =>
+        Path.Combine(DriveC(filesDir), "users", "xuser", "AppData", "Local", "fex-emu", "DiskCache");
+
+    /// <summary>
+    /// Deletes FEX's disk cache once it passes <paramref name="limitBytes"/>. FEX only ever appends to it,
+    /// and a game patch adds a new batch of entries, so this is the only thing that bounds it. FEX rebuilds
+    /// it on the next launch. Returns the size it was at when deleted, or null when nothing was done.
+    /// </summary>
+    public static long? TrimFexDiskCache(string filesDir, long limitBytes)
+    {
+        var dir = new DirectoryInfo(FexDiskCache(filesDir));
+        if (!dir.Exists)
+            return null;
+        var size = dir.EnumerateFiles("*", SearchOption.AllDirectories).Sum(f => f.Length);
+        if (size <= limitBytes)
+            return null;
+        dir.Delete(recursive: true);
+        return size;
+    }
 }
