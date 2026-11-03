@@ -285,6 +285,42 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x2 flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
   echo "xsock: $XSOCK"
+  DXVK_SEL="$(cat "$HOME/dxvk-import/selected.txt" 2>/dev/null || echo stock)"
+  if [ "$DXVK_SEL" = "stock" ]; then
+      if [ -d "$HOME/dxvk-import/stock-backup" ]; then
+          for d in x32 x64; do
+              if [ -d "$HOME/dxvk-import/stock-backup/$d" ]; then
+                  dest="$WINEPREFIX/drive_c/windows"
+                  [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
+                  for f in d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll; do
+                      [ -f "$HOME/dxvk-import/stock-backup/$d/$f" ] && cp -f "$HOME/dxvk-import/stock-backup/$d/$f" "$dest/$f" 2>/dev/null || true
+                  done
+              fi
+          done
+          echo "DXVK: stock (restored)"
+      fi
+  elif [ -d "$HOME/dxvk-import/$DXVK_SEL" ]; then
+      if [ ! -d "$HOME/dxvk-import/stock-backup" ]; then
+          mkdir -p "$HOME/dxvk-import/stock-backup/x32" "$HOME/dxvk-import/stock-backup/x64"
+          for d in x32 x64; do
+              dest="$WINEPREFIX/drive_c/windows"
+              [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
+              for f in d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll; do
+                  [ -f "$dest/$f" ] && cp -f "$dest/$f" "$HOME/dxvk-import/stock-backup/$d/$f" 2>/dev/null || true
+              done
+          done
+      fi
+      for d in x32 x64; do
+          if [ -d "$HOME/dxvk-import/$DXVK_SEL/$d" ]; then
+              dest="$WINEPREFIX/drive_c/windows"
+              [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
+              for f in d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll; do
+                  [ -f "$HOME/dxvk-import/$DXVK_SEL/$d/$f" ] && cp -f "$HOME/dxvk-import/$DXVK_SEL/$d/$f" "$dest/$f" 2>/dev/null || true
+              done
+          fi
+      done
+      echo "DXVK: $DXVK_SEL"
+  fi
   echo "--- run ---"
   eval "LD_PRELOAD=\"\$WINE_PRELOAD\" \"\$WINE/bin/wine\" $TARGET"
   echo "--- exit=$? ---"
