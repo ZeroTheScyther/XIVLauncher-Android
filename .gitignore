@@ -462,4 +462,3 @@ bundle/
 *.env
 # The template's [Ll]og/ rule would hide the vendored Timber logger's package directory.
 !src/XlaBoot.Android/java/timber/log/
-work/

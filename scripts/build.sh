@@ -16,7 +16,7 @@ set -euo pipefail
 P="$(cd "$(dirname "$0")/.." && pwd)"
 SDK="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}"
 ADB="$(command -v adb || echo "$SDK/platform-tools/adb")"
-APK=$(find "$P/src/XlaBoot.Android/bin/$CFG" -name "*-Signed.apk" | head -1)
+PKG="uk.aetherworks.xivlauncher"
 PROJ="$P/src/XlaBoot.Android/XlaBoot.Android.csproj"
 CFG="${XLA_CONFIG:-Debug}"
 
@@ -30,6 +30,7 @@ dotnet build "$PROJ" -c "$CFG" \
     -p:AndroidPackageFormat=apk \
     | tail -5
 
+APK=$(find "$P/src/XlaBoot.Android/bin/$CFG" -name "$PKG-Signed.apk" | head -1)
 [[ -n "$APK" ]] || { echo "APK not found"; exit 1; }
 echo "==> installing $APK"
 # --no-incremental: on Android 11+ adb defaults to an incremental (streamed) install. If the connection drops

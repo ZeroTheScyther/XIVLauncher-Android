@@ -212,6 +212,10 @@ esac
 export FEX_TSOENABLED=$1 FEX_VECTORTSOENABLED=$2 FEX_MEMCPYSETTSOENABLED=$3
 export FEX_HALFBARRIERTSOENABLED=$4 FEX_X87REDUCEDPRECISION=$5
 export FEX_MULTIBLOCK="${XLA_FEX_MULTIBLOCK:-1}"
+# Keep translated code on disk between launches. Settings > Code cache. Anonymous code (.NET's JIT
+# output) is left out: it lands at new addresses every run, never hits, and grew the cache ~115 MB a launch.
+export FEX_DISKCACHE="${XLA_FEX_DISKCACHE:-1}"
+export FEX_DISKCACHEANONCACHING=0
 
 GAME="${XLA_GAME_DIR:-/storage/emulated/0/Emulation/windows/import/FFXIV}"
 TARGET="winecfg /?"
@@ -281,30 +285,28 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x2 flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
   echo "xsock: $XSOCK"
-  # DXVK import: when a version is selected, copy it over the prefix; when stock is selected,
-  # copy the runtime bundled DLLs into the prefix and refresh the backup so it never goes stale.
   DXVK_SEL="$(cat "$HOME/dxvk-import/selected.txt" 2>/dev/null || echo stock)"
   if [ "$DXVK_SEL" = "stock" ]; then
-      mkdir -p "$HOME/dxvk-import/stock-backup/x32" "$HOME/dxvk-import/stock-backup/x64"
-      for d in x32 x64; do
-          src="$HOME/wine/lib/wine"
-          [ "$d" = "x32" ] && src="$src/i386-windows" || src="$src/aarch64-windows"
-          dest="$WINEPREFIX/drive_c/windows"
-          [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
-          cp -f "$src"/*.dll "$dest/" 2>/dev/null || true
-          cp -f "$src"/*.dll "$HOME/dxvk-import/stock-backup/$d/" 2>/dev/null || true
-      done
-      echo "XLA-DXVK-SEL: stock (runtime)"
-      # XLA-DXVK-IMPORT
+      if [ -d "$HOME/dxvk-import/stock-backup" ]; then
+          for d in x32 x64; do
+              if [ -d "$HOME/dxvk-import/stock-backup/$d" ]; then
+                  dest="$WINEPREFIX/drive_c/windows"
+                  [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
+                  for f in d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll; do
+                      [ -f "$HOME/dxvk-import/stock-backup/$d/$f" ] && cp -f "$HOME/dxvk-import/stock-backup/$d/$f" "$dest/$f" 2>/dev/null || true
+                  done
+              fi
+          done
+          echo "DXVK: stock (restored)"
+      fi
   elif [ -d "$HOME/dxvk-import/$DXVK_SEL" ]; then
-      # Back up the current prefix DLLs on first import so we can restore them later.
       if [ ! -d "$HOME/dxvk-import/stock-backup" ]; then
           mkdir -p "$HOME/dxvk-import/stock-backup/x32" "$HOME/dxvk-import/stock-backup/x64"
           for d in x32 x64; do
               dest="$WINEPREFIX/drive_c/windows"
               [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
-              for f in *.dll; do
-                  [ -f "$dest/$f" ] && cp -f "$dest/$f" "$HOME/dxvk-import/stock-backup/$d/" 2>/dev/null || true
+              for f in d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll; do
+                  [ -f "$dest/$f" ] && cp -f "$dest/$f" "$HOME/dxvk-import/stock-backup/$d/$f" 2>/dev/null || true
               done
           done
       fi
@@ -312,12 +314,12 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
           if [ -d "$HOME/dxvk-import/$DXVK_SEL/$d" ]; then
               dest="$WINEPREFIX/drive_c/windows"
               [ "$d" = "x32" ] && dest="$dest/syswow64" || dest="$dest/system32"
-              cp -f "$HOME/dxvk-import/$DXVK_SEL/$d"/*.dll "$dest/" 2>/dev/null || true
+              for f in d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll; do
+                  [ -f "$HOME/dxvk-import/$DXVK_SEL/$d/$f" ] && cp -f "$HOME/dxvk-import/$DXVK_SEL/$d/$f" "$dest/$f" 2>/dev/null || true
+              done
           fi
       done
-      echo "XLA-DXVK-SEL: $DXVK_SEL"
-      # XLA-DXVK-IMPORT
-      echo "imported-dxvk: $DXVK_SEL"
+      echo "DXVK: $DXVK_SEL"
   fi
   echo "--- run ---"
   eval "LD_PRELOAD=\"\$WINE_PRELOAD\" \"\$WINE/bin/wine\" $TARGET"

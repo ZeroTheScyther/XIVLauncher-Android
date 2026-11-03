@@ -83,10 +83,8 @@ public static class GraphicsDrivers
     /// <summary>Whether the player is still on the default driver, having never picked one.</summary>
     public static bool IsDefaultSelected() => AppHost.Get(SelectedKey, "").Length == 0;
 
-    public static void Select(GraphicsDriver driver)
-    {
+    public static void Select(GraphicsDriver driver) =>
         AppHost.Set(SelectedKey, driver.Id == DefaultBundled && driver.IsBundled ? "" : driver.Directory);
-    }
 
     /// <summary>
     /// Unpacks an AdrenoTools .zip into its own folder under files/drivers. Throws with a message
@@ -156,10 +154,9 @@ public static class GraphicsDrivers
     {
         var label = fallbackLabel;
         var parts = new List<string>();
-        DriverMeta? meta = null;
         try
         {
-            meta = JsonSerializer.Deserialize<DriverMeta>(File.ReadAllText(Path.Combine(directory, "meta.json")), JsonOptions);
+            var meta = JsonSerializer.Deserialize<DriverMeta>(File.ReadAllText(Path.Combine(directory, "meta.json")), JsonOptions);
             if (meta != null)
             {
                 if (!string.IsNullOrWhiteSpace(meta.Name))

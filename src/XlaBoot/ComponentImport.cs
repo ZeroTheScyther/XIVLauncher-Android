@@ -51,12 +51,16 @@ public static class ComponentImporter
 
         // Sanitize: reject path-traversal or empty names.
         version = version.Trim();
-        if (string.IsNullOrEmpty(version) || version.Contains('/') || version.Contains('\\') || version == "..")
+        if (string.IsNullOrEmpty(version) || version == "." || version == ".." || version.Contains('/') || version.Contains('\\'))
         {
             throw new ArgumentException("Invalid DXVK version name.", nameof(archivePath));
         }
 
         var dest = Path.Combine(root, version);
+        if (!dest.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("Version path escapes dxvk-import.", nameof(archivePath));
+        }
         if (Directory.Exists(dest)) Directory.Delete(dest, true);
         Directory.CreateDirectory(dest);
 
