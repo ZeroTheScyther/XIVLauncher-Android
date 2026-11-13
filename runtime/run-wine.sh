@@ -91,10 +91,6 @@ export WINEESYNC="${XLA_ESYNC:-1}"
 # copy that ships in a package hardcodes some app's data dir (GameNative's, and the bundle's own
 # vkextra copy the pre-rename package id), so it is written here from the real install path on
 # every launch. That keeps the runtime bundle independent of the package id and the Android user.
-ICD="$ROOT/usr/share/vulkan/icd.d/xla_icd.aarch64.json"
-printf '{\n    "ICD": {\n        "api_version": "1.3.289",\n        "library_path": "%s"\n    },\n    "file_format_version": "1.0.0"\n}\n' \
-    "$ROOT/usr/lib/libvulkan_wrapper.so" > "$ICD"
-export VK_ICD_FILENAMES="$ICD"
 # Settings: the graphics driver. Empty XLA_DRIVER_DIR means the one shipped in the rootfs; a driver
 # imported in the launcher lives in its own directory under files/drivers and is used as-is. Both
 # layouts are an AdrenoTools package: meta.json, one vulkan.*.so, a driver-name file naming it,
@@ -114,6 +110,30 @@ else
     export ADRENOTOOLS_DRIVER_NAME="vulkan.ad08XX.so"
 fi
 export ADRENOTOOLS_HOOKS_PATH="$ROOT/usr/lib"
+
+# Vulkan API version the wrapper advertises, matched to the driver. A 1.4 driver gets 1.4 so newer
+# DXVK/vkd3d can use it; a 1.3 driver stays on 1.3 so nothing calls functions it lacks.
+# Priority: XLA_VK_API (xla-env.sh) > <driver>/vk-api file > meta.json driverVersion > known bundled > 1.3.
+VK_API=1.3.289
+case "$DRIVER_DIR" in
+    */turnip-mrpurple) VK_API=1.4.359 ;;
+esac
+# AdrenoTools packages usually say "driverVersion": "Vulkan 1.4.367" in meta.json. Builtins only.
+if [ -f "$DRIVER_DIR/meta.json" ]; then
+    while IFS= read -r line; do
+        case "$line" in
+            *'"driverVersion"'*'Vulkan '[0-9]*)
+                v=${line#*Vulkan }; v=${v%%[!0-9.]*}
+                case "$v" in 1.[0-9]*.[0-9]*) VK_API=$v ;; esac ;;
+        esac
+    done < "$DRIVER_DIR/meta.json"
+fi
+[ -f "$DRIVER_DIR/vk-api" ] && IFS= read -r VK_API < "$DRIVER_DIR/vk-api"
+[ -n "${XLA_VK_API:-}" ] && VK_API="$XLA_VK_API"
+ICD="$ROOT/usr/share/vulkan/icd.d/xla_icd.aarch64.json"
+printf '{\n    "ICD": {\n        "api_version": "%s",\n        "library_path": "%s"\n    },\n    "file_format_version": "1.0.0"\n}\n' \
+    "$VK_API" "$ROOT/usr/lib/libvulkan_wrapper.so" > "$ICD"
+export VK_ICD_FILENAMES="$ICD"
 
 # Turnip: skip the conformance-only paths, and keep Mesa quiet in a release build.
 export TU_DEBUG=noconform
@@ -138,7 +158,7 @@ export VKD3D_SHADER_MODEL=6_0
 # Wrapper ICD settings, matched to what GameNative derives for the user's (clean-rendering) FFXIV
 # container: graphicsDriver=Wrapper, bcnEmulation=auto, resourceType=auto, presentMode=mailbox.
 # See XServerScreen.kt's Wrapper branch. BCn compute emulation is excluded on Adreno there.
-export WRAPPER_VK_VERSION=1.3.284          # <vulkanVersion>.<Adreno driver patch>
+export WRAPPER_VK_VERSION="$VK_API"        # follows the driver, see VK_API above
 export WRAPPER_EXTENSION_BLACKLIST=
 export WRAPPER_RESOURCE_TYPE=auto
 export WRAPPER_DISABLE_PRESENT_WAIT=0
@@ -281,6 +301,7 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "ADRENOTOOLS_DRIVER_PATH=$ADRENOTOOLS_DRIVER_PATH ADRENOTOOLS_DRIVER_NAME=$ADRENOTOOLS_DRIVER_NAME"
   echo "gpu=$GPU_MODEL maker=$MAKER FD_DEV_FEATURES=${FD_DEV_FEATURES:-default}"
   echo "FEX preset=$XLA_FEX_PRESET multiblock=$FEX_MULTIBLOCK DXVK_FRAME_RATE=$DXVK_FRAME_RATE async=$DXVK_ASYNC"
+  echo "vk_api=$VK_API driver=$DRIVER_DIR"
   echo "present=$MESA_VK_WSI_PRESENT_MODE bcn=$WRAPPER_EMULATE_BCN shaderCacheDisable=$MESA_SHADER_CACHE_DISABLE esync=$WINEESYNC"
   echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x2 flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
