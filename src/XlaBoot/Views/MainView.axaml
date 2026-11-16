@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:XlaBoot.Localization"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:XlaBoot.ViewModels"
@@ -99,7 +100,7 @@
                              Margin="0,0,34,26"/>
           <StackPanel Margin="20,28,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="2">
             <TextBlock Text="XIVLauncher" FontSize="30" FontWeight="SemiBold"/>
-            <TextBlock Text="FINAL FANTASY XIV on Android" FontSize="14" Foreground="#C8D4F0"/>
+            <TextBlock Text="{x:Static loc:Strings.Home_Subtitle}" FontSize="14" Foreground="#C8D4F0"/>
           </StackPanel>
         </Grid>
 
@@ -112,7 +113,7 @@
                 <PathIcon Data="{x:Static views:Icons.CloudDownload}"/>
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-                <TextBlock Text="Update available" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static loc:Strings.Home_UpdateAvailable}" FontSize="16" FontWeight="SemiBold"/>
                 <TextBlock Classes="dim" Text="{Binding UpdateText}" FontSize="12.5" TextWrapping="Wrap"/>
               </StackPanel>
               <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
@@ -139,7 +140,7 @@
                 <PathIcon Data="{x:Static views:Icons.Play}"/>
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-                <TextBlock Text="Play" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static loc:Strings.Home_Play}" FontSize="16" FontWeight="SemiBold"/>
                 <TextBlock Classes="dim" Text="{Binding PlayDetail}" FontSize="12.5"/>
               </StackPanel>
               <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
@@ -153,8 +154,8 @@
                 <PathIcon Data="{x:Static views:Icons.Info}"/>
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-                <TextBlock Text="About" FontSize="16" FontWeight="SemiBold"/>
-                <TextBlock Classes="dim" Text="Credits, licences and more" FontSize="12.5"/>
+                <TextBlock Text="{x:Static loc:Strings.Home_About}" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Classes="dim" Text="{x:Static loc:Strings.Home_AboutDetail}" FontSize="12.5"/>
               </StackPanel>
               <PathIcon Grid.Column="2" Classes="chevron" Data="{x:Static views:Icons.ChevronRight}"/>
             </Grid>
@@ -176,10 +177,10 @@
 
           <views:CrystalLogo Width="80" Height="113" HorizontalAlignment="Center" Margin="0,4,0,0"/>
           <TextBlock Text="XIVLauncher" FontSize="30" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-          <TextBlock Text="Log in to your Square Enix account to launch FFXIV." Foreground="#C8D4F0"
+          <TextBlock Text="{x:Static loc:Strings.Login_Intro}" Foreground="#C8D4F0"
                      HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,18"/>
 
-          <TextBlock Classes="caption" Text="Username"/>
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Login_Username}"/>
           <Grid>
             <TextBox Text="{Binding Username}" IsEnabled="{Binding !IsBusy}" Padding="44,12,12,12"/>
             <PathIcon Data="{x:Static views:Icons.Person}" Width="18" Height="18" Margin="14,0,0,0"
@@ -187,7 +188,7 @@
                       Foreground="{StaticResource XlaTextDimBrush}"/>
           </Grid>
 
-          <TextBlock Classes="caption" Text="Password" Margin="4,8,0,6"/>
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Login_Password}" Margin="4,8,0,6"/>
           <Grid>
             <TextBox x:Name="PasswordBox" PasswordChar="•" RevealPassword="{Binding ShowPassword}"
                      Text="{Binding Password}" IsEnabled="{Binding !IsBusy}" Padding="44,12,48,12"/>
@@ -206,7 +207,7 @@
               <Border Classes="box" Classes.checked="{Binding UseOtp}">
                 <Path Classes="tick" IsVisible="{Binding UseOtp}"/>
               </Border>
-              <TextBlock Text="Use one-time password" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:Strings.Login_UseOtp}" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
 
@@ -215,7 +216,7 @@
               <Border Classes="box" Classes.checked="{Binding IsSteamAccount}">
                 <Path Classes="tick" IsVisible="{Binding IsSteamAccount}"/>
               </Border>
-              <TextBlock Text="Use Steam service account" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:Strings.Login_SteamAccount}" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
           <TextBlock Classes="dim" Text="{Binding SteamStatus}" TextWrapping="Wrap" FontSize="12.5"
@@ -227,7 +228,7 @@
               <Border Classes="box" Classes.checked="{Binding IsFreeTrial}">
                 <Path Classes="tick" IsVisible="{Binding IsFreeTrial}"/>
               </Border>
-              <TextBlock Text="Free trial account" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:Strings.Login_FreeTrial}" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
 
@@ -236,11 +237,11 @@
               <Border Classes="box" Classes.checked="{Binding RememberLogin}">
                 <Path Classes="tick" IsVisible="{Binding RememberLogin}"/>
               </Border>
-              <TextBlock Text="Remember login" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:Strings.Login_Remember}" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
 
-          <Button Classes="primary" Content="Log in &amp; Play" Command="{Binding LoginAndPlayCommand}"
+          <Button Classes="primary" Content="{x:Static loc:Strings.Login_Button}" Command="{Binding LoginAndPlayCommand}"
                   IsEnabled="{Binding !IsBusy}" Margin="0,14,0,0"/>
 
           <ProgressBar IsIndeterminate="True" Height="4" Margin="40,6,40,0" IsVisible="{Binding IsBusy}"/>
@@ -263,7 +264,7 @@
         <Border Grid.Column="0" Classes="tile" Width="46" Height="46" Margin="0,0,12,0">
           <PathIcon Data="{x:Static views:Icons.Logs}"/>
         </Border>
-        <TextBlock Grid.Column="1" Classes="h1" Text="Logs" VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="1" Classes="h1" Text="{x:Static loc:Strings.Logs_Title}" VerticalAlignment="Center"/>
         <Button Grid.Column="2" Classes="icon" Command="{Binding Logs.ReloadCommand}">
           <PathIcon Data="{x:Static views:Icons.Refresh}"/>
         </Button>
@@ -311,8 +312,8 @@
           </Button>
           <views:CrystalLogo Width="96" Height="136" HorizontalAlignment="Center"/>
           <TextBlock Text="XIVLauncher" FontSize="32" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-          <TextBlock Text="Android Port" FontSize="17" HorizontalAlignment="Center" Foreground="#C8D4F0" Margin="0,-6,0,0"/>
-          <TextBlock Text="A community project that brings XIVLauncher and Dalamud to Android."
+          <TextBlock Text="{x:Static loc:Strings.About_Subtitle}" FontSize="17" HorizontalAlignment="Center" Foreground="#C8D4F0" Margin="0,-6,0,0"/>
+          <TextBlock Text="{x:Static loc:Strings.About_Intro}"
                      Foreground="#C8D4F0" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
                      Margin="0,4,0,10"/>
 
@@ -320,17 +321,17 @@
             <StackPanel>
               <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,10">
                 <PathIcon Data="{x:Static views:Icons.Info}" Width="18" Height="18" Margin="0,0,12,0"/>
-                <TextBlock Grid.Column="1" Text="Version"/>
+                <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.About_Version}"/>
                 <TextBlock Grid.Column="2" Classes="dim" Text="{Binding VersionText}"/>
               </Grid>
               <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,10">
                 <PathIcon Data="{x:Static views:Icons.Code}" Width="18" Height="18" Margin="0,0,12,0"/>
-                <TextBlock Grid.Column="1" Text="Built with"/>
+                <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.About_BuiltWith}"/>
                 <TextBlock Grid.Column="2" Classes="dim" Text="Avalonia · .NET"/>
               </Grid>
               <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,10">
                 <PathIcon Data="{x:Static views:Icons.Chip}" Width="18" Height="18" Margin="0,0,12,0"/>
-                <TextBlock Grid.Column="1" Text="Runs on"/>
+                <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.About_RunsOn}"/>
                 <TextBlock Grid.Column="2" Classes="dim" Text="Wine · FEX · DXVK · Turnip" TextAlignment="End"/>
               </Grid>
             </StackPanel>
@@ -340,10 +341,10 @@
             <StackPanel Spacing="8">
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{x:Static views:Icons.Heart}" Width="18" Height="18" Foreground="#E06C75"/>
-                <TextBlock Text="Acknowledgements" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static loc:Strings.About_Thanks}" FontWeight="SemiBold"/>
               </StackPanel>
               <TextBlock Classes="dim" FontSize="12.5" TextWrapping="Wrap"
-                         Text="XIVLauncher and Dalamud by goatcorp and contributors. Wine, FEX-Emu, DXVK and Mesa Turnip by their authors. Winlator and GameNative for the Android container groundwork. And the FFXIV community."/>
+                         Text="{x:Static loc:Strings.About_ThanksText}"/>
             </StackPanel>
           </Border>
 
@@ -351,7 +352,7 @@
           <Button Classes="kofi" Command="{Binding OpenKofiCommand}" HorizontalAlignment="Center" Margin="0,8,0,0">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <PathIcon Data="{x:Static views:Icons.Coffee}" Width="18" Height="18" Foreground="White"/>
-              <TextBlock Text="Buy me a coffee" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:Strings.About_Coffee}" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
 
@@ -359,13 +360,13 @@
           <Button Classes="discord" Command="{Binding OpenDiscordCommand}" HorizontalAlignment="Center" Margin="0,8,0,0">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <PathIcon Data="{x:Static views:Icons.Discord}" Width="18" Height="18" Foreground="White"/>
-              <TextBlock Text="Join the Discord" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:Strings.About_Discord}" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
 
           <TextBlock Classes="dim" FontSize="11.5" TextWrapping="Wrap" TextAlignment="Center" Margin="8,10,8,0"
-                     Text="Not affiliated with or endorsed by Square Enix. FINAL FANTASY is a registered trademark of Square Enix Holdings Co., Ltd."/>
-          <TextBlock Text="Same adventure. New devices." HorizontalAlignment="Center" Foreground="#C8D4F0"
+                     Text="{x:Static loc:Strings.About_Legal}"/>
+          <TextBlock Text="{x:Static loc:Strings.About_Tagline}" HorizontalAlignment="Center" Foreground="#C8D4F0"
                      Margin="0,14,0,0"/>
         </StackPanel>
       </ScrollViewer>
@@ -379,21 +380,21 @@
                 Command="{Binding NavigateCommand}" CommandParameter="Home">
           <StackPanel Spacing="3" HorizontalAlignment="Center">
             <PathIcon Data="{x:Static views:Icons.Home}" HorizontalAlignment="Center"/>
-            <TextBlock Text="Home" HorizontalAlignment="Center"/>
+            <TextBlock Text="{x:Static loc:Strings.Nav_Home}" HorizontalAlignment="Center"/>
           </StackPanel>
         </Button>
         <Button Grid.Column="1" Classes="nav" Classes.selected="{Binding IsSettingsPage}"
                 Command="{Binding NavigateCommand}" CommandParameter="Settings">
           <StackPanel Spacing="3" HorizontalAlignment="Center">
             <PathIcon Data="{x:Static views:Icons.Settings}" HorizontalAlignment="Center"/>
-            <TextBlock Text="Settings" HorizontalAlignment="Center"/>
+            <TextBlock Text="{x:Static loc:Strings.Nav_Settings}" HorizontalAlignment="Center"/>
           </StackPanel>
         </Button>
         <Button Grid.Column="2" Classes="nav" Classes.selected="{Binding IsLogsPage}"
                 Command="{Binding NavigateCommand}" CommandParameter="Logs">
           <StackPanel Spacing="3" HorizontalAlignment="Center">
             <PathIcon Data="{x:Static views:Icons.Logs}" HorizontalAlignment="Center"/>
-            <TextBlock Text="Logs" HorizontalAlignment="Center"/>
+            <TextBlock Text="{x:Static loc:Strings.Logs_Title}" HorizontalAlignment="Center"/>
           </StackPanel>
         </Button>
       </Grid>
@@ -413,8 +414,8 @@
     <Border Grid.RowSpan="2" IsVisible="{Binding IsOtpPromptOpen}" Background="#B0000000">
       <Border Classes="dialog" MaxWidth="380">
         <StackPanel Spacing="12">
-          <TextBlock Text="Enter your one-time password" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
-          <TextBlock Classes="dim" Text="The 6-digit code from your Square Enix authenticator." TextWrapping="Wrap"/>
+          <TextBlock Text="{x:Static loc:Strings.Otp_Title}" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Classes="dim" Text="{x:Static loc:Strings.Otp_Detail}" TextWrapping="Wrap"/>
           <TextBox x:Name="OtpBox" Text="{Binding Otp}" MaxLength="6" FontSize="24" HorizontalContentAlignment="Center"
                    TextInputOptions.ContentType="Digits">
             <TextBox.KeyBindings>
@@ -424,9 +425,9 @@
           <TextBlock Text="{Binding OtpError}" Foreground="{StaticResource XlaDangerBrush}"
                      IsVisible="{Binding OtpError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
           <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
-            <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding CancelOtpCommand}"
+            <Button Grid.Column="0" Classes="secondary" Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelOtpCommand}"
                     HorizontalAlignment="Stretch"/>
-            <Button Grid.Column="2" Classes="primary" Content="Log in" Command="{Binding SubmitOtpCommand}"
+            <Button Grid.Column="2" Classes="primary" Content="{x:Static loc:Strings.Common_LogIn}" Command="{Binding SubmitOtpCommand}"
                     Padding="0,11"/>
           </Grid>
         </StackPanel>
@@ -438,14 +439,14 @@
     <Border Grid.RowSpan="2" IsVisible="{Binding IsSteamSignInOpen}" Background="#B0000000">
       <Border Classes="dialog" MaxWidth="400">
         <StackPanel Spacing="12">
-          <TextBlock Text="Sign in to Steam" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Text="{x:Static loc:Strings.Steam_SignInTitle}" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
           <TextBlock Classes="dim" TextWrapping="Wrap"
                      Text="{Binding SteamSignInReason}"/>
 
-          <TextBlock Classes="caption" Text="Steam account name"/>
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Steam_AccountName}"/>
           <TextBox Text="{Binding SteamAccountInput}"/>
 
-          <TextBlock Classes="caption" Text="Steam password" Margin="4,4,0,6"/>
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Steam_Password}" Margin="4,4,0,6"/>
           <Grid>
             <TextBox x:Name="SteamPasswordBox" PasswordChar="&#x2022;" RevealPassword="{Binding ShowSteamPassword}"
                      Text="{Binding SteamPasswordInput}" Padding="12,12,48,12">
@@ -463,9 +464,9 @@
           <TextBlock Text="{Binding SteamSignInError}" Foreground="{StaticResource XlaDangerBrush}" TextWrapping="Wrap"
                      IsVisible="{Binding SteamSignInError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
           <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
-            <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding CancelSteamSignInCommand}"
+            <Button Grid.Column="0" Classes="secondary" Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelSteamSignInCommand}"
                     HorizontalAlignment="Stretch"/>
-            <Button Grid.Column="2" Classes="primary" Content="Sign in" Command="{Binding SubmitSteamSignInCommand}"
+            <Button Grid.Column="2" Classes="primary" Content="{x:Static loc:Strings.Steam_SignIn}" Command="{Binding SubmitSteamSignInCommand}"
                     Padding="0,11"/>
           </Grid>
         </StackPanel>
@@ -492,17 +493,17 @@
                      IsVisible="{Binding SteamGuardError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
           <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0" IsVisible="{Binding !IsSteamGuardWaiting}">
-            <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding CancelSteamGuardCommand}"
+            <Button Grid.Column="0" Classes="secondary" Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelSteamGuardCommand}"
                     HorizontalAlignment="Stretch"/>
-            <Button Grid.Column="2" Classes="primary" Content="Continue" Command="{Binding SubmitSteamGuardCommand}"
+            <Button Grid.Column="2" Classes="primary" Content="{x:Static loc:Strings.Common_Continue}" Command="{Binding SubmitSteamGuardCommand}"
                     Padding="0,11"/>
           </Grid>
 
           <!-- Stacked rather than side by side: "Enter a code instead" does not fit a half-width button. -->
           <StackPanel Spacing="10" Margin="0,4,0,0" IsVisible="{Binding IsSteamGuardWaiting}">
-            <Button Classes="secondary" Content="Enter a code instead" HorizontalAlignment="Stretch"
+            <Button Classes="secondary" Content="{x:Static loc:Strings.Steam_EnterCodeInstead}" HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center" Command="{Binding UseSteamGuardCodeCommand}"/>
-            <Button Classes="secondary" Content="Cancel" HorizontalAlignment="Stretch"
+            <Button Classes="secondary" Content="{x:Static loc:Strings.Common_Cancel}" HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center" Command="{Binding CancelSteamGuardCommand}"/>
           </StackPanel>
         </StackPanel>
@@ -513,15 +514,15 @@
     <Border Grid.RowSpan="2" IsVisible="{Binding IsNoGamePromptOpen}" Background="#B0000000">
       <Border Classes="dialog" MaxWidth="400">
         <StackPanel Spacing="12">
-          <TextBlock Text="No game installation found" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TextBlock Text="{x:Static loc:Strings.NoGame_Title}" FontSize="19" FontWeight="SemiBold" TextWrapping="Wrap"/>
           <TextBlock Classes="dim" Text="{Binding NoGameDetail}" TextWrapping="Wrap"/>
-          <TextBlock Text="Would you like to install the whole game?" TextWrapping="Wrap"/>
+          <TextBlock Text="{x:Static loc:Strings.NoGame_Question}" TextWrapping="Wrap"/>
           <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5"
-                     Text="Choose No and set the folder in settings if you already have the game copied from your PC."/>
+                     Text="{x:Static loc:Strings.NoGame_Hint}"/>
           <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
-            <Button Grid.Column="0" Classes="secondary" Content="No, I have it" Command="{Binding ChooseGameFolderCommand}"
+            <Button Grid.Column="0" Classes="secondary" Content="{x:Static loc:Strings.NoGame_No}" Command="{Binding ChooseGameFolderCommand}"
                     HorizontalAlignment="Stretch"/>
-            <Button Grid.Column="2" Classes="primary" Content="Yes, install it" Command="{Binding InstallGameCommand}"
+            <Button Grid.Column="2" Classes="primary" Content="{x:Static loc:Strings.NoGame_Yes}" Command="{Binding InstallGameCommand}"
                     Padding="0,11"/>
           </Grid>
         </StackPanel>

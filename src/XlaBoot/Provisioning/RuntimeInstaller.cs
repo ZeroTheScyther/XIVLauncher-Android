@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using XlaBoot.Localization;
 
 namespace XlaBoot.Provisioning;
 
@@ -62,14 +63,13 @@ public static class RuntimeInstaller
         HttpClient http, Action<ProvisionProgress>? report, CancellationToken cancel)
     {
         var baseUri = RuntimeManifest.BaseUri();
-        report?.Invoke(new ProvisionProgress("Checking for the runtime", 0, 0));
+        report?.Invoke(new ProvisionProgress(Strings.Runtime_Checking, 0, 0));
         var manifest = await RuntimeManifest.FetchAsync(baseUri, http, cancel).ConfigureAwait(false);
         // Installing an older runtime would leave the app unprovisioned again on the next start, and the
         // user in a loop with no explanation.
         if (manifest.RuntimeVersion < RequiredRuntimeVersion)
             throw new InvalidDataException(
-                $"The runtime on the server (version {manifest.RuntimeVersion}) is older than this version of the app "
-                + $"needs (version {RequiredRuntimeVersion}).");
+                Loc.F(Strings.Runtime_TooOld, manifest.RuntimeVersion, RequiredRuntimeVersion));
 
         var state = RuntimeState.Load(filesDir);
         var components = Order
@@ -124,7 +124,7 @@ public static class RuntimeInstaller
             // The launch script ships in the APK, not the bundle, so an app update must still replace it here:
             // returning before WriteLaunchScript kept every existing install on its first-setup copy.
             PrefixSetup.WriteLaunchScript(filesDir, runWineSh);
-            report?.Invoke(new ProvisionProgress("The runtime is up to date", 1, 1));
+            report?.Invoke(new ProvisionProgress(Strings.Runtime_UpToDate, 1, 1));
             return;
         }
 
@@ -150,7 +150,7 @@ public static class RuntimeInstaller
                 RuntimeManifest.Resolve(baseUri, component.File), component,
                 Path.Combine(cache, Path.GetFileName(component.File)), http,
                 (done, _, rate) => report?.Invoke(new ProvisionProgress(
-                    $"Downloading {Describe(component.Name)}", completed + done, total, rate)),
+                    Loc.F(Strings.Runtime_Downloading, Describe(component.Name)), completed + done, total, rate)),
                 cancel).ConfigureAwait(false);
             completed += component.Bytes;
 
@@ -167,7 +167,7 @@ public static class RuntimeInstaller
             var unpackBase = completed;
             await ArchiveExtractor.ExtractAsync(archive, Path.Combine(filesDir, component.Dest),
                 extracted => report?.Invoke(new ProvisionProgress(
-                    $"Installing {Describe(component.Name)}", unpackBase + extracted, total)),
+                    Loc.F(Strings.Runtime_Installing, Describe(component.Name)), unpackBase + extracted, total)),
                 cancel).ConfigureAwait(false);
             completed = unpackBase + component.ExtractedBytes;
 
@@ -175,7 +175,7 @@ public static class RuntimeInstaller
             // over them; the overlay then replaces the d3d DLLs among those links.
             if (component.Name == "prefix")
             {
-                report?.Invoke(new ProvisionProgress("Linking Windows system files", completed, total));
+                report?.Invoke(new ProvisionProgress(Strings.Runtime_Linking, completed, total));
                 PrefixSetup.LinkBuiltins(filesDir);
             }
 
@@ -188,7 +188,7 @@ public static class RuntimeInstaller
                 TryDelete(archive);
         }
 
-        report?.Invoke(new ProvisionProgress("Finishing setup", total, total));
+        report?.Invoke(new ProvisionProgress(Strings.Runtime_Finishing, total, total));
         PrefixSetup.WriteLaunchScript(filesDir, runWineSh);
         PrefixSetup.MakeExecutable(filesDir);
         PrefixSetup.MapDrives(filesDir, gamePath);
@@ -213,13 +213,13 @@ public static class RuntimeInstaller
     /// <summary>Names for the setup screen. Nobody outside this project knows what "vkextra" is.</summary>
     private static string Describe(string component) => component switch
     {
-        "wine" => "the Windows compatibility layer",
-        "prefix" => "the Windows environment",
-        "overlay" => "graphics libraries and fonts",
-        "rootfs" => "system libraries",
-        "vkextra" => "the graphics driver",
-        "alsa" => "audio configuration",
-        "pulseaudio" => "the audio server",
+        "wine" => Strings.Runtime_CompWine,
+        "prefix" => Strings.Runtime_CompPrefix,
+        "overlay" => Strings.Runtime_CompOverlay,
+        "rootfs" => Strings.Runtime_CompRootfs,
+        "vkextra" => Strings.Runtime_CompVkextra,
+        "alsa" => Strings.Runtime_CompAlsa,
+        "pulseaudio" => Strings.Runtime_CompPulse,
         _ => component,
     };
 
@@ -236,8 +236,7 @@ public static class RuntimeInstaller
         var free = AppHost.FreeBytes?.Invoke(filesDir) ?? 0;
         if (free > 0 && free < needed)
             throw new IOException(
-                $"Not enough free space: the runtime needs about {needed / (1 << 30)} GB and "
-                + $"{free / (1 << 30)} GB is available. Free some space and try again.");
+                Loc.F(Strings.Runtime_NoSpace, needed / (1 << 30), free / (1 << 30)));
     }
 
     /// <summary>The app's cache dir, a sibling of files/ on Android.</summary>

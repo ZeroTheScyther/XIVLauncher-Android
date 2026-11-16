@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using XIVLauncher.Common;
 using XIVLauncher.Common.Game.Exceptions;
+using XlaBoot.Localization;
 using XlaBoot.Steam;
 
 namespace XlaBoot.ViewModels;
@@ -39,8 +40,8 @@ public partial class MainViewModel : ISteamPrompts
 
     /// <summary>The line under the checkbox: who the launcher will sign in to Steam as, if it already knows.</summary>
     public string SteamStatus => _steamTokens is { } tokens
-        ? $"Signed in to Steam as {tokens.Account}."
-        : "You will be asked to sign in to Steam.";
+        ? Loc.F(Strings.Steam_SignedInAs, tokens.Account)
+        : Strings.Steam_WillAsk;
 
     /// <summary>
     /// Tells Steam this is a different client from the user's desktop Steam. Without a distinct value,
@@ -129,11 +130,9 @@ public partial class MainViewModel : ISteamPrompts
     /// <summary>While set, the Steam status lines go here instead of only to the login page's greeting.</summary>
     private Action<string>? _steamStatusSink;
 
-    private const string GameSignInReason =
-        "Your Square Enix account is linked to Steam, so Steam has to vouch for this login. Your Steam password is not saved.";
+    private static string GameSignInReason => Strings.Steam_ReasonLogin;
 
-    private const string LosslessSignInReason =
-        "In order to use this feature you must have Lossless Scaling on Steam. Please connect to your Steam account to download it.";
+    private static string LosslessSignInReason => Strings.Steam_ReasonLossless;
 
     /// <summary>Red line for the next sign-in dialog when it is not a wrong password, e.g. an account without the app.</summary>
     private string? _steamSignInNotice;
@@ -259,7 +258,7 @@ public partial class MainViewModel : ISteamPrompts
         var account = SteamAccountInput.Trim();
         if (account.Length == 0 || SteamPasswordInput.Length == 0)
         {
-            SteamSignInError = "Enter your Steam account name and password.";
+            SteamSignInError = Strings.Steam_EnterCredentials;
             return;
         }
 
@@ -312,7 +311,7 @@ public partial class MainViewModel : ISteamPrompts
         var code = SteamGuardCode.Trim().ToUpperInvariant();
         if (code.Length != 5)
         {
-            SteamGuardError = "Enter the 5-character code.";
+            SteamGuardError = Strings.Steam_EnterGuardCode;
             return;
         }
 
@@ -378,10 +377,10 @@ public partial class MainViewModel : ISteamPrompts
                 SteamAccountInput = suggestedAccount;
             SteamPasswordInput = "";
             SteamSignInError = previousWasWrong
-                ? "The saved Steam sign-in is no longer valid. Enter your password again."
+                ? Strings.Steam_SavedInvalid
                 : _steamSignInNotice ?? "";
             _steamSignInNotice = null;
-            Greeting = "Waiting for your Steam sign-in...";
+            Greeting = Strings.Greet_WaitingSteamSignIn;
             IsSteamSignInOpen = true;
         });
 
@@ -397,11 +396,11 @@ public partial class MainViewModel : ISteamPrompts
             _steamGuardPrompt = prompt;
             IsSteamGuardWaiting = false;
             SteamGuardCode = "";
-            SteamGuardError = previousWasWrong ? "That code was not accepted." : "";
+            SteamGuardError = previousWasWrong ? Strings.Steam_CodeRejected : "";
             SteamGuardDetail = kind == SteamGuardKind.Email
-                ? $"Steam emailed a 5-character code to {detail}."
-                : "The 5-character code from your Steam mobile app.";
-            Greeting = "Waiting for Steam Guard...";
+                ? Loc.F(Strings.Steam_EmailedCode, detail)
+                : Strings.Steam_AppCode;
+            Greeting = Strings.Greet_WaitingSteamGuard;
             IsSteamGuardOpen = true;
         });
 
@@ -417,8 +416,8 @@ public partial class MainViewModel : ISteamPrompts
         {
             IsSteamGuardWaiting = true;
             SteamGuardError = "";
-            SteamGuardDetail = "Steam sent a confirmation to your Steam mobile app. Approve it there to continue.";
-            Greeting = "Waiting for Steam Guard...";
+            SteamGuardDetail = Strings.Steam_ConfirmInApp;
+            Greeting = Strings.Greet_WaitingSteamGuard;
             IsSteamGuardOpen = true;
         });
 
@@ -437,23 +436,20 @@ public partial class MainViewModel : ISteamPrompts
     private static string ExplainLoginFailure(Exception ex) => ex switch
     {
         SteamLinkNeededException =>
-            "This Steam account is not linked to a Square Enix account yet. Link it once in the official "
-            + "launcher on a PC, then try again here.",
+            Strings.Steam_NotLinked,
 
         SteamWrongAccountException wrong =>
-            $"This Steam account is linked to the Square Enix ID \"{wrong.ImposedUserName}\", "
-            + $"not \"{wrong.ChosenUserName}\".",
+            Loc.F(Strings.Steam_WrongAccount, wrong.ImposedUserName, wrong.ChosenUserName),
 
         SteamTicketNullException =>
-            "Steam did not return a login ticket. Check that this Steam account owns FINAL FANTASY XIV, "
-            + "then try again.",
+            Strings.Steam_NoTicket,
 
         SteamSignInException steam => steam.Message,
 
         SteamException steam =>
-            $"Could not authenticate with Steam: {steam.Message}",
+            Loc.F(Strings.Steam_AuthFailed, steam.Message),
 
-        OperationCanceledException => "Steam sign-in cancelled.",
+        OperationCanceledException => Strings.Steam_Cancelled,
 
         _ => $"{ex.GetType().Name}: {ex.Message}",
     };

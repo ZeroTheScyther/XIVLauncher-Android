@@ -89,6 +89,8 @@ public class MainActivity : AvaloniaMainActivity<App>
             catch (Java.Lang.ClassCastException) { return null; } // a key that used to hold another type
         };
         AppHost.SetSetting = (key, value) => Prefs.Edit()!.PutString(key, value)!.Apply();
+        // "System default" for the launcher language: Java's locale is the phone's, whatever .NET's culture says.
+        XlaBoot.Localization.Loc.SystemLanguage = Java.Util.Locale.Default.Language;
         AppHost.FlushSettings = () => XServerHost.SyncSettings(this);
         AppHost.PickFolder = PickFolder;
         AppHost.PickFile = PickArchive;
@@ -146,7 +148,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         // KeepAliveService. Throttled because progress fires several times a second and each update is
         // a notification rebuild.
         var context = ApplicationContext!;
-        var keepAliveTitle = "Setting up";
+        var keepAliveTitle = XlaBoot.Localization.Strings.Setup_Title;
         AppHost.StartKeepAlive = title =>
         {
             keepAliveTitle = title;
@@ -415,7 +417,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         var documentId = global::Android.Provider.DocumentsContract.GetTreeDocumentId(uri);
         var parts = documentId?.Split(':', 2);
         if (parts == null || parts.Length == 0)
-            throw new System.InvalidOperationException("That folder is not on device storage; pick one under Internal storage or an SD card.");
+            throw new System.InvalidOperationException(XlaBoot.Localization.Strings.Picker_NotOnStorage);
 
         var root = parts[0].Equals("primary", System.StringComparison.OrdinalIgnoreCase)
             ? global::Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath
@@ -423,7 +425,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         var path = parts.Length > 1 && parts[1].Length > 0 ? root + "/" + parts[1] : root;
 
         if (path == null || !System.IO.Directory.Exists(path))
-            throw new System.InvalidOperationException("That folder is not on device storage; pick one under Internal storage or an SD card.");
+            throw new System.InvalidOperationException(XlaBoot.Localization.Strings.Picker_NotOnStorage);
         return path;
     }
 
@@ -444,11 +446,11 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         var target = System.IO.Path.Combine(CacheDir!.AbsolutePath, "import.zip");
         using (var input = ContentResolver!.OpenInputStream(uri)
-                           ?? throw new System.InvalidOperationException("That file could not be opened."))
+                           ?? throw new System.InvalidOperationException(XlaBoot.Localization.Strings.Picker_CannotOpen))
         using (var output = System.IO.File.Create(target))
             await input.CopyToAsync(output);
 
-        return new PickedFile(target, DisplayName(uri) ?? "the file");
+        return new PickedFile(target, DisplayName(uri) ?? XlaBoot.Localization.Strings.Picker_TheFile);
     }
 
     /// <summary>
@@ -467,7 +469,7 @@ public class MainActivity : AvaloniaMainActivity<App>
             return null;
 
         using (var output = ContentResolver!.OpenOutputStream(uri, "wt")
-                            ?? throw new System.InvalidOperationException("That location could not be written to."))
+                            ?? throw new System.InvalidOperationException(XlaBoot.Localization.Strings.Picker_CannotWrite))
         using (var input = System.IO.File.OpenRead(localPath))
             await input.CopyToAsync(output);
         return DisplayName(uri) ?? suggestedName;

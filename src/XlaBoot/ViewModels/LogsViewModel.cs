@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using XlaBoot.Localization;
 
 namespace XlaBoot.ViewModels;
 
@@ -80,7 +81,7 @@ public partial class LogsViewModel : ViewModelBase
     {
         if (AppHost.SaveFileAs == null)
         {
-            Detail = "Saving files isn't available on this platform.";
+            Detail = Strings.Logs_NoSave;
             return;
         }
         var name = LogExport.SuggestedName(DateTime.Now);
@@ -100,15 +101,15 @@ public partial class LogsViewModel : ViewModelBase
             var count = await System.Threading.Tasks.Task.Run(() => LogExport.Create(AppHost.FilesDir, zip, info));
             if (count == 0)
             {
-                Detail = "There are no logs to export yet.";
+                Detail = Strings.Logs_NothingToExport;
                 return;
             }
             var saved = await AppHost.SaveFileAs(name, "application/zip", zip);
-            Detail = saved == null ? "Export cancelled." : $"Saved {count} files to {saved}. Send it our way with your bug report.";
+            Detail = saved == null ? Strings.Logs_ExportCancelled : Loc.F(Strings.Logs_Saved, count, saved);
         }
         catch (Exception ex)
         {
-            Detail = $"Could not export the logs: {ex.Message}";
+            Detail = Loc.F(Strings.Logs_ExportFailed, ex.Message);
         }
         finally
         {
@@ -125,7 +126,7 @@ public partial class LogsViewModel : ViewModelBase
         if (source == null)
         {
             Text = "";
-            Detail = "No logs yet. They appear here after the game has been launched.";
+            Detail = Strings.Logs_None;
             return;
         }
 
@@ -140,14 +141,14 @@ public partial class LogsViewModel : ViewModelBase
             var text = Encoding.UTF8.GetString(buffer);
             if (start > 0 && text.IndexOf('\n') is var cut and >= 0)
                 text = text[(cut + 1)..]; // drop the partial first line
-            Text = text.Length > 0 ? text : "(empty)";
-            Detail = $"{source.Path}  ·  {length / 1024.0:F0} KB" + (start > 0 ? "  ·  showing the end" : "")
-                     + $"  ·  updated {File.GetLastWriteTime(source.Path):HH:mm:ss}";
+            Text = text.Length > 0 ? text : Strings.Logs_Empty;
+            Detail = $"{source.Path}  ·  {length / 1024.0:F0} KB" + (start > 0 ? "  ·  " + Strings.Logs_ShowingEnd : "")
+                     + "  ·  " + Loc.F(Strings.Logs_Updated, File.GetLastWriteTime(source.Path).ToString("HH:mm:ss"));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Text = "";
-            Detail = $"Could not read {source.Label}: {ex.Message}";
+            Detail = Loc.F(Strings.Logs_ReadFailed, source.Label, ex.Message);
         }
     }
 }

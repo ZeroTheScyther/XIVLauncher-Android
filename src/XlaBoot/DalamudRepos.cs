@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using XlaBoot.Localization;
 
 namespace XlaBoot;
 
@@ -80,10 +81,10 @@ public static class DalamudRepos
         }
         catch (JsonException)
         {
-            throw new InvalidDataException("That file isn't a dalamudConfig.json.");
+            throw new InvalidDataException(Strings.Repo_NotConfig);
         }
         if (source is not JsonObject sourceObject || sourceObject["ThirdRepoList"]?["$values"] is not JsonArray)
-            throw new InvalidDataException("That file isn't a dalamudConfig.json.");
+            throw new InvalidDataException(Strings.Repo_NotConfig);
 
         var incoming = Entries(sourceObject).ToList();
         var config = LoadOrNew(path);
@@ -118,7 +119,7 @@ public static class DalamudRepos
         {
         }
         // Never overwrite a file we could not read: that would wipe every Dalamud setting, not just the repos.
-        throw new InvalidDataException("Dalamud's config file is damaged, so it was left alone. Launch the game once to let Dalamud repair it.");
+        throw new InvalidDataException(Strings.Repo_ConfigDamaged);
     }
 
     /// <summary>

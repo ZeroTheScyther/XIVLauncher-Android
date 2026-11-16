@@ -1,6 +1,7 @@
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using XlaBoot.Localization;
 using XlaBoot.Views;
 
 namespace XlaBoot.ViewModels;
@@ -88,11 +89,11 @@ public partial class MainViewModel
     [ObservableProperty]
     private bool _isGameMissing;
 
-    public string PlayDetail => SafeModeNextLaunch ? "Launch in safe mode (no plugins)" : "Launch Final Fantasy XIV";
+    public string PlayDetail => SafeModeNextLaunch ? Strings.Home_PlaySafe : Strings.Home_PlayDetail;
 
     public string VersionText => AppHost.VersionName.Length > 0
         ? $"{AppHost.VersionName} ({AppHost.VersionCode})"
-        : "Development build";
+        : Strings.About_DevBuild;
 
     /// <summary>Re-checked every time Home is shown: the folder or the storage permission may have changed in settings.</summary>
     public void RefreshHome()
@@ -101,20 +102,20 @@ public partial class MainViewModel
         switch (game.Status)
         {
             case GameStatus.Present:
-                GameTitle = "Game installed";
-                GameDetail = game.Version.Length > 0 ? $"Version {game.Version}" : "Version unknown";
+                GameTitle = Strings.Home_GameInstalled;
+                GameDetail = game.Version.Length > 0 ? Loc.F(Strings.Home_Version, game.Version) : Strings.Home_VersionUnknown;
                 GameIcon = Icons.CheckCircle;
                 IsGameMissing = false;
                 break;
             case GameStatus.Unreadable:
-                GameTitle = "Game folder not readable";
-                GameDetail = "Tap Play to allow storage access, or pick the folder in Settings.";
+                GameTitle = Strings.Home_FolderUnreadable;
+                GameDetail = Strings.Home_FolderUnreadableDetail;
                 GameIcon = Icons.Warning;
                 IsGameMissing = true;
                 break;
             default:
-                GameTitle = "No game found";
-                GameDetail = "Tap Play to install it, or pick your copy in Settings.";
+                GameTitle = Strings.Home_NoGame;
+                GameDetail = Strings.Home_NoGameDetail;
                 GameIcon = Icons.Warning;
                 IsGameMissing = true;
                 break;

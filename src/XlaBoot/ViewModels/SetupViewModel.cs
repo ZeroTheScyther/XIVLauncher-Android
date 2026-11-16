@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using XlaBoot.Provisioning;
+using XlaBoot.Localization;
 
 namespace XlaBoot.ViewModels;
 
@@ -20,7 +21,7 @@ public partial class SetupViewModel : ViewModelBase
     private bool _isOpen;
 
     [ObservableProperty]
-    private string _step = "Preparing";
+    private string _step = Strings.Install_Preparing;
 
     [ObservableProperty]
     private double _fraction;
@@ -124,7 +125,7 @@ public partial class SetupViewModel : ViewModelBase
             return;
 
         Error = "";
-        Step = "Preparing";
+        Step = Strings.Install_Preparing;
         Fraction = 0;
         Detail = "";
 
@@ -147,8 +148,9 @@ public partial class SetupViewModel : ViewModelBase
         Step = progress.Step;
         Fraction = progress.Fraction;
         Detail = progress.Total > 0
-            ? $"{Megabytes(progress.Done)} of {Megabytes(progress.Total)}"
-              + (progress.BytesPerSecond > 0 ? $" at {Megabytes((long)progress.BytesPerSecond)}/s" : "")
+            ? progress.BytesPerSecond > 0
+                ? Loc.F(Strings.Progress_OfAt, Megabytes(progress.Done), Megabytes(progress.Total), Megabytes((long)progress.BytesPerSecond))
+                : Loc.F(Strings.Progress_Of, Megabytes(progress.Done), Megabytes(progress.Total))
             : "";
     });
 
@@ -163,7 +165,7 @@ public partial class SetupViewModel : ViewModelBase
         }
         if (failure is OperationCanceledException)
         {
-            Error = "Setup was cancelled.";
+            Error = Strings.Setup_Cancelled;
             return;
         }
         // The installer and downloader throw with sentences meant for a user; prefer those.

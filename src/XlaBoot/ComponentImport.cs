@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using XlaBoot.Localization;
 
 namespace XlaBoot;
 
@@ -38,7 +39,7 @@ public static class ComponentImporter
             }
             catch (InvalidDataException)
             {
-                throw new InvalidDataException("That file is not a .zip or .tar.gz archive.");
+                throw new InvalidDataException(Strings.Dxvk_NotArchive);
             }
             using var _ = archive;
             detectedVersion = archive.Entries
@@ -62,7 +63,7 @@ public static class ComponentImporter
         version = version.Trim();
         if (version.Length == 0 || version.StartsWith('.') || version.Contains('/') || version.Contains('\\')
             || version is "stock" or "stock-backup" or "selected.txt")
-            throw new InvalidDataException($"\"{version}\" can't be used as a DXVK version name.");
+            throw new InvalidDataException(Loc.F(Strings.Dxvk_BadName, version));
         var dest = Path.GetFullPath(Path.Combine(root, version));
         if (!dest.StartsWith(Path.GetFullPath(root) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             throw new InvalidDataException("The version name points outside dxvk-import.");
@@ -87,7 +88,7 @@ public static class ComponentImporter
                 extracted = ExtractTar(gzip, staging);
             }
             if (extracted == 0)
-                throw new InvalidDataException("No DLLs under x32/ or x64/, so this is not a DXVK build.");
+                throw new InvalidDataException(Strings.Dxvk_NoDlls);
         }
         catch
         {

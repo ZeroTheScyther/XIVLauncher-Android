@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using XIVLauncher.Common.Dalamud;
+using XlaBoot.Localization;
 using XlaBoot.Steam;
 
 namespace XlaBoot.ViewModels;
@@ -31,10 +32,12 @@ public partial class SettingsViewModel : ViewModelBase
     // Cycle() starts from "ON" and the first tap moves a row that already reads "Off" to "Off".
     private static readonly string[] OnOff = { "ON", "OFF" };
     private static readonly string[] OffOn = { "OFF", "ON" };
-    private static readonly string[] OnOffLabels = { "On", "Off" };
-    private static readonly string[] OffOnLabels = { "Off", "On" };
+    // Labels are read on every rebuild, so they follow a launcher language change.
+    private static string[] OnOffLabels => new[] { Strings.Common_On, Strings.Common_Off };
+    private static string[] OffOnLabels => new[] { Strings.Common_Off, Strings.Common_On };
     private static readonly string[] PresentModes = { "MAILBOX", "FIFO", "IMMEDIATE" };
-    private static readonly string[] PresentModeLabels = { "Mailbox (low latency)", "FIFO (v-synced)", "Immediate (may tear)" };
+    private static string[] PresentModeLabels =>
+        new[] { Strings.Settings_PresentMailbox, Strings.Settings_PresentFifo, Strings.Settings_PresentImmediate };
 
     [ObservableProperty]
     private bool _isOpen;
@@ -120,19 +123,34 @@ public partial class SettingsViewModel : ViewModelBase
 
     private void BuildGeneral()
     {
-        Rows.Add(new SettingsHeader("Game"));
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderGame));
 
         var gamePath = MainViewModel.GamePath;
         // GameLocation opens a file rather than stat-ing one: without the storage permission the
         // metadata of an install reads back fine while nothing in it can be opened, so an existence
         // check here would report a healthy folder that cannot be launched.
         var game = GameLocation.Check(gamePath);
-        var location = new SettingsRow("Game install location", PickGameFolder) { Value = "Change" };
+        var location = new SettingsRow(Strings.Settings_GameLocation, PickGameFolder) { Value = Strings.Settings_Change };
         location.Detail = gamePath + "\n" + game.Message;
         location.IsWarning = !game.IsPresent;
         Rows.Add(location);
 
-        Rows.Add(new SettingsHeader("Plugins"));
+        // Text language only; voice language is the game's own setting (System Configuration > Sound).
+        Rows.Add(Choice("game_language", Strings.Settings_GameLanguage,
+            new[] { "English", "French", "German", "Japanese" },
+            new[] { "English", "Français", "Deutsch", "日本語" }, ""));
+
+        // The language names stay in their own language, so a player stuck in the wrong one can still find theirs.
+        var launcherLanguages = new[] { Strings.Settings_SystemDefault, "English", "Français", "Deutsch", "日本語" };
+        Rows.Add(Dropdown(Strings.Settings_LauncherLanguage, launcherLanguages,
+            () => Array.IndexOf(Loc.Options, AppHost.Get("launcher_language", "system")),
+            index =>
+            {
+                Loc.Select(Loc.Options[index]);
+                Rebuild(); // these rows, in the new language; the rest of the app follows through Loc.Changed
+            }));
+
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderPlugins));
         // Like Choice(), but the Dalamud Repos tab appears and disappears with it.
         SettingsRow? dalamud = null;
         dalamud = new SettingsRow("Dalamud", () =>
@@ -142,18 +160,15 @@ public partial class SettingsViewModel : ViewModelBase
         })
         {
             Value = LabelOf(AppHost.Get("dalamud_enabled", OffOn[0]), OffOn, OffOnLabels),
-            Detail = "Loads the Dalamud plugin framework into the game. Downloads Dalamud on first use; "
-                     + "falls back to a plain launch if it doesn't support the installed game version yet.",
+            Detail = Strings.Settings_DalamudDetail,
         };
         Rows.Add(dalamud);
         BuildDalamudBranch();
 
-        Rows.Add(Choice("helper_plugin", "In-game helper", OnOff, OnOffLabels,
-            "Installs XIVLauncher Android Helper, a small plugin that shows this device's battery in the game's "
-            + "server info bar. Updated through Dalamud like any other plugin."));
+        Rows.Add(Choice("helper_plugin", Strings.Settings_Helper, OnOff, OnOffLabels, Strings.Settings_HelperDetail));
 
         SettingsRow? safeMode = null;
-        safeMode = new SettingsRow("Run in safe mode", () =>
+        safeMode = new SettingsRow(Strings.Settings_SafeMode, () =>
         {
             MainViewModel.SafeModeNextLaunch = !MainViewModel.SafeModeNextLaunch;
             ShowSafeMode(safeMode!);
@@ -172,14 +187,14 @@ public partial class SettingsViewModel : ViewModelBase
         var branches = _branches?.Where(b => !b.Hidden).ToList();
         if (branches == null || branches.Count == 0)
         {
-            Rows.Add(new SettingsRow("Dalamud branch", FetchBranches)
+            Rows.Add(new SettingsRow(Strings.Settings_DalamudBranch, FetchBranches)
             {
-                Value = _fetchingBranches ? "Loading" : track,
+                Value = _fetchingBranches ? Strings.Settings_Loading : track,
             });
             return;
         }
 
-        var row = Dropdown("Dalamud branch", branches.Select(b => b.DisplayNameWithAvailability).ToArray(),
+        var row = Dropdown(Strings.Settings_DalamudBranch, branches.Select(b => b.DisplayNameWithAvailability).ToArray(),
             () => branches.FindIndex(b => b.Track == track),
             index =>
             {
@@ -203,7 +218,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Status = $"Could not load Dalamud's branches: {ex.Message}";
+            Status = Loc.F(Strings.Status_BranchesFailed, ex.Message);
         }
         finally
         {
@@ -216,19 +231,18 @@ public partial class SettingsViewModel : ViewModelBase
     private static void ShowSafeMode(SettingsRow row)
     {
         var on = MainViewModel.SafeModeNextLaunch;
-        row.Value = on ? "Next launch" : "Off";
+        row.Value = on ? Strings.Settings_NextLaunch : Strings.Common_Off;
         row.IsWarning = on;
-        row.Detail = "Starts the game with Dalamud but every plugin disabled, for when a plugin makes the game crash. "
-            + "Turn the bad plugin off in /xlplugins, then launch normally. Applies to the next launch only.";
+        row.Detail = Strings.Settings_SafeModeDetail;
     }
 
     private void BuildGraphics()
     {
-        Rows.Add(new SettingsHeader("Vulkan driver"));
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderDriver));
 
         var drivers = GraphicsDrivers.All();
         var selected = GraphicsDrivers.Selected(drivers);
-        var driverRow = Dropdown("Driver", drivers.Select(d => d.Label).ToArray(),
+        var driverRow = Dropdown(Strings.Settings_Driver, drivers.Select(d => d.Label).ToArray(),
             () => drivers.FindIndex(d => d.Directory == selected.Directory),
             index =>
             {
@@ -236,91 +250,87 @@ public partial class SettingsViewModel : ViewModelBase
                 Rebuild(); // the Remove row appears and disappears with the selection
             });
         driverRow.Detail = drivers.Count == 1
-            ? selected.Detail + "\nImport another below if the game renders wrongly or will not start."
+            ? selected.Detail + "\n" + Strings.Settings_DriverImportHint
             : selected.Detail;
         Rows.Add(driverRow);
 
-        Rows.Add(new SettingsRow("Import a driver", ImportDriver)
+        Rows.Add(new SettingsRow(Strings.Settings_ImportDriver, ImportDriver)
         {
-            Value = "Pick file",
-            Detail = "An AdrenoTools .zip (a Turnip or Mesa build, the same packages Winlator and GameNative take).",
+            Value = Strings.Settings_PickFile,
+            Detail = Strings.Settings_ImportDriverDetail,
         });
 
         if (!selected.IsBundled)
         {
-            Rows.Add(new SettingsRow("Remove this driver", () =>
+            Rows.Add(new SettingsRow(Strings.Settings_RemoveDriver, () =>
             {
                 if (!_removeArmed)
                 {
                     _removeArmed = true;
-                    Status = $"Tap again to delete {selected.Label}.";
+                    Status = Loc.F(Strings.Status_TapAgainDelete, selected.Label);
                     return;
                 }
                 try
                 {
                     GraphicsDrivers.Remove(selected);
-                    Status = $"Removed {selected.Label}; back on the bundled driver.";
+                    Status = Loc.F(Strings.Status_DriverRemoved, selected.Label);
                 }
                 catch (Exception ex)
                 {
-                    Status = $"Could not remove it: {ex.GetType().Name}: {ex.Message}";
+                    Status = Loc.F(Strings.Status_RemoveFailed, $"{ex.GetType().Name}: {ex.Message}");
                 }
                 Rebuild();
             })
             {
-                Value = "Delete",
-                Detail = "Deletes the imported package. The bundled driver cannot be removed.",
+                Value = Strings.Settings_Delete,
+                Detail = Strings.Settings_RemoveDriverDetail,
                 IsWarning = true,
             });
         }
 
-        Rows.Add(new SettingsHeader("Output"));
-        Rows.Add(Choice("resolution", "Game resolution",
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderOutput));
+        Rows.Add(Choice("resolution", Strings.Settings_Resolution,
             new[] { "1280x720", "1560x720", "1170x540", "960x540" },
             new[] { "1280x720", "1560x720 (19.5:9)", "1170x540 (19.5:9)", "960x540" },
-            "The Wine desktop the game renders into; the display scales it to the panel. Lower is faster and cooler."));
-        Rows.Add(Choice("fps_cap_hz", "Frame rate cap",
+            Strings.Settings_ResolutionDetail));
+        Rows.Add(Choice("fps_cap_hz", Strings.Settings_FpsCap,
             new[] { "30", "60" }, new[] { "30 fps", "60 fps" }, ""));
-        Rows.Add(Choice("renderer", "Renderer",
-            new[] { "VULKAN", "GL" }, new[] { "Vulkan", "OpenGL (fallback)" },
-            "How the app itself presents the game's window. Vulkan hands the buffer to the display with no copy; "
-            + "OpenGL is the fallback for a device the Vulkan path cannot drive."));
+        Rows.Add(Choice("renderer", Strings.Settings_Renderer,
+            new[] { "VULKAN", "GL" }, new[] { "Vulkan", Strings.Settings_OpenGlFallback },
+            Strings.Settings_RendererDetail));
 
-        Rows.Add(new SettingsHeader("Compatibility"));
-        var presentMode = Choice("present_mode", "Present mode", PresentModes, PresentModeLabels,
-            "Mailbox is the default. Try FIFO on a driver that stutters or tears.");
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderCompat));
+        var presentMode = Choice("present_mode", Strings.Settings_PresentMode, PresentModes, PresentModeLabels,
+            Strings.Settings_PresentModeDetail);
         Rows.Add(presentMode);
-        Rows.Add(Choice("bcn_emulation", "Decompress BC textures",
-            new[] { "AUTO", "ON", "OFF" }, new[] { "Auto", "Always", "Never" },
-            "Transcodes the game's BC-compressed textures on the CPU. Needed on a GPU with no native BC support; "
-            + "pure overhead on one that has it (Adreno does, so Auto skips it)."));
-        Rows.Add(Choice("shader_cache", "Shader cache", OnOff, OnOffLabels,
-            "Keeps compiled pipelines on disk. Leave on: a cold cache costs minutes of CPU and a lot of heat on every "
-            + "launch. Turn it off only to rule the cache out after a driver change."));
+        Rows.Add(Choice("bcn_emulation", Strings.Settings_Bcn,
+            new[] { "AUTO", "ON", "OFF" }, new[] { Strings.Common_Auto, Strings.Settings_Always, Strings.Settings_Never },
+            Strings.Settings_BcnDetail));
+        Rows.Add(Choice("shader_cache", Strings.Settings_ShaderCache, OnOff, OnOffLabels, Strings.Settings_ShaderCacheDetail));
 
         BuildFrameGeneration(presentMode);
 
         // FFXIV.cfg only exists once the game has run, so the row shows greyed out until then.
         var config = GameSettingsPreset.ConfigPath(AppHost.FilesDir);
-        Rows.Add(new SettingsHeader("Game settings"));
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderGameSettings));
         SettingsRow? optimize = null;
-        optimize = new SettingsRow("Optimize game settings", () =>
+        optimize = new SettingsRow(Strings.Settings_Optimize, () =>
         {
             try
             {
                 var changed = GameSettingsPreset.Apply(config);
-                optimize!.Value = "Done";
-                Status = changed == 0 ? "Game settings were already optimized." : $"Optimized {changed} game settings.";
+                optimize!.Value = Strings.Settings_Done;
+                Status = changed == 0 ? Strings.Status_AlreadyOptimized : Loc.F(Strings.Status_Optimized, changed);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                optimize!.Value = "Failed";
-                Status = $"Could not update FFXIV.cfg: {ex.Message}";
+                optimize!.Value = Strings.Settings_Failed;
+                Status = Loc.F(Strings.Status_CfgFailed, ex.Message);
             }
         })
         {
-            Value = "Apply",
-            Detail = "Set FFXIV's graphic options to a preset tuned for 30 FPS with the least heat on a phone.",
+            Value = Strings.Settings_Apply,
+            Detail = Strings.Settings_OptimizeDetail,
             IsAvailable = File.Exists(config),
         };
         Rows.Add(optimize);
@@ -330,11 +340,11 @@ public partial class SettingsViewModel : ViewModelBase
     {
         // lsfg-vk extracts its shaders from the player's own Lossless.dll, so nothing else here works
         // until that has been downloaded. xla.XlaSettings also checks for the file before arming the layer.
-        Rows.Add(new SettingsHeader("Frame generation"));
+        Rows.Add(new SettingsHeader(Strings.Settings_FrameGen));
         var installed = LosslessFetch.IsInstalled(AppHost.FilesDir);
         Rows.Add(new SettingsRow("Lossless Scaling", DownloadLossless)
         {
-            Value = _fetchingLossless ? "Downloading" : installed ? "Update" : "Download",
+            Value = _fetchingLossless ? Strings.Settings_Downloading : installed ? Strings.Settings_Update : Strings.Settings_Download,
             IsAvailable = !_fetchingLossless && FetchLossless != null,
         });
         if (!installed)
@@ -343,7 +353,7 @@ public partial class SettingsViewModel : ViewModelBase
         // lsfg-vk judders on FIFO and holds steady on Mailbox, so turning it on moves FIFO over. The player
         // can still pick FIFO again afterwards.
         SettingsRow? enabled = null;
-        enabled = new SettingsRow("Frame generation", () =>
+        enabled = new SettingsRow(Strings.Settings_FrameGen, () =>
         {
             var value = AppHost.Cycle("lsfg_enabled", OffOn);
             enabled!.Value = LabelOf(value, OffOn, OffOnLabels);
@@ -357,9 +367,9 @@ public partial class SettingsViewModel : ViewModelBase
             Value = LabelOf(AppHost.Get("lsfg_enabled", OffOn[0]), OffOn, OffOnLabels),
         };
         Rows.Add(enabled);
-        Rows.Add(Choice("lsfg_flow_scale", "Flow scale",
+        Rows.Add(Choice("lsfg_flow_scale", Strings.Settings_FlowScale,
             new[] { "0.80", "1.00", "0.65", "0.50" }, new[] { "80%", "100%", "65%", "50%" }, ""));
-        Rows.Add(Choice("lsfg_performance", "Performance mode", OnOff, OnOffLabels, ""));
+        Rows.Add(Choice("lsfg_performance", Strings.Settings_PerformanceMode, OnOff, OnOffLabels, ""));
     }
 
     private async Task DownloadLossless()
@@ -373,16 +383,16 @@ public partial class SettingsViewModel : ViewModelBase
         {
             // Progress arrives from SteamKit's threads.
             var downloaded = await FetchLossless(m => Dispatcher.UIThread.Post(() => Status = m));
-            Status = downloaded ? "Lossless.dll downloaded." : "Lossless.dll is up to date.";
+            Status = downloaded ? Strings.Status_LosslessDownloaded : Strings.Status_LosslessUpToDate;
         }
         catch (OperationCanceledException)
         {
-            Status = "Steam sign-in cancelled.";
+            Status = Strings.Steam_Cancelled;
         }
         catch (Exception ex)
         {
             // SteamSignInException carries wording meant for the player; anything else is a plain failure.
-            Status = ex is SteamSignInException ? ex.Message : $"Download failed: {ex.GetType().Name}: {ex.Message}";
+            Status = ex is SteamSignInException ? ex.Message : Loc.F(Strings.Status_DownloadFailed, $"{ex.GetType().Name}: {ex.Message}");
         }
         finally
         {
@@ -394,84 +404,78 @@ public partial class SettingsViewModel : ViewModelBase
 
     private void BuildAdvanced()
     {
-        Rows.Add(new SettingsHeader("x86 emulation (FEXCore)"));
-        Rows.Add(Choice("fex_preset", "Preset",
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderFex));
+        Rows.Add(Choice("fex_preset", Strings.Settings_Preset,
             new[] { "INTERMEDIATE", "PERFORMANCE", "COMPATIBILITY" },
-            new[] { "Intermediate", "Performance", "Compatibility" },
-            "How faithfully FEX emulates x86 memory ordering. Intermediate is what runs the game here; "
-            + "Performance drops the remaining barriers (faster, can break); Compatibility keeps them all (slower, cooler code paths)."));
-        Rows.Add(Choice("fex_multiblock", "Multi-block recompilation", OnOff, OnOffLabels,
-            "Lets FEX compile past a branch into one block. Faster; off is a debugging step for a device that crashes early."));
-        Rows.Add(Choice("fex_diskcache", "Code cache", OnOff, OnOffLabels,
-            "Keeps translated code between launches. Faster startup; off if the game misbehaves after a cached launch."));
+            new[] { Strings.Settings_FexIntermediate, Strings.Settings_FexPerformance, Strings.Settings_HeaderCompat },
+            Strings.Settings_PresetDetail));
+        Rows.Add(Choice("fex_multiblock", Strings.Settings_Multiblock, OnOff, OnOffLabels, Strings.Settings_MultiblockDetail));
+        Rows.Add(Choice("fex_diskcache", Strings.Settings_CodeCache, OnOff, OnOffLabels, Strings.Settings_CodeCacheDetail));
 
-        Rows.Add(new SettingsHeader("DXVK"));
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderDxvk));
         var dxvkVersions = ComponentImporter.DxvkVersions(AppHost.FilesDir);
         var selected = ComponentImporter.SelectedVersion(AppHost.FilesDir);
         var dxvkLabels = dxvkVersions
-            .Select(v => v == selected ? v + " (active)" : v)
-            .Prepend("Stock (runtime default)")
+            .Select(v => v == selected ? Loc.F(Strings.Settings_ActiveSuffix, v) : v)
+            .Prepend(Strings.Settings_DxvkStock)
             .ToArray();
         var selectedIndex = selected == "stock" ? 0 : dxvkVersions.ToList().IndexOf(selected) + 1;
 
-        Rows.Add(Dropdown("DXVK version", dxvkLabels,
+        Rows.Add(Dropdown(Strings.Settings_DxvkVersion, dxvkLabels,
             () => selectedIndex,
             index =>
             {
                 var version = index == 0 ? "stock" : dxvkVersions[index - 1];
                 ComponentImporter.SelectVersion(AppHost.FilesDir, version);
-                Status = version == "stock" ? "Using runtime default." : $"Using {version}.";
+                Status = version == "stock" ? Strings.Status_DxvkStock : Loc.F(Strings.Status_DxvkUsing, version);
                 Rebuild();
             }));
-        Rows.Add(new SettingsRow("Import DXVK", ImportDxvk)
+        Rows.Add(new SettingsRow(Strings.Settings_ImportDxvk, ImportDxvk)
         {
-            Value = "Pick zip/tar.gz",
-            Detail = selected == "stock" ? "Using the runtime's built-in DXVK." : $"Active: {selected}.",
+            Value = Strings.Settings_PickZipTar,
+            Detail = selected == "stock" ? Strings.Settings_DxvkBuiltIn : Loc.F(Strings.Settings_DxvkActive, selected),
         });
 
         if (selected != "stock")
         {
-            Rows.Add(new SettingsRow("Remove this DXVK", () =>
+            Rows.Add(new SettingsRow(Strings.Settings_RemoveDxvk, () =>
             {
                 if (!_removeDxvkArmed)
                 {
                     _removeDxvkArmed = true;
-                    Status = $"Tap again to delete {selected}.";
+                    Status = Loc.F(Strings.Status_TapAgainDelete, selected);
                     return;
                 }
                 try
                 {
                     ComponentImporter.RemoveDxvk(AppHost.FilesDir, selected);
-                    Status = $"Removed {selected}; back on the runtime's DXVK.";
+                    Status = Loc.F(Strings.Status_DxvkRemoved, selected);
                 }
                 catch (Exception ex)
                 {
-                    Status = $"Could not remove it: {ex.GetType().Name}: {ex.Message}";
+                    Status = Loc.F(Strings.Status_RemoveFailed, $"{ex.GetType().Name}: {ex.Message}");
                 }
                 Rebuild();
             })
             {
-                Value = "Delete",
-                Detail = $"Deletes the imported DXVK {selected}.",
+                Value = Strings.Settings_Delete,
+                Detail = Loc.F(Strings.Settings_RemoveDxvkDetail, selected),
                 IsWarning = true,
             });
         }
 
         Rows.Add(new SettingsHeader("Wine"));
-        Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels,
-            "Eventfd-based synchronisation instead of the server round trip. Much faster; off if threads deadlock."));
-        Rows.Add(Choice("dxvk_async", "DXVK async shaders", OnOff, OnOffLabels,
-            "Draws with a stand-in pipeline while the real one compiles. Hides compile stutter, can briefly show "
-            + "untextured geometry."));
-        Rows.Add(Choice("wine_log", "Wine log",
-            new[] { "OFF", "ERRORS", "FULL" }, new[] { "Off", "Errors only", "Everything" },
-            "Enable wine logging (Slow). Turn it on when the game will not start at all to see why."));
+        Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels, Strings.Settings_EsyncDetail));
+        Rows.Add(Choice("dxvk_async", Strings.Settings_DxvkAsync, OnOff, OnOffLabels, Strings.Settings_DxvkAsyncDetail));
+        Rows.Add(Choice("wine_log", Strings.Settings_WineLog,
+            new[] { "OFF", "ERRORS", "FULL" }, new[] { Strings.Common_Off, Strings.Settings_ErrorsOnly, Strings.Settings_Everything },
+            Strings.Settings_WineLogDetail));
     }
 
     private void BuildRepos()
     {
         var config = DalamudRepos.ConfigPath(AppHost.FilesDir);
-        Rows.Add(new SettingsHeader("Custom plugin repos"));
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderRepos));
 
         IReadOnlyList<(string Url, bool IsEnabled)> repos;
         try
@@ -487,27 +491,27 @@ public partial class SettingsViewModel : ViewModelBase
         foreach (var (url, enabled) in repos)
             Rows.Add(new RepoRow(url, enabled, () => RemoveRepo(config, url)));
         if (repos.Count == 0)
-            Rows.Add(new SettingsRow("No custom repos yet", () => { }) { IsAvailable = false });
+            Rows.Add(new SettingsRow(Strings.Settings_NoRepos, () => { }) { IsAvailable = false });
 
         SettingsRow? add = null;
-        add = new SettingsRow("Add repo", () =>
+        add = new SettingsRow(Strings.Settings_AddRepo, () =>
         {
             if (Rows.OfType<RepoInputRow>().Any())
                 return;
             Rows.Insert(Rows.IndexOf(add!) + 1, new RepoInputRow(input => AddRepo(config, input), Rebuild));
         })
         {
-            Detail = "Paste the link to a plugin repo, the same one you'd add in Dalamud's settings.",
+            Detail = Strings.Settings_AddRepoDetail,
         };
         Rows.Add(add);
 
-        Rows.Add(new SettingsHeader("Import"));
-        Rows.Add(new SettingsRow("Import from dalamudConfig.json", () => ImportRepos(config))
+        Rows.Add(new SettingsHeader(Strings.Settings_HeaderImport));
+        Rows.Add(new SettingsRow(Strings.Settings_ImportRepos, () => ImportRepos(config))
         {
-            Value = "Pick file",
-            Detail = "Adds every repo from a dalamudConfig.json copied from your PC that isn't already here.",
+            Value = Strings.Settings_PickFile,
+            Detail = Strings.Settings_ImportReposDetail,
         });
-        Rows.Add(new SettingsRow("Import plugin configs", ImportPluginConfigs) { Value = "Pick zip" });
+        Rows.Add(new SettingsRow(Strings.Settings_ImportPluginConfigs, ImportPluginConfigs) { Value = Strings.Settings_PickZip });
     }
 
     private void AddRepo(string config, RepoInputRow input)
@@ -517,13 +521,13 @@ public partial class SettingsViewModel : ViewModelBase
             switch (DalamudRepos.Add(config, input.Text))
             {
                 case AddRepoResult.Invalid:
-                    input.Error = "That isn't a web link.";
+                    input.Error = Strings.Repo_NotALink;
                     return;
                 case AddRepoResult.Duplicate:
-                    input.Error = "That repo is already added.";
+                    input.Error = Strings.Repo_Duplicate;
                     return;
             }
-            Status = "Repo added.";
+            Status = Strings.Status_RepoAdded;
             Rebuild();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
@@ -536,7 +540,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         try
         {
-            Status = DalamudRepos.Remove(config, url) ? "Repo removed." : "That repo was already gone.";
+            Status = DalamudRepos.Remove(config, url) ? Strings.Status_RepoRemoved : Strings.Status_RepoGone;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
         {
@@ -549,7 +553,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (AppHost.PickFile == null)
         {
-            Status = "No file picker on this platform.";
+            Status = Strings.Status_NoFilePicker;
             return;
         }
         PickedFile? file = null;
@@ -560,8 +564,10 @@ public partial class SettingsViewModel : ViewModelBase
                 return;
             var (added, skipped) = DalamudRepos.Import(config, file.Path);
             Status = added == 0
-                ? $"Nothing new in {file.Name}; every repo is already here."
-                : $"Added {added} repo{(added == 1 ? "" : "s")}" + (skipped > 0 ? $", {skipped} were already here." : ".");
+                ? Loc.F(Strings.Status_ReposNothingNew, file.Name)
+                : skipped > 0
+                    ? Loc.F(Strings.Status_ReposAddedSkipped, added, skipped)
+                    : Loc.F(Strings.Status_ReposAdded, added);
             Rebuild();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
@@ -583,7 +589,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (AppHost.PickFile == null)
         {
-            Status = "No file picker on this platform.";
+            Status = Strings.Status_NoFilePicker;
             return;
         }
         PickedFile? file = null;
@@ -592,14 +598,14 @@ public partial class SettingsViewModel : ViewModelBase
             file = await AppHost.PickFile();
             if (file == null)
                 return;
-            Status = "Importing plugin configs...";
+            Status = Strings.Status_ImportingConfigs;
             var path = file.Path;
             var count = await Task.Run(() => PluginConfigs.Import(path, AppHost.FilesDir));
-            Status = $"Imported configs for {count} plugin{(count == 1 ? "" : "s")}.";
+            Status = Loc.F(Strings.Status_ConfigsImported, count);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
         {
-            Status = ex is InvalidDataException ? ex.Message : "Could not import: " + ex.Message;
+            Status = ex is InvalidDataException ? ex.Message : Loc.F(Strings.Status_ImportFailed, ex.Message);
         }
         finally
         {
@@ -618,7 +624,7 @@ public partial class SettingsViewModel : ViewModelBase
     private SettingsRow Choice(string key, string title, string[] options, string[] labels, string detail)
     {
         SettingsRow row;
-        if (labels == OnOffLabels || labels == OffOnLabels)
+        if (options == OnOff || options == OffOn)
         {
             SettingsRow? flip = null;
             flip = new SettingsRow(title, () => flip!.Value = LabelOf(AppHost.Cycle(key, options), options, labels));
@@ -691,7 +697,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (AppHost.PickFolder == null)
         {
-            Status = "No folder picker on this platform.";
+            Status = Strings.Status_NoFolderPicker;
             return;
         }
         try
@@ -712,21 +718,20 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 if (AppHost.RequestAllFilesAccess != null)
                 {
-                    Status = "To install to this folder, allow XIVLauncher to manage all files, then come back.";
+                    Status = Strings.Status_AllFilesAccess;
                     await AppHost.RequestAllFilesAccess();
                 }
                 if (!GameLocation.CanWrite(path))
                 {
-                    Status = $"XIVLauncher cannot write to {path}. Allow \"All files access\" for XIVLauncher, "
-                             + "or pick a folder on internal storage.";
+                    Status = Loc.F(Strings.Status_CannotWrite, path);
                     return;
                 }
             }
 
             GameLocation.Use(path);
             Status = picked.IsPresent
-                ? "Game location saved."
-                : "Game location saved. There is no game here yet - Log in & Play will offer to install it.";
+                ? Strings.Status_LocationSaved
+                : Strings.Status_LocationSavedEmpty;
             Rebuild();
         }
         catch (Exception ex)
@@ -740,7 +745,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (AppHost.PickFile == null)
         {
-            Status = "No file picker on this platform.";
+            Status = Strings.Status_NoFilePicker;
             return;
         }
 
@@ -750,17 +755,17 @@ public partial class SettingsViewModel : ViewModelBase
             file = await AppHost.PickFile();
             if (file == null)
                 return;
-            Status = $"Unpacking {file.Name}...";
+            Status = Loc.F(Strings.Status_Unpacking, file.Name);
             var driver = await Task.Run(() => GraphicsDrivers.Import(file.Path));
             GraphicsDrivers.Select(driver);
-            Status = $"Installed and selected {driver.Label}.";
+            Status = Loc.F(Strings.Status_DriverInstalled, driver.Label);
             Rebuild();
         }
         catch (Exception ex)
         {
             // The message is written for the user: GraphicsDrivers.Import throws with the reason the
             // archive is not a driver package, and everything else is an IO or zip failure.
-            Status = "Not installed - " + ex.Message;
+            Status = Loc.F(Strings.Status_NotInstalled, ex.Message);
         }
         finally
         {
@@ -776,7 +781,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (AppHost.PickFile == null)
         {
-            Status = "No file picker on this platform.";
+            Status = Strings.Status_NoFilePicker;
             return;
         }
 
@@ -786,14 +791,14 @@ public partial class SettingsViewModel : ViewModelBase
             file = await AppHost.PickFile();
             if (file == null)
                 return;
-            Status = "Importing DXVK...";
+            Status = Strings.Status_ImportingDxvk;
             await Task.Run(() => ComponentImporter.ImportDxvk(file.Path, AppHost.FilesDir));
-            Status = "Imported. Next launch uses the new DLLs.";
+            Status = Strings.Status_DxvkImported;
             Rebuild();
         }
         catch (Exception ex)
         {
-            Status = "Import failed: " + ex.Message;
+            Status = Loc.F(Strings.Status_ImportFailedReason, ex.Message);
         }
         finally
         {

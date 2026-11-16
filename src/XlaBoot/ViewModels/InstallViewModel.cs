@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using XIVLauncher.Common.Game.Patch.PatchList;
 using XlaBoot.Install;
+using XlaBoot.Localization;
 
 namespace XlaBoot.ViewModels;
 
@@ -22,7 +23,7 @@ public partial class InstallViewModel : ViewModelBase
     private string _title = "Installing FFXIV";
 
     [ObservableProperty]
-    private string _step = "Preparing";
+    private string _step = Strings.Install_Preparing;
 
     [ObservableProperty]
     private double _fraction;
@@ -70,7 +71,7 @@ public partial class InstallViewModel : ViewModelBase
     public Task<bool> RunAsync(string title, string gamePath, IReadOnlyList<PatchListEntry> patches)
     {
         Title = title;
-        Step = "Preparing";
+        Step = Strings.Install_Preparing;
         Fraction = 0;
         Detail = "";
         _rate = 0;
@@ -132,18 +133,18 @@ public partial class InstallViewModel : ViewModelBase
 
     private void OnProgress(InstallProgress p) => Dispatcher.UIThread.Post(() =>
     {
-        Step = IsCancelling ? "Stopping after this step…" : p.Step;
+        Step = IsCancelling ? Strings.Install_Stopping : p.Step;
         Fraction = p.Fraction;
 
         if (p.BytesPerSecond > 0)
             _rate = _rate <= 0 ? p.BytesPerSecond : _rate * 0.8 + p.BytesPerSecond * 0.2;
 
-        var detail = $"{Gigabytes(p.DownloadedBytes)} of {Gigabytes(p.TotalBytes)} downloaded";
+        var detail = Loc.F(Strings.Install_Downloaded, Gigabytes(p.DownloadedBytes), Gigabytes(p.TotalBytes));
         if (p.BytesPerSecond > 0 && _rate > 0)
         {
             detail += $" · {_rate / 1048576.0:F1} MB/s";
             var remaining = TimeSpan.FromSeconds((p.TotalBytes - p.DownloadedBytes) / _rate);
-            detail += $" · about {Duration(remaining)} left";
+            detail += " · " + Loc.F(Strings.Install_TimeLeft, Duration(remaining));
         }
         Detail = detail;
     });
@@ -153,6 +154,6 @@ public partial class InstallViewModel : ViewModelBase
         : $"{bytes / 1048576.0:F0} MB";
 
     private static string Duration(TimeSpan t) => t.TotalHours >= 1
-        ? $"{(int)t.TotalHours} h {t.Minutes} min"
-        : t.TotalMinutes >= 1 ? $"{(int)Math.Ceiling(t.TotalMinutes)} min" : "a minute";
+        ? Loc.F(Strings.Install_HoursMinutes, (int)t.TotalHours, t.Minutes)
+        : t.TotalMinutes >= 1 ? Loc.F(Strings.Install_Minutes, (int)Math.Ceiling(t.TotalMinutes)) : Strings.Install_AMinute;
 }

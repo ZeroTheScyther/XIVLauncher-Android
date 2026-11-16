@@ -33,7 +33,7 @@ public class KeepAliveService : Service
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        var title = intent?.GetStringExtra(ExtraTitle) ?? "Working";
+        var title = intent?.GetStringExtra(ExtraTitle) ?? XlaBoot.Localization.Strings.Notif_Working;
         var text = intent?.GetStringExtra(ExtraText) ?? "";
         var progress = intent?.GetIntExtra(ExtraProgress, -1) ?? -1;
 
@@ -84,7 +84,7 @@ public class KeepAliveService : Service
         if (System.OperatingSystem.IsAndroidVersionAtLeast(26) && manager != null)
         {
             // Low importance: informative, never a sound or a heads-up banner.
-            var channel = new NotificationChannel(ChannelId, "Setup progress", NotificationImportance.Low);
+            var channel = new NotificationChannel(ChannelId, XlaBoot.Localization.Strings.Notif_Channel, NotificationImportance.Low);
             channel.SetShowBadge(false);
             manager.CreateNotificationChannel(channel);
         }

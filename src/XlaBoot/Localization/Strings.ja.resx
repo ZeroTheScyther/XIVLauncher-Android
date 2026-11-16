@@ -1,0 +1,1000 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Home_Subtitle" xml:space="preserve">
+    <value>Android で FINAL FANTASY XIV</value>
+  </data>
+  <data name="Home_UpdateAvailable" xml:space="preserve">
+    <value>アップデートがあります</value>
+  </data>
+  <data name="Home_Play" xml:space="preserve">
+    <value>プレイ</value>
+  </data>
+  <data name="Home_About" xml:space="preserve">
+    <value>このアプリについて</value>
+  </data>
+  <data name="Home_AboutDetail" xml:space="preserve">
+    <value>クレジット、ライセンスなど</value>
+  </data>
+  <data name="Login_Intro" xml:space="preserve">
+    <value>FFXIVを起動するには、スクウェア・エニックス アカウントでログインしてください。</value>
+  </data>
+  <data name="Login_Username" xml:space="preserve">
+    <value>ユーザーID</value>
+  </data>
+  <data name="Login_Password" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="Login_UseOtp" xml:space="preserve">
+    <value>ワンタイムパスワードを使用</value>
+  </data>
+  <data name="Login_SteamAccount" xml:space="preserve">
+    <value>Steamサービスアカウントを使用</value>
+  </data>
+  <data name="Login_FreeTrial" xml:space="preserve">
+    <value>フリートライアルのアカウント</value>
+  </data>
+  <data name="Login_Remember" xml:space="preserve">
+    <value>ログイン情報を保存</value>
+  </data>
+  <data name="Login_Button" xml:space="preserve">
+    <value>ログインしてプレイ</value>
+  </data>
+  <data name="Logs_Title" xml:space="preserve">
+    <value>ログ</value>
+  </data>
+  <data name="About_Subtitle" xml:space="preserve">
+    <value>Android移植版</value>
+  </data>
+  <data name="About_Intro" xml:space="preserve">
+    <value>XIVLauncherとDalamudをAndroidで使えるようにするコミュニティプロジェクトです。</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>バージョン</value>
+  </data>
+  <data name="About_BuiltWith" xml:space="preserve">
+    <value>使用技術</value>
+  </data>
+  <data name="About_RunsOn" xml:space="preserve">
+    <value>動作環境</value>
+  </data>
+  <data name="About_Thanks" xml:space="preserve">
+    <value>謝辞</value>
+  </data>
+  <data name="About_ThanksText" xml:space="preserve">
+    <value>XIVLauncherとDalamudはgoatcorpとコントリビューターの皆さん、Wine、FEX-Emu、DXVK、Mesa Turnipは各作者の皆さん、Androidコンテナの土台はWinlatorとGameNativeによるものです。そしてFFXIVコミュニティの皆さんに感謝します。</value>
+  </data>
+  <data name="About_Coffee" xml:space="preserve">
+    <value>コーヒーをおごる</value>
+  </data>
+  <data name="About_Discord" xml:space="preserve">
+    <value>Discordに参加</value>
+  </data>
+  <data name="About_Legal" xml:space="preserve">
+    <value>本アプリはスクウェア・エニックスとは無関係であり、承認を受けたものではありません。FINAL FANTASYは株式会社スクウェア・エニックス・ホールディングスの登録商標です。</value>
+  </data>
+  <data name="About_Tagline" xml:space="preserve">
+    <value>同じ冒険を、新しいデバイスで。</value>
+  </data>
+  <data name="Nav_Home" xml:space="preserve">
+    <value>ホーム</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="Otp_Title" xml:space="preserve">
+    <value>ワンタイムパスワードを入力</value>
+  </data>
+  <data name="Otp_Detail" xml:space="preserve">
+    <value>スクウェア・エニックスの認証アプリに表示される6桁のコードです。</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Common_LogIn" xml:space="preserve">
+    <value>ログイン</value>
+  </data>
+  <data name="Common_Continue" xml:space="preserve">
+    <value>続行</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Common_TryAgain" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="Steam_SignInTitle" xml:space="preserve">
+    <value>Steamにサインイン</value>
+  </data>
+  <data name="Steam_AccountName" xml:space="preserve">
+    <value>Steamアカウント名</value>
+  </data>
+  <data name="Steam_Password" xml:space="preserve">
+    <value>Steamパスワード</value>
+  </data>
+  <data name="Steam_SignIn" xml:space="preserve">
+    <value>サインイン</value>
+  </data>
+  <data name="Steam_EnterCodeInstead" xml:space="preserve">
+    <value>代わりにコードを入力</value>
+  </data>
+  <data name="NoGame_Title" xml:space="preserve">
+    <value>ゲームのインストールが見つかりません</value>
+  </data>
+  <data name="NoGame_Question" xml:space="preserve">
+    <value>ゲーム全体をインストールしますか？</value>
+  </data>
+  <data name="NoGame_Hint" xml:space="preserve">
+    <value>PCからゲームをコピー済みの場合は「いいえ」を選び、設定でフォルダーを指定してください。</value>
+  </data>
+  <data name="NoGame_No" xml:space="preserve">
+    <value>いいえ、持っています</value>
+  </data>
+  <data name="NoGame_Yes" xml:space="preserve">
+    <value>はい、インストールする</value>
+  </data>
+  <data name="Settings_TabGeneral" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="Settings_TabGraphics" xml:space="preserve">
+    <value>グラフィック</value>
+  </data>
+  <data name="Settings_TabAdvanced" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="Settings_TabRepos" xml:space="preserve">
+    <value>Dalamudリポジトリ</value>
+  </data>
+  <data name="Settings_Footer" xml:space="preserve">
+    <value>これらの設定は次回のゲーム起動時に適用されます。</value>
+  </data>
+  <data name="Setup_Title" xml:space="preserve">
+    <value>セットアップ中</value>
+  </data>
+  <data name="Setup_Intro" xml:space="preserve">
+    <value>ゲームの実行に必要なファイルをダウンロードしています。初回のみで、数分かかります。</value>
+  </data>
+  <data name="Setup_Failed" xml:space="preserve">
+    <value>セットアップを完了できませんでした</value>
+  </data>
+  <data name="Background_Hint" xml:space="preserve">
+    <value>アプリを離れると、Androidがこのダウンロードを一時停止することがあります。バックグラウンドでの実行を許可すると、自動で最後まで完了します。</value>
+  </data>
+  <data name="Background_Allow" xml:space="preserve">
+    <value>バックグラウンドでのダウンロードを許可</value>
+  </data>
+  <data name="Install_Intro" xml:space="preserve">
+    <value>実行中はアプリを離れても大丈夫です。中断しても、ダウンロード済みのデータは保持され、続きから再開します。</value>
+  </data>
+  <data name="Install_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Install_Failed" xml:space="preserve">
+    <value>インストールを完了できませんでした</value>
+  </data>
+  <data name="Install_RetryHint" xml:space="preserve">
+    <value>「ログインしてプレイ」をタップして再試行してください。</value>
+  </data>
+  <data name="Common_On" xml:space="preserve">
+    <value>オン</value>
+  </data>
+  <data name="Common_Off" xml:space="preserve">
+    <value>オフ</value>
+  </data>
+  <data name="Common_Auto" xml:space="preserve">
+    <value>自動</value>
+  </data>
+  <data name="Settings_Always" xml:space="preserve">
+    <value>常に</value>
+  </data>
+  <data name="Settings_Never" xml:space="preserve">
+    <value>しない</value>
+  </data>
+  <data name="Settings_PresentMailbox" xml:space="preserve">
+    <value>Mailbox（低遅延）</value>
+  </data>
+  <data name="Settings_PresentFifo" xml:space="preserve">
+    <value>FIFO（垂直同期）</value>
+  </data>
+  <data name="Settings_PresentImmediate" xml:space="preserve">
+    <value>Immediate（ティアリングの可能性あり）</value>
+  </data>
+  <data name="Settings_HeaderGame" xml:space="preserve">
+    <value>ゲーム</value>
+  </data>
+  <data name="Settings_GameLocation" xml:space="preserve">
+    <value>ゲームのインストール先</value>
+  </data>
+  <data name="Settings_Change" xml:space="preserve">
+    <value>変更</value>
+  </data>
+  <data name="Settings_GameLanguage" xml:space="preserve">
+    <value>ゲームの言語</value>
+  </data>
+  <data name="Settings_LauncherLanguage" xml:space="preserve">
+    <value>ランチャーの言語</value>
+  </data>
+  <data name="Settings_SystemDefault" xml:space="preserve">
+    <value>端末の設定に従う</value>
+  </data>
+  <data name="Settings_HeaderPlugins" xml:space="preserve">
+    <value>プラグイン</value>
+  </data>
+  <data name="Settings_DalamudDetail" xml:space="preserve">
+    <value>ゲームにDalamudプラグインフレームワークを読み込みます。初回使用時にDalamudをダウンロードします。インストール済みのゲームバージョンにまだ対応していない場合は、Dalamudなしで起動します。</value>
+  </data>
+  <data name="Settings_DalamudBranch" xml:space="preserve">
+    <value>Dalamudのブランチ</value>
+  </data>
+  <data name="Settings_Loading" xml:space="preserve">
+    <value>読み込み中</value>
+  </data>
+  <data name="Status_BranchesFailed" xml:space="preserve">
+    <value>Dalamudのブランチを読み込めませんでした: {0}</value>
+  </data>
+  <data name="Settings_Helper" xml:space="preserve">
+    <value>ゲーム内ヘルパー</value>
+  </data>
+  <data name="Settings_HelperDetail" xml:space="preserve">
+    <value>XIVLauncher Android Helperをインストールします。端末のバッテリー残量をゲームのサーバー情報バーに表示する小さなプラグインです。他のプラグインと同じくDalamudで更新されます。</value>
+  </data>
+  <data name="Settings_SafeMode" xml:space="preserve">
+    <value>セーフモードで起動</value>
+  </data>
+  <data name="Settings_NextLaunch" xml:space="preserve">
+    <value>次回起動時</value>
+  </data>
+  <data name="Settings_SafeModeDetail" xml:space="preserve">
+    <value>プラグインが原因でゲームがクラッシュするときに、Dalamudを有効にしたまま全プラグインを無効にして起動します。/xlplugins で問題のプラグインをオフにしてから、通常どおり起動してください。次回の起動にのみ適用されます。</value>
+  </data>
+  <data name="Settings_HeaderDriver" xml:space="preserve">
+    <value>Vulkanドライバー</value>
+  </data>
+  <data name="Settings_Driver" xml:space="preserve">
+    <value>ドライバー</value>
+  </data>
+  <data name="Settings_DriverImportHint" xml:space="preserve">
+    <value>ゲームの表示がおかしい場合や起動しない場合は、下から別のドライバーをインポートしてください。</value>
+  </data>
+  <data name="Settings_ImportDriver" xml:space="preserve">
+    <value>ドライバーをインポート</value>
+  </data>
+  <data name="Settings_PickFile" xml:space="preserve">
+    <value>ファイルを選択</value>
+  </data>
+  <data name="Settings_ImportDriverDetail" xml:space="preserve">
+    <value>AdrenoToolsの.zip（TurnipまたはMesaのビルド。WinlatorやGameNativeと同じパッケージです）。</value>
+  </data>
+  <data name="Settings_RemoveDriver" xml:space="preserve">
+    <value>このドライバーを削除</value>
+  </data>
+  <data name="Status_TapAgainDelete" xml:space="preserve">
+    <value>もう一度タップすると {0} を削除します。</value>
+  </data>
+  <data name="Status_DriverRemoved" xml:space="preserve">
+    <value>{0} を削除しました。同梱のドライバーに戻しました。</value>
+  </data>
+  <data name="Status_RemoveFailed" xml:space="preserve">
+    <value>削除できませんでした: {0}</value>
+  </data>
+  <data name="Settings_Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Settings_RemoveDriverDetail" xml:space="preserve">
+    <value>インポートしたパッケージを削除します。同梱のドライバーは削除できません。</value>
+  </data>
+  <data name="Settings_HeaderOutput" xml:space="preserve">
+    <value>出力</value>
+  </data>
+  <data name="Settings_Resolution" xml:space="preserve">
+    <value>ゲームの解像度</value>
+  </data>
+  <data name="Settings_ResolutionDetail" xml:space="preserve">
+    <value>ゲームが描画されるWineデスクトップの解像度です。画面に合わせて拡大縮小されます。低いほど高速で、発熱も抑えられます。</value>
+  </data>
+  <data name="Settings_FpsCap" xml:space="preserve">
+    <value>フレームレート上限</value>
+  </data>
+  <data name="Settings_Renderer" xml:space="preserve">
+    <value>レンダラー</value>
+  </data>
+  <data name="Settings_OpenGlFallback" xml:space="preserve">
+    <value>OpenGL（予備）</value>
+  </data>
+  <data name="Settings_RendererDetail" xml:space="preserve">
+    <value>アプリがゲームウィンドウを表示する方法です。Vulkanはコピーなしで画面にバッファを渡します。OpenGLはVulkanで動作しない端末向けの予備です。</value>
+  </data>
+  <data name="Settings_HeaderCompat" xml:space="preserve">
+    <value>互換性</value>
+  </data>
+  <data name="Settings_PresentMode" xml:space="preserve">
+    <value>プレゼンテーションモード</value>
+  </data>
+  <data name="Settings_PresentModeDetail" xml:space="preserve">
+    <value>既定はMailboxです。カクつきやティアリングが出るドライバーではFIFOを試してください。</value>
+  </data>
+  <data name="Settings_Bcn" xml:space="preserve">
+    <value>BCテクスチャを展開</value>
+  </data>
+  <data name="Settings_BcnDetail" xml:space="preserve">
+    <value>ゲームのBC圧縮テクスチャをCPUで変換します。BCにネイティブ対応していないGPUで必要です。対応しているGPUでは無駄な負荷になります（Adrenoは対応しているため、自動では行いません）。</value>
+  </data>
+  <data name="Settings_ShaderCache" xml:space="preserve">
+    <value>シェーダーキャッシュ</value>
+  </data>
+  <data name="Settings_ShaderCacheDetail" xml:space="preserve">
+    <value>コンパイル済みのパイプラインを保存します。オンのままにしてください。キャッシュが空だと、起動のたびに数分のCPU処理と大きな発熱が発生します。ドライバー変更後にキャッシュが原因か確かめるときだけオフにしてください。</value>
+  </data>
+  <data name="Settings_HeaderGameSettings" xml:space="preserve">
+    <value>ゲーム設定</value>
+  </data>
+  <data name="Settings_Optimize" xml:space="preserve">
+    <value>ゲーム設定を最適化</value>
+  </data>
+  <data name="Settings_Done" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="Settings_Failed" xml:space="preserve">
+    <value>失敗</value>
+  </data>
+  <data name="Settings_Apply" xml:space="preserve">
+    <value>適用</value>
+  </data>
+  <data name="Status_AlreadyOptimized" xml:space="preserve">
+    <value>ゲーム設定はすでに最適化されています。</value>
+  </data>
+  <data name="Status_Optimized" xml:space="preserve">
+    <value>ゲーム設定を {0} 件最適化しました。</value>
+  </data>
+  <data name="Status_CfgFailed" xml:space="preserve">
+    <value>FFXIV.cfgを更新できませんでした: {0}</value>
+  </data>
+  <data name="Settings_OptimizeDetail" xml:space="preserve">
+    <value>FFXIVのグラフィック設定を、スマートフォンでの発熱を最小限に抑えて30FPSで動かすプリセットにします。</value>
+  </data>
+  <data name="Settings_FrameGen" xml:space="preserve">
+    <value>フレーム生成</value>
+  </data>
+  <data name="Settings_Downloading" xml:space="preserve">
+    <value>ダウンロード中</value>
+  </data>
+  <data name="Settings_Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Settings_Download" xml:space="preserve">
+    <value>ダウンロード</value>
+  </data>
+  <data name="Settings_FlowScale" xml:space="preserve">
+    <value>フロースケール</value>
+  </data>
+  <data name="Settings_PerformanceMode" xml:space="preserve">
+    <value>パフォーマンスモード</value>
+  </data>
+  <data name="Status_LosslessDownloaded" xml:space="preserve">
+    <value>Lossless.dllをダウンロードしました。</value>
+  </data>
+  <data name="Status_LosslessUpToDate" xml:space="preserve">
+    <value>Lossless.dllは最新です。</value>
+  </data>
+  <data name="Steam_Cancelled" xml:space="preserve">
+    <value>Steamへのサインインをキャンセルしました。</value>
+  </data>
+  <data name="Status_DownloadFailed" xml:space="preserve">
+    <value>ダウンロードに失敗しました: {0}</value>
+  </data>
+  <data name="Settings_HeaderDxvk" xml:space="preserve">
+    <value>DXVK</value>
+  </data>
+  <data name="Settings_DxvkVersion" xml:space="preserve">
+    <value>DXVKのバージョン</value>
+  </data>
+  <data name="Settings_DxvkStock" xml:space="preserve">
+    <value>標準（ランタイム同梱）</value>
+  </data>
+  <data name="Settings_ActiveSuffix" xml:space="preserve">
+    <value>{0}（使用中）</value>
+  </data>
+  <data name="Status_DxvkStock" xml:space="preserve">
+    <value>標準のDXVKを使用します。</value>
+  </data>
+  <data name="Status_DxvkUsing" xml:space="preserve">
+    <value>{0} を使用します。</value>
+  </data>
+  <data name="Settings_ImportDxvk" xml:space="preserve">
+    <value>DXVKをインポート</value>
+  </data>
+  <data name="Settings_PickZipTar" xml:space="preserve">
+    <value>zip/tar.gzを選択</value>
+  </data>
+  <data name="Settings_DxvkBuiltIn" xml:space="preserve">
+    <value>ランタイム内蔵のDXVKを使用中です。</value>
+  </data>
+  <data name="Settings_DxvkActive" xml:space="preserve">
+    <value>使用中: {0}</value>
+  </data>
+  <data name="Settings_RemoveDxvk" xml:space="preserve">
+    <value>このDXVKを削除</value>
+  </data>
+  <data name="Status_DxvkRemoved" xml:space="preserve">
+    <value>{0} を削除しました。ランタイムのDXVKに戻しました。</value>
+  </data>
+  <data name="Settings_RemoveDxvkDetail" xml:space="preserve">
+    <value>インポートしたDXVK {0} を削除します。</value>
+  </data>
+  <data name="Status_ImportingDxvk" xml:space="preserve">
+    <value>DXVKをインポートしています...</value>
+  </data>
+  <data name="Status_DxvkImported" xml:space="preserve">
+    <value>インポートしました。次回の起動から新しいDLLを使用します。</value>
+  </data>
+  <data name="Status_ImportFailedReason" xml:space="preserve">
+    <value>インポートに失敗しました: {0}</value>
+  </data>
+  <data name="Settings_HeaderFex" xml:space="preserve">
+    <value>x86エミュレーション（FEXCore）</value>
+  </data>
+  <data name="Settings_Preset" xml:space="preserve">
+    <value>プリセット</value>
+  </data>
+  <data name="Settings_FexIntermediate" xml:space="preserve">
+    <value>中間</value>
+  </data>
+  <data name="Settings_FexPerformance" xml:space="preserve">
+    <value>パフォーマンス</value>
+  </data>
+  <data name="Settings_PresetDetail" xml:space="preserve">
+    <value>FEXがx86のメモリ順序をどれだけ忠実にエミュレートするかです。中間はこの端末でゲームが動く設定です。パフォーマンスは残りのバリアを省きます（高速ですが、不具合が出ることがあります）。互換性はすべて維持します（低速ですが、発熱は少なめです）。</value>
+  </data>
+  <data name="Settings_Multiblock" xml:space="preserve">
+    <value>マルチブロック再コンパイル</value>
+  </data>
+  <data name="Settings_MultiblockDetail" xml:space="preserve">
+    <value>FEXが分岐をまたいで1つのブロックにコンパイルできるようにします。高速です。オフは、早い段階でクラッシュする端末のデバッグ用です。</value>
+  </data>
+  <data name="Settings_CodeCache" xml:space="preserve">
+    <value>コードキャッシュ</value>
+  </data>
+  <data name="Settings_CodeCacheDetail" xml:space="preserve">
+    <value>変換済みのコードを起動間で保持します。起動が速くなります。キャッシュを使った起動のあとにゲームの挙動がおかしい場合はオフにしてください。</value>
+  </data>
+  <data name="Settings_EsyncDetail" xml:space="preserve">
+    <value>サーバーとの往復の代わりにeventfdで同期します。大幅に高速です。スレッドがデッドロックする場合はオフにしてください。</value>
+  </data>
+  <data name="Settings_DxvkAsync" xml:space="preserve">
+    <value>DXVK非同期シェーダー</value>
+  </data>
+  <data name="Settings_DxvkAsyncDetail" xml:space="preserve">
+    <value>本来のパイプラインのコンパイル中は、代わりのパイプラインで描画します。コンパイルによるカクつきを隠せますが、一瞬テクスチャのない形状が表示されることがあります。</value>
+  </data>
+  <data name="Settings_WineLog" xml:space="preserve">
+    <value>Wineログ</value>
+  </data>
+  <data name="Settings_ErrorsOnly" xml:space="preserve">
+    <value>エラーのみ</value>
+  </data>
+  <data name="Settings_Everything" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="Settings_WineLogDetail" xml:space="preserve">
+    <value>Wineのログを有効にします（低速）。ゲームがまったく起動しないときに、原因を調べるためにオンにしてください。</value>
+  </data>
+  <data name="Settings_HeaderRepos" xml:space="preserve">
+    <value>カスタムプラグインリポジトリ</value>
+  </data>
+  <data name="Settings_NoRepos" xml:space="preserve">
+    <value>カスタムリポジトリはまだありません</value>
+  </data>
+  <data name="Settings_AddRepo" xml:space="preserve">
+    <value>リポジトリを追加</value>
+  </data>
+  <data name="Settings_AddRepoDetail" xml:space="preserve">
+    <value>プラグインリポジトリのリンクを貼り付けてください。Dalamudの設定で追加するものと同じです。</value>
+  </data>
+  <data name="Settings_HeaderImport" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="Settings_ImportRepos" xml:space="preserve">
+    <value>dalamudConfig.jsonからインポート</value>
+  </data>
+  <data name="Settings_ImportReposDetail" xml:space="preserve">
+    <value>PCからコピーしたdalamudConfig.jsonのリポジトリのうち、まだ追加されていないものをすべて追加します。</value>
+  </data>
+  <data name="Settings_ImportPluginConfigs" xml:space="preserve">
+    <value>プラグイン設定をインポート</value>
+  </data>
+  <data name="Settings_PickZip" xml:space="preserve">
+    <value>zipを選択</value>
+  </data>
+  <data name="Repo_NotALink" xml:space="preserve">
+    <value>Webリンクではありません。</value>
+  </data>
+  <data name="Repo_Duplicate" xml:space="preserve">
+    <value>そのリポジトリはすでに追加されています。</value>
+  </data>
+  <data name="Status_RepoAdded" xml:space="preserve">
+    <value>リポジトリを追加しました。</value>
+  </data>
+  <data name="Status_RepoRemoved" xml:space="preserve">
+    <value>リポジトリを削除しました。</value>
+  </data>
+  <data name="Status_RepoGone" xml:space="preserve">
+    <value>そのリポジトリはすでに削除されています。</value>
+  </data>
+  <data name="Status_NoFilePicker" xml:space="preserve">
+    <value>このプラットフォームにはファイル選択機能がありません。</value>
+  </data>
+  <data name="Status_NoFolderPicker" xml:space="preserve">
+    <value>このプラットフォームにはフォルダー選択機能がありません。</value>
+  </data>
+  <data name="Status_ReposNothingNew" xml:space="preserve">
+    <value>{0} に新しいリポジトリはありません。すべて追加済みです。</value>
+  </data>
+  <data name="Status_ReposAdded" xml:space="preserve">
+    <value>{0} 件のリポジトリを追加しました。</value>
+  </data>
+  <data name="Status_ReposAddedSkipped" xml:space="preserve">
+    <value>{0} 件のリポジトリを追加しました。{1} 件は追加済みです。</value>
+  </data>
+  <data name="Status_ImportingConfigs" xml:space="preserve">
+    <value>プラグイン設定をインポートしています...</value>
+  </data>
+  <data name="Status_ConfigsImported" xml:space="preserve">
+    <value>{0} 件のプラグイン設定をインポートしました。</value>
+  </data>
+  <data name="Status_ImportFailed" xml:space="preserve">
+    <value>インポートできませんでした: {0}</value>
+  </data>
+  <data name="Status_AllFilesAccess" xml:space="preserve">
+    <value>このフォルダーにインストールするには、XIVLauncherにすべてのファイルの管理を許可してから戻ってください。</value>
+  </data>
+  <data name="Status_CannotWrite" xml:space="preserve">
+    <value>XIVLauncherは {0} に書き込めません。XIVLauncherに「すべてのファイルへのアクセス」を許可するか、内部ストレージのフォルダーを選んでください。</value>
+  </data>
+  <data name="Status_LocationSaved" xml:space="preserve">
+    <value>ゲームの場所を保存しました。</value>
+  </data>
+  <data name="Status_LocationSavedEmpty" xml:space="preserve">
+    <value>ゲームの場所を保存しました。ここにはまだゲームがありません。「ログインしてプレイ」でインストールできます。</value>
+  </data>
+  <data name="Status_Unpacking" xml:space="preserve">
+    <value>{0} を展開しています...</value>
+  </data>
+  <data name="Status_DriverInstalled" xml:space="preserve">
+    <value>{0} をインストールして選択しました。</value>
+  </data>
+  <data name="Status_NotInstalled" xml:space="preserve">
+    <value>インストールされませんでした: {0}</value>
+  </data>
+  <data name="Main_UpdateText" xml:space="preserve">
+    <value>XIVLauncher {0} が利用可能です。タップしてダウンロードします。</value>
+  </data>
+  <data name="Greet_SavedLoginFailed" xml:space="preserve">
+    <value>保存されたログイン情報を読み込めませんでした: {0}</value>
+  </data>
+  <data name="Greet_EnterCredentials" xml:space="preserve">
+    <value>ユーザーIDとパスワードを入力してください。</value>
+  </data>
+  <data name="Greet_RuntimeMissing" xml:space="preserve">
+    <value>ランタイムがまだインストールされていません。</value>
+  </data>
+  <data name="Greet_WaitingStorage" xml:space="preserve">
+    <value>ストレージへのアクセス許可を待っています...</value>
+  </data>
+  <data name="Greet_NeedsStorage" xml:space="preserve">
+    <value>ゲームフォルダーにアクセスするため、XIVLauncherにストレージへのアクセスを許可してください。</value>
+  </data>
+  <data name="NoGame_NothingAt" xml:space="preserve">
+    <value>{0} には何もインストールされていません。</value>
+  </data>
+  <data name="Greet_NoGame" xml:space="preserve">
+    <value>ゲームのインストールが見つかりません。</value>
+  </data>
+  <data name="Install_TitleInstalling" xml:space="preserve">
+    <value>FFXIVをインストール中</value>
+  </data>
+  <data name="Install_TitleUpdating" xml:space="preserve">
+    <value>FFXIVを更新中</value>
+  </data>
+  <data name="Greet_CheckingUpdates" xml:space="preserve">
+    <value>アップデートを確認しています...</value>
+  </data>
+  <data name="Greet_UpdateCheckFailed" xml:space="preserve">
+    <value>ゲームのアップデートを確認できませんでした。サーバーがメンテナンス中か、接続が切れている可能性があります。少し待ってから再試行してください。</value>
+  </data>
+  <data name="Greet_Installing" xml:space="preserve">
+    <value>ゲームをインストールしています...</value>
+  </data>
+  <data name="Greet_Updating" xml:space="preserve">
+    <value>ゲームを更新しています...</value>
+  </data>
+  <data name="Greet_InstallFailed" xml:space="preserve">
+    <value>インストールを完了できませんでした。</value>
+  </data>
+  <data name="Greet_InstallPaused" xml:space="preserve">
+    <value>インストールを一時停止しました。</value>
+  </data>
+  <data name="Greet_InstallPausedHint" xml:space="preserve">
+    <value>インストールを一時停止しました。「ログインしてプレイ」をタップすると、中断したところから再開します。</value>
+  </data>
+  <data name="Greet_WaitingOtp" xml:space="preserve">
+    <value>ワンタイムパスワードを待っています...</value>
+  </data>
+  <data name="Greet_LoginCancelled" xml:space="preserve">
+    <value>ログインをキャンセルしました。</value>
+  </data>
+  <data name="Greet_SigningInSteam" xml:space="preserve">
+    <value>Steamにサインインしています...</value>
+  </data>
+  <data name="Greet_LoggingIn" xml:space="preserve">
+    <value>ログインしています...</value>
+  </data>
+  <data name="Greet_SaveLoginFailed" xml:space="preserve">
+    <value>ログインしましたが、ログイン情報を保存できませんでした: {0}</value>
+  </data>
+  <data name="Greet_Installed" xml:space="preserve">
+    <value>FFXIVのインストールが完了しました。「ログインしてプレイ」をタップして開始してください。</value>
+  </data>
+  <data name="Greet_UpToDate" xml:space="preserve">
+    <value>FFXIVは最新です。「ログインしてプレイ」をタップして開始してください。</value>
+  </data>
+  <data name="Greet_BootDamaged" xml:space="preserve">
+    <value>ゲームの起動ファイルが破損しているため、更新も起動もできません。ゲームフォルダーを削除して、もう一度インストールしてください。</value>
+  </data>
+  <data name="Greet_NoService" xml:space="preserve">
+    <value>このアカウントには有効な利用権がありません（NoService）。</value>
+  </data>
+  <data name="Greet_NoTerms" xml:space="preserve">
+    <value>このアカウントでは利用規約に同意していません（NoTerms）。</value>
+  </data>
+  <data name="Greet_LoginFailed" xml:space="preserve">
+    <value>ログインに失敗しました: {0}</value>
+  </data>
+  <data name="Greet_PreparingDalamud" xml:space="preserve">
+    <value>Dalamudを準備しています...</value>
+  </data>
+  <data name="Greet_StartingSafe" xml:space="preserve">
+    <value>ログインしました。セーフモード（プラグインなし）でゲームを起動しています...</value>
+  </data>
+  <data name="Greet_Starting" xml:space="preserve">
+    <value>ログインしました。ゲームを起動しています...</value>
+  </data>
+  <data name="Status_PickGameFolder" xml:space="preserve">
+    <value>「ゲームのインストール先」をタップし、ゲームのbootフォルダーとgameフォルダーが入っているフォルダーを選んでください。</value>
+  </data>
+  <data name="Otp_EnterCode" xml:space="preserve">
+    <value>6桁のコードを入力してください。</value>
+  </data>
+  <data name="Home_PlaySafe" xml:space="preserve">
+    <value>セーフモードで起動（プラグインなし）</value>
+  </data>
+  <data name="Home_PlayDetail" xml:space="preserve">
+    <value>Final Fantasy XIVを起動</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>開発版</value>
+  </data>
+  <data name="Home_GameInstalled" xml:space="preserve">
+    <value>ゲームはインストール済み</value>
+  </data>
+  <data name="Home_Version" xml:space="preserve">
+    <value>バージョン {0}</value>
+  </data>
+  <data name="Home_VersionUnknown" xml:space="preserve">
+    <value>バージョン不明</value>
+  </data>
+  <data name="Home_FolderUnreadable" xml:space="preserve">
+    <value>ゲームフォルダーを読み込めません</value>
+  </data>
+  <data name="Home_FolderUnreadableDetail" xml:space="preserve">
+    <value>「プレイ」をタップしてストレージへのアクセスを許可するか、設定でフォルダーを選んでください。</value>
+  </data>
+  <data name="Home_NoGame" xml:space="preserve">
+    <value>ゲームが見つかりません</value>
+  </data>
+  <data name="Home_NoGameDetail" xml:space="preserve">
+    <value>「プレイ」をタップしてインストールするか、設定でお手持ちのコピーを選んでください。</value>
+  </data>
+  <data name="Steam_SignedInAs" xml:space="preserve">
+    <value>{0} としてSteamにサインイン済みです。</value>
+  </data>
+  <data name="Steam_WillAsk" xml:space="preserve">
+    <value>Steamへのサインインを求められます。</value>
+  </data>
+  <data name="Steam_ReasonLogin" xml:space="preserve">
+    <value>スクウェア・エニックス アカウントがSteamと連携しているため、このログインにはSteamの確認が必要です。Steamのパスワードは保存されません。</value>
+  </data>
+  <data name="Steam_ReasonLossless" xml:space="preserve">
+    <value>この機能を使うには、SteamでLossless Scalingを所有している必要があります。ダウンロードするにはSteamアカウントに接続してください。</value>
+  </data>
+  <data name="Steam_EnterCredentials" xml:space="preserve">
+    <value>Steamのアカウント名とパスワードを入力してください。</value>
+  </data>
+  <data name="Steam_EnterGuardCode" xml:space="preserve">
+    <value>5文字のコードを入力してください。</value>
+  </data>
+  <data name="Steam_SavedInvalid" xml:space="preserve">
+    <value>保存されたSteamのサインイン情報は無効になりました。パスワードをもう一度入力してください。</value>
+  </data>
+  <data name="Greet_WaitingSteamSignIn" xml:space="preserve">
+    <value>Steamへのサインインを待っています...</value>
+  </data>
+  <data name="Steam_CodeRejected" xml:space="preserve">
+    <value>そのコードは受け付けられませんでした。</value>
+  </data>
+  <data name="Steam_EmailedCode" xml:space="preserve">
+    <value>Steamから {0} に5文字のコードがメールで送信されました。</value>
+  </data>
+  <data name="Steam_AppCode" xml:space="preserve">
+    <value>Steamモバイルアプリに表示される5文字のコードです。</value>
+  </data>
+  <data name="Greet_WaitingSteamGuard" xml:space="preserve">
+    <value>Steam Guardを待っています...</value>
+  </data>
+  <data name="Steam_ConfirmInApp" xml:space="preserve">
+    <value>Steamモバイルアプリに確認が送信されました。アプリで承認すると続行します。</value>
+  </data>
+  <data name="Steam_NotLinked" xml:space="preserve">
+    <value>このSteamアカウントはまだスクウェア・エニックス アカウントと連携していません。PCの公式ランチャーで一度連携してから、もう一度お試しください。</value>
+  </data>
+  <data name="Steam_WrongAccount" xml:space="preserve">
+    <value>このSteamアカウントはスクウェア・エニックス ID「{1}」ではなく「{0}」と連携しています。</value>
+  </data>
+  <data name="Steam_NoTicket" xml:space="preserve">
+    <value>Steamからログインチケットが返されませんでした。このSteamアカウントがFINAL FANTASY XIVを所有しているか確認してから、もう一度お試しください。</value>
+  </data>
+  <data name="Steam_AuthFailed" xml:space="preserve">
+    <value>Steamで認証できませんでした: {0}</value>
+  </data>
+  <data name="Setup_Cancelled" xml:space="preserve">
+    <value>セットアップがキャンセルされました。</value>
+  </data>
+  <data name="Progress_Of" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="Progress_OfAt" xml:space="preserve">
+    <value>{0} / {1}（{2}/秒）</value>
+  </data>
+  <data name="Install_Preparing" xml:space="preserve">
+    <value>準備中</value>
+  </data>
+  <data name="Install_Stopping" xml:space="preserve">
+    <value>このステップの後で停止します...</value>
+  </data>
+  <data name="Install_Downloaded" xml:space="preserve">
+    <value>{0} / {1} ダウンロード済み</value>
+  </data>
+  <data name="Install_TimeLeft" xml:space="preserve">
+    <value>残り約{0}</value>
+  </data>
+  <data name="Install_HoursMinutes" xml:space="preserve">
+    <value>{0}時間{1}分</value>
+  </data>
+  <data name="Install_Minutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="Install_AMinute" xml:space="preserve">
+    <value>1分</value>
+  </data>
+  <data name="Installer_DownloadingOnly" xml:space="preserve">
+    <value>アップデートをダウンロード中</value>
+  </data>
+  <data name="Installer_DownloadingN" xml:space="preserve">
+    <value>アップデート {0}/{1} をダウンロード中</value>
+  </data>
+  <data name="Installer_InstallingOnly" xml:space="preserve">
+    <value>アップデートをインストール中</value>
+  </data>
+  <data name="Installer_InstallingN" xml:space="preserve">
+    <value>アップデート {0}/{1} をインストール中</value>
+  </data>
+  <data name="Space_RanOut" xml:space="preserve">
+    <value>インストール中にスマートフォンの空き容量がなくなりました。{0} 以上を空けてから再試行してください。ダウンロード済みのデータは保持されます。</value>
+  </data>
+  <data name="Space_NotEnough" xml:space="preserve">
+    <value>空き容量が足りません。{0} 必要ですが、空きは {1} しかありません。{2} を空けてから再試行してください。ダウンロード済みのデータは保持されます。</value>
+  </data>
+  <data name="Installer_DownloadFailed" xml:space="preserve">
+    <value>ゲームファイルをダウンロードできませんでした。インターネット接続を確認してから再試行してください。ダウンロード済みのデータは保持されます。</value>
+  </data>
+  <data name="Installer_InstallFailed" xml:space="preserve">
+    <value>{0} をインストールできませんでした: {1}</value>
+  </data>
+  <data name="Runtime_Checking" xml:space="preserve">
+    <value>ランタイムを確認中</value>
+  </data>
+  <data name="Runtime_TooOld" xml:space="preserve">
+    <value>サーバー上のランタイム（バージョン {0}）は、このバージョンのアプリに必要なもの（バージョン {1}）より古いです。</value>
+  </data>
+  <data name="Runtime_UpToDate" xml:space="preserve">
+    <value>ランタイムは最新です</value>
+  </data>
+  <data name="Runtime_Downloading" xml:space="preserve">
+    <value>{0}をダウンロード中</value>
+  </data>
+  <data name="Runtime_Installing" xml:space="preserve">
+    <value>{0}をインストール中</value>
+  </data>
+  <data name="Runtime_CompWine" xml:space="preserve">
+    <value>Windows互換レイヤー</value>
+  </data>
+  <data name="Runtime_CompPrefix" xml:space="preserve">
+    <value>Windows環境</value>
+  </data>
+  <data name="Runtime_CompOverlay" xml:space="preserve">
+    <value>グラフィックライブラリとフォント</value>
+  </data>
+  <data name="Runtime_CompRootfs" xml:space="preserve">
+    <value>システムライブラリ</value>
+  </data>
+  <data name="Runtime_CompVkextra" xml:space="preserve">
+    <value>グラフィックドライバー</value>
+  </data>
+  <data name="Runtime_CompAlsa" xml:space="preserve">
+    <value>オーディオ設定</value>
+  </data>
+  <data name="Runtime_CompPulse" xml:space="preserve">
+    <value>オーディオサーバー</value>
+  </data>
+  <data name="Runtime_Linking" xml:space="preserve">
+    <value>Windowsのシステムファイルをリンク中</value>
+  </data>
+  <data name="Runtime_Finishing" xml:space="preserve">
+    <value>セットアップを仕上げています</value>
+  </data>
+  <data name="Runtime_NoSpace" xml:space="preserve">
+    <value>空き容量が足りません。ランタイムには約 {0} GB 必要ですが、空きは {1} GB です。空き容量を増やしてから再試行してください。</value>
+  </data>
+  <data name="Notif_Channel" xml:space="preserve">
+    <value>セットアップの進行状況</value>
+  </data>
+  <data name="Notif_Working" xml:space="preserve">
+    <value>処理中</value>
+  </data>
+  <data name="Logs_NoSave" xml:space="preserve">
+    <value>このプラットフォームではファイルを保存できません。</value>
+  </data>
+  <data name="Logs_NothingToExport" xml:space="preserve">
+    <value>エクスポートできるログはまだありません。</value>
+  </data>
+  <data name="Logs_ExportCancelled" xml:space="preserve">
+    <value>エクスポートをキャンセルしました。</value>
+  </data>
+  <data name="Logs_Saved" xml:space="preserve">
+    <value>{0} 個のファイルを {1} に保存しました。不具合報告と一緒に送ってください。</value>
+  </data>
+  <data name="Logs_ExportFailed" xml:space="preserve">
+    <value>ログをエクスポートできませんでした: {0}</value>
+  </data>
+  <data name="Logs_None" xml:space="preserve">
+    <value>ログはまだありません。ゲームを起動するとここに表示されます。</value>
+  </data>
+  <data name="Logs_Empty" xml:space="preserve">
+    <value>（空）</value>
+  </data>
+  <data name="Logs_ShowingEnd" xml:space="preserve">
+    <value>末尾を表示中</value>
+  </data>
+  <data name="Logs_Updated" xml:space="preserve">
+    <value>{0} 更新</value>
+  </data>
+  <data name="Logs_ReadFailed" xml:space="preserve">
+    <value>{0} を読み込めませんでした: {1}</value>
+  </data>
+  <data name="Game_NoFolder" xml:space="preserve">
+    <value>ゲームフォルダーが設定されていません。</value>
+  </data>
+  <data name="Game_ExeEmpty" xml:space="preserve">
+    <value>このフォルダーの game\ffxiv_dx11.exe は空です。このフォルダーからはゲームを起動できません。</value>
+  </data>
+  <data name="Game_Unreadable" xml:space="preserve">
+    <value>このフォルダーを読み込めません。アプリにストレージへのアクセス許可が必要です。</value>
+  </data>
+  <data name="Game_NoExe" xml:space="preserve">
+    <value>このフォルダーには game\ffxiv_dx11.exe がありません。このフォルダーからはゲームを起動できません。</value>
+  </data>
+  <data name="Game_NoDir" xml:space="preserve">
+    <value>このフォルダーは存在しません。</value>
+  </data>
+  <data name="Game_ReadFailed" xml:space="preserve">
+    <value>読み込めませんでした: {0}</value>
+  </data>
+  <data name="Game_Found" xml:space="preserve">
+    <value>FFXIVが見つかりました（バージョン {0}）。</value>
+  </data>
+  <data name="Driver_Bundled" xml:space="preserve">
+    <value>同梱のTurnip</value>
+  </data>
+  <data name="Driver_Shipped" xml:space="preserve">
+    <value>アプリに同梱</value>
+  </data>
+  <data name="Driver_Imported" xml:space="preserve">
+    <value>インポート済み</value>
+  </data>
+  <data name="Driver_NoMeta" xml:space="preserve">
+    <value>meta.jsonが含まれていないため、AdrenoToolsのドライバーパッケージではありません。</value>
+  </data>
+  <data name="Driver_NoLibName" xml:space="preserve">
+    <value>パッケージのmeta.jsonにlibraryNameが指定されていません。</value>
+  </data>
+  <data name="Driver_MissingLib" xml:space="preserve">
+    <value>meta.jsonには {0} が指定されていますが、パッケージに含まれていません。</value>
+  </data>
+  <data name="Lossless_NotOwned" xml:space="preserve">
+    <value>このSteamアカウントはLossless Scalingを所有していません。所有しているアカウントを使うか、SteamでLossless Scalingを購入してください。</value>
+  </data>
+  <data name="Lossless_Asking" xml:space="preserve">
+    <value>SteamにLossless Scalingを問い合わせています...</value>
+  </data>
+  <data name="Lossless_DownloadFailed" xml:space="preserve">
+    <value>Steamからダウンロードできませんでした。接続を確認してから再試行してください。</value>
+  </data>
+  <data name="Lossless_Progress" xml:space="preserve">
+    <value>Lossless.dllをダウンロードしています（{0}%）...</value>
+  </data>
+  <data name="Lossless_Corrupt" xml:space="preserve">
+    <value>Lossless.dllが正しくダウンロードされませんでした。再試行してください。</value>
+  </data>
+  <data name="Steam_Waiting" xml:space="preserve">
+    <value>Steamを待っています...</value>
+  </data>
+  <data name="Steam_CouldNotSignIn" xml:space="preserve">
+    <value>Steamにサインインできませんでした。</value>
+  </data>
+  <data name="Steam_Unreachable" xml:space="preserve">
+    <value>Steamに接続できませんでした。</value>
+  </data>
+  <data name="Steam_UnreachableRetry" xml:space="preserve">
+    <value>Steamに接続できませんでした。接続を確認してから再試行してください。</value>
+  </data>
+  <data name="Steam_NoAnswer" xml:space="preserve">
+    <value>Steamからサインインの応答がありませんでした。</value>
+  </data>
+  <data name="Steam_Closed" xml:space="preserve">
+    <value>Steamとの接続が切断されました。</value>
+  </data>
+  <data name="Repo_NotConfig" xml:space="preserve">
+    <value>そのファイルはdalamudConfig.jsonではありません。</value>
+  </data>
+  <data name="Repo_ConfigDamaged" xml:space="preserve">
+    <value>Dalamudの設定ファイルが破損しているため、変更しませんでした。一度ゲームを起動して、Dalamudに修復させてください。</value>
+  </data>
+  <data name="Configs_NotZip" xml:space="preserve">
+    <value>そのファイルはzipではありません。</value>
+  </data>
+  <data name="Configs_Empty" xml:space="preserve">
+    <value>そのzipにはプラグイン設定が含まれていません。</value>
+  </data>
+  <data name="Dxvk_NotArchive" xml:space="preserve">
+    <value>そのファイルは.zipまたは.tar.gzアーカイブではありません。</value>
+  </data>
+  <data name="Dxvk_BadName" xml:space="preserve">
+    <value>「{0}」はDXVKのバージョン名として使えません。</value>
+  </data>
+  <data name="Dxvk_NoDlls" xml:space="preserve">
+    <value>x32/またはx64/にDLLがないため、DXVKのビルドではありません。</value>
+  </data>
+  <data name="Picker_NotOnStorage" xml:space="preserve">
+    <value>そのフォルダーは端末のストレージ上にありません。内部ストレージかSDカードのフォルダーを選んでください。</value>
+  </data>
+  <data name="Picker_CannotOpen" xml:space="preserve">
+    <value>そのファイルを開けませんでした。</value>
+  </data>
+  <data name="Picker_TheFile" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="Picker_CannotWrite" xml:space="preserve">
+    <value>その場所には書き込めませんでした。</value>
+  </data>
+  <data name="Logs_Copied" xml:space="preserve">
+    <value>クリップボードにコピーしました。</value>
+  </data>
+  <data name="Logs_CopyFailed" xml:space="preserve">
+    <value>コピーできませんでした: {0}</value>
+  </data>
+</root>

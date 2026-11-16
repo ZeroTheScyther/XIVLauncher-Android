@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using XlaBoot.Localization;
 using XlaBoot.ViewModels;
 
 namespace XlaBoot.Views;
@@ -142,11 +143,11 @@ public partial class MainView : UserControl
         try
         {
             await clipboard.SetTextAsync(_viewModel.Logs.Text);
-            _viewModel.Logs.Detail = "Copied to the clipboard.";
+            _viewModel.Logs.Detail = Strings.Logs_Copied;
         }
         catch (Exception ex)
         {
-            _viewModel.Logs.Detail = $"Could not copy: {ex.GetType().Name}";
+            _viewModel.Logs.Detail = Loc.F(Strings.Logs_CopyFailed, ex.GetType().Name);
         }
     }
 

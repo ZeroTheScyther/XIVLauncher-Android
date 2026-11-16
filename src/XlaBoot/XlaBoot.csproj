@@ -10,6 +10,18 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <!-- UI text. Strings.resx is English and the fallback; Strings.fr/de/ja.resx become satellite assemblies.
+       The typed Strings class is generated at build time, so no IDE designer file is checked in. -->
+  <ItemGroup>
+    <EmbeddedResource Update="Localization\Strings.resx">
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>XlaBoot.Localization</StronglyTypedNamespace>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+      <PublicClass>true</PublicClass>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Themes.Fluent" />

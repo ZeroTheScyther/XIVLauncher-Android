@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:XlaBoot.Localization"
              xmlns:vm="using:XlaBoot.ViewModels"
              xmlns:views="using:XlaBoot.Views"
              x:Class="XlaBoot.Views.SettingsView"
@@ -55,20 +56,20 @@
         <Border Classes="tile" Width="46" Height="46">
           <PathIcon Data="{x:Static views:Icons.Settings}"/>
         </Border>
-        <TextBlock Classes="h1" Text="Settings" VerticalAlignment="Center"/>
+        <TextBlock Classes="h1" Text="{x:Static loc:Strings.Nav_Settings}" VerticalAlignment="Center"/>
       </StackPanel>
 
       <!-- Tabs scroll sideways when four don't fit (Dalamud Repos only shows while Dalamud is on). -->
       <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
                     Margin="0,8,0,4">
         <StackPanel Orientation="Horizontal">
-          <Button Classes="tab" Classes.selected="{Binding IsGeneralTab}" Content="General"
+          <Button Classes="tab" Classes.selected="{Binding IsGeneralTab}" Content="{x:Static loc:Strings.Settings_TabGeneral}"
                   Command="{Binding SelectTabCommand}" CommandParameter="0"/>
-          <Button Classes="tab" Classes.selected="{Binding IsGraphicsTab}" Content="Graphics"
+          <Button Classes="tab" Classes.selected="{Binding IsGraphicsTab}" Content="{x:Static loc:Strings.Settings_TabGraphics}"
                   Command="{Binding SelectTabCommand}" CommandParameter="1"/>
-          <Button Classes="tab" Classes.selected="{Binding IsAdvancedTab}" Content="Advanced"
+          <Button Classes="tab" Classes.selected="{Binding IsAdvancedTab}" Content="{x:Static loc:Strings.Settings_TabAdvanced}"
                   Command="{Binding SelectTabCommand}" CommandParameter="2"/>
-          <Button Classes="tab" Classes.selected="{Binding IsReposTab}" Content="Dalamud Repos"
+          <Button Classes="tab" Classes.selected="{Binding IsReposTab}" Content="{x:Static loc:Strings.Settings_TabRepos}"
                   Command="{Binding SelectTabCommand}" CommandParameter="3" IsVisible="{Binding ShowReposTab}"/>
         </StackPanel>
       </ScrollViewer>
@@ -149,9 +150,9 @@
                              TextWrapping="Wrap"
                              IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                   <Grid ColumnDefinitions="*,12,*">
-                    <Button Grid.Column="0" Classes="secondary" Content="Cancel" Command="{Binding Cancel}"
+                    <Button Grid.Column="0" Classes="secondary" Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding Cancel}"
                             HorizontalAlignment="Stretch"/>
-                    <Button Grid.Column="2" Classes="primary" Content="Add" Command="{Binding Confirm}" Padding="0,11"/>
+                    <Button Grid.Column="2" Classes="primary" Content="{x:Static loc:Strings.Common_Add}" Command="{Binding Confirm}" Padding="0,11"/>
                   </Grid>
                 </StackPanel>
               </Border>
@@ -164,7 +165,7 @@
       <StackPanel Grid.Row="3" Margin="4,4,4,10" Spacing="4">
         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="13"
                    IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-        <TextBlock Classes="dim" Text="These apply the next time you launch the game." FontSize="12"
+        <TextBlock Classes="dim" Text="{x:Static loc:Strings.Settings_Footer}" FontSize="12"
                    TextWrapping="Wrap"/>
       </StackPanel>
     </Grid>

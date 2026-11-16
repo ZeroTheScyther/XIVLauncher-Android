@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Avalonia.Media;
+using XlaBoot.Localization;
 
 namespace XlaBoot.Views;
 
@@ -48,40 +49,57 @@ public static class Icons
     public static readonly Geometry Coffee = Geometry.Parse("M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z");
     public static readonly Geometry Discord = Geometry.Parse("M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z");
 
-    private static readonly Dictionary<string, Geometry> BySettingTitle = new()
+    /// <summary>
+    /// Rows are matched by their title as shown, so the map is built from the same Strings the rows use and rebuilt
+    /// when the launcher language changes.
+    /// </summary>
+    private static Dictionary<string, Geometry> BuildBySettingTitle() => new()
     {
-        ["Game install location"] = Folder,
+        [Strings.Settings_GameLocation] = Folder,
         ["Dalamud"] = Extension,
-        ["Dalamud branch"] = Code,
-        ["Run in safe mode"] = Shield,
-        ["In-game helper"] = Chip,
-        ["Driver"] = Terrain,
-        ["Import a driver"] = Download,
-        ["Remove this driver"] = Delete,
-        ["Game resolution"] = Monitor,
-        ["Frame rate cap"] = Speed,
-        ["Renderer"] = Image,
-        ["Present mode"] = Tune,
-        ["Decompress BC textures"] = Texture,
-        ["Shader cache"] = Layers,
-        ["Optimize game settings"] = Magic,
+        [Strings.Settings_DalamudBranch] = Code,
+        [Strings.Settings_SafeMode] = Shield,
+        [Strings.Settings_Helper] = Chip,
+        [Strings.Settings_Driver] = Terrain,
+        [Strings.Settings_ImportDriver] = Download,
+        [Strings.Settings_RemoveDriver] = Delete,
+        [Strings.Settings_Resolution] = Monitor,
+        [Strings.Settings_FpsCap] = Speed,
+        [Strings.Settings_Renderer] = Image,
+        [Strings.Settings_PresentMode] = Tune,
+        [Strings.Settings_Bcn] = Texture,
+        [Strings.Settings_ShaderCache] = Layers,
+        [Strings.Settings_Optimize] = Magic,
         ["Lossless Scaling"] = CloudDownload,
-        ["Frame generation"] = Speed,
-        ["Multiplier"] = Layers,
-        ["Flow scale"] = Tune,
-        ["Performance mode"] = Bolt,
-        ["Preset"] = Bolt,
-        ["Multi-block recompilation"] = Chip,
-        ["Code cache"] = Chip,
+        [Strings.Settings_FrameGen] = Speed,
+        [Strings.Settings_FlowScale] = Tune,
+        [Strings.Settings_PerformanceMode] = Bolt,
+        [Strings.Settings_Preset] = Bolt,
+        [Strings.Settings_Multiblock] = Chip,
+        [Strings.Settings_CodeCache] = Chip,
         ["Esync"] = Sync,
-        ["DXVK async shaders"] = Layers,
-        ["Wine log"] = Bug,
-        ["No custom repos yet"] = Extension,
-        ["Add repo"] = Add,
-        ["Import from dalamudConfig.json"] = Download,
-        ["Import plugin configs"] = Download,
+        [Strings.Settings_DxvkAsync] = Layers,
+        [Strings.Settings_WineLog] = Bug,
+        [Strings.Settings_NoRepos] = Extension,
+        [Strings.Settings_AddRepo] = Add,
+        [Strings.Settings_ImportRepos] = Download,
+        [Strings.Settings_ImportPluginConfigs] = Download,
+        [Strings.Settings_ImportDxvk] = Download,
+        [Strings.Settings_RemoveDxvk] = Delete,
     };
 
+    private static Dictionary<string, Geometry>? _bySettingTitle;
+    private static string? _bySettingTitleLanguage;
+
     /// <summary>The icon for a settings row, by its title; a plain tune icon for anything new.</summary>
-    public static Geometry ForSetting(string title) => BySettingTitle.TryGetValue(title, out var icon) ? icon : Tune;
+    public static Geometry ForSetting(string title)
+    {
+        var language = Strings.Culture?.Name ?? "";
+        if (_bySettingTitle == null || _bySettingTitleLanguage != language)
+        {
+            _bySettingTitle = BuildBySettingTitle();
+            _bySettingTitleLanguage = language;
+        }
+        return _bySettingTitle.TryGetValue(title, out var icon) ? icon : Tune;
+    }
 }

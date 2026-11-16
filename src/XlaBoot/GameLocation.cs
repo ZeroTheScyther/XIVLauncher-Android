@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using XlaBoot.Localization;
 
 namespace XlaBoot;
 
@@ -95,7 +96,7 @@ public static class GameLocation
     public static GameCheck Check(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
-            return new GameCheck(GameStatus.Missing, "", "No game folder is set.");
+            return new GameCheck(GameStatus.Missing, "", Strings.Game_NoFolder);
 
         var exe = Path.Combine(path, "game", "ffxiv_dx11.exe");
         try
@@ -104,28 +105,28 @@ public static class GameLocation
             using var file = File.OpenRead(exe);
             if (file.ReadByte() < 0)
                 return new GameCheck(GameStatus.Missing, "",
-                    "game\\ffxiv_dx11.exe is empty here. The game cannot start from this folder.");
+                    Strings.Game_ExeEmpty);
         }
         catch (UnauthorizedAccessException)
         {
             return new GameCheck(GameStatus.Unreadable, "",
-                "This folder cannot be read. The app needs permission to access your storage.");
+                Strings.Game_Unreadable);
         }
         catch (FileNotFoundException)
         {
             return new GameCheck(GameStatus.Missing, "",
-                "No game\\ffxiv_dx11.exe here. The game cannot start from this folder.");
+                Strings.Game_NoExe);
         }
         catch (DirectoryNotFoundException)
         {
-            return new GameCheck(GameStatus.Missing, "", "This folder does not exist.");
+            return new GameCheck(GameStatus.Missing, "", Strings.Game_NoDir);
         }
         catch (IOException ex)
         {
-            return new GameCheck(GameStatus.Unreadable, "", $"Could not read it: {ex.GetType().Name}.");
+            return new GameCheck(GameStatus.Unreadable, "", Loc.F(Strings.Game_ReadFailed, ex.GetType().Name));
         }
 
-        return new GameCheck(GameStatus.Present, Version(path), $"FFXIV found, version {Version(path)}.");
+        return new GameCheck(GameStatus.Present, Version(path), Loc.F(Strings.Game_Found, Version(path)));
     }
 
     /// <summary>The installed game version, or "unknown" when the file is absent or unreadable.</summary>

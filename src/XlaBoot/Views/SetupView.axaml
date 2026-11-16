@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:XlaBoot.Localization"
              xmlns:vm="using:XlaBoot.ViewModels"
              xmlns:views="using:XlaBoot.Views"
              x:Class="XlaBoot.Views.SetupView"
@@ -12,9 +13,9 @@
                 MaxWidth="420" Margin="28" Spacing="14">
 
       <views:CrystalLogo Width="84" Height="119" HorizontalAlignment="Center" Margin="0,0,0,6"/>
-      <TextBlock Text="Setting up" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+      <TextBlock Text="{x:Static loc:Strings.Setup_Title}" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center"/>
       <TextBlock TextWrapping="Wrap" Foreground="#C8D4F0" HorizontalAlignment="Center" TextAlignment="Center"
-                 Text="Downloading the files needed to run the game. This happens once, and takes a few minutes."/>
+                 Text="{x:Static loc:Strings.Setup_Intro}"/>
 
       <!-- Progress. IsIndeterminate while there is nothing to measure yet, so the bar never sits at 0. -->
       <ProgressBar Minimum="0" Maximum="1" Value="{Binding Fraction}" Height="6" Margin="0,10,0,0"
@@ -31,17 +32,17 @@
               Classes="card">
         <StackPanel Spacing="10">
           <TextBlock TextWrapping="Wrap" FontSize="13"
-                     Text="Android may pause this download when you leave the app. Allowing it to run in the background lets it finish on its own."/>
-          <Button Classes="primary" Content="Allow background downloading" Command="{Binding AllowBackgroundCommand}" Padding="18,11"/>
+                     Text="{x:Static loc:Strings.Background_Hint}"/>
+          <Button Classes="primary" Content="{x:Static loc:Strings.Background_Allow}" Command="{Binding AllowBackgroundCommand}" Padding="18,11"/>
         </StackPanel>
       </Border>
 
       <!-- Failure. Kept on screen with a retry rather than dropping the user on a dead login page. -->
       <StackPanel Spacing="12" IsVisible="{Binding HasError}">
-        <TextBlock Text="Setup could not finish" FontSize="17" HorizontalAlignment="Center"
+        <TextBlock Text="{x:Static loc:Strings.Setup_Failed}" FontSize="17" HorizontalAlignment="Center"
                    Foreground="{StaticResource XlaDangerBrush}"/>
         <TextBlock Text="{Binding Error}" TextWrapping="Wrap" FontSize="13" TextAlignment="Center"/>
-        <Button Classes="primary" Content="Try again" Command="{Binding RetryCommand}" IsEnabled="{Binding !IsWorking}"
+        <Button Classes="primary" Content="{x:Static loc:Strings.Common_TryAgain}" Command="{Binding RetryCommand}" IsEnabled="{Binding !IsWorking}"
                 HorizontalAlignment="Center" Padding="32,11"/>
       </StackPanel>
     </StackPanel>

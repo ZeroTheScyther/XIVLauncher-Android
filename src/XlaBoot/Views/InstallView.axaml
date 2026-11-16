@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:XlaBoot.Localization"
              xmlns:vm="using:XlaBoot.ViewModels"
              xmlns:views="using:XlaBoot.Views"
              x:Class="XlaBoot.Views.InstallView"
@@ -16,7 +17,7 @@
         <TextBlock Text="{Binding Title}" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center"/>
         <TextBlock TextWrapping="Wrap" Foreground="#C8D4F0" HorizontalAlignment="Center" TextAlignment="Center"
                    IsVisible="{Binding !HasError}"
-                   Text="You can leave the app while this runs. If it stops, everything downloaded so far is kept and it carries on from there."/>
+                   Text="{x:Static loc:Strings.Install_Intro}"/>
 
         <ProgressBar Minimum="0" Maximum="1" Value="{Binding Fraction}" Height="6" Margin="0,10,0,0"
                      IsIndeterminate="{Binding !Fraction}"
@@ -31,22 +32,22 @@
                 Classes="card">
           <StackPanel Spacing="10">
             <TextBlock TextWrapping="Wrap" FontSize="13"
-                       Text="Android may pause this download when you leave the app. Allowing it to run in the background lets it finish on its own."/>
-            <Button Classes="primary" Content="Allow background downloading" Command="{Binding AllowBackgroundCommand}" Padding="18,11"/>
+                       Text="{x:Static loc:Strings.Background_Hint}"/>
+            <Button Classes="primary" Content="{x:Static loc:Strings.Background_Allow}" Command="{Binding AllowBackgroundCommand}" Padding="18,11"/>
           </StackPanel>
         </Border>
 
         <!-- Stopping mid-patch is what corrupts an install, so a cancel lands between patches. -->
-        <Button Classes="secondary" Content="Stop" Command="{Binding CancelCommand}" HorizontalAlignment="Center" Padding="32,11"
+        <Button Classes="secondary" Content="{x:Static loc:Strings.Install_Stop}" Command="{Binding CancelCommand}" HorizontalAlignment="Center" Padding="32,11"
                 IsVisible="{Binding !HasError}" IsEnabled="{Binding !IsCancelling}"/>
 
         <StackPanel Spacing="12" IsVisible="{Binding HasError}">
-          <TextBlock Text="The install could not finish" FontSize="17" HorizontalAlignment="Center"
+          <TextBlock Text="{x:Static loc:Strings.Install_Failed}" FontSize="17" HorizontalAlignment="Center"
                      Foreground="{StaticResource XlaDangerBrush}"/>
           <TextBlock Text="{Binding Error}" TextWrapping="Wrap" FontSize="13" TextAlignment="Center"/>
-          <TextBlock Text="Tap Log in &amp; Play to try again." TextWrapping="Wrap" FontSize="13"
+          <TextBlock Text="{x:Static loc:Strings.Install_RetryHint}" TextWrapping="Wrap" FontSize="13"
                      TextAlignment="Center" Foreground="#C8D4F0"/>
-          <Button Classes="secondary" Content="Close" Command="{Binding CloseCommand}" HorizontalAlignment="Center" Padding="32,11"/>
+          <Button Classes="secondary" Content="{x:Static loc:Strings.Common_Close}" Command="{Binding CloseCommand}" HorizontalAlignment="Center" Padding="32,11"/>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

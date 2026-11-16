@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using XlaBoot.Localization;
 
 namespace XlaBoot;
 
@@ -55,7 +56,7 @@ public static class GraphicsDrivers
             // The default is listed even when missing, so there is always something to fall back to;
             // the others arrive with a runtime update.
             if (id == DefaultBundled || File.Exists(Path.Combine(directory, "driver-name")))
-                drivers.Add(Describe(id, directory, "Bundled Turnip", bundled: true));
+                drivers.Add(Describe(id, directory, Strings.Driver_Bundled, bundled: true));
         }
         try
         {
@@ -97,7 +98,7 @@ public static class GraphicsDrivers
         // meta.json may sit at the root or one folder down, depending on how the package was zipped.
         var metaEntry = archive.Entries.FirstOrDefault(e =>
                             Path.GetFileName(e.FullName).Equals("meta.json", StringComparison.OrdinalIgnoreCase))
-                        ?? throw new InvalidOperationException("No meta.json inside, so this is not an AdrenoTools driver package.");
+                        ?? throw new InvalidOperationException(Strings.Driver_NoMeta);
         var prefix = metaEntry.FullName[..^Path.GetFileName(metaEntry.FullName).Length];
 
         DriverMeta? meta;
@@ -105,9 +106,9 @@ public static class GraphicsDrivers
             meta = JsonSerializer.Deserialize<DriverMeta>(stream, JsonOptions);
         var library = meta?.LibraryName;
         if (meta == null || string.IsNullOrWhiteSpace(library))
-            throw new InvalidOperationException("The package's meta.json does not name a libraryName.");
+            throw new InvalidOperationException(Strings.Driver_NoLibName);
         if (archive.GetEntry(prefix + library) == null)
-            throw new InvalidOperationException($"meta.json names {library}, but the package does not contain it.");
+            throw new InvalidOperationException(Loc.F(Strings.Driver_MissingLib, library));
 
         var directory = Path.Combine(ImportRoot, Slug(meta, library));
         if (Directory.Exists(directory))
@@ -171,7 +172,7 @@ public static class GraphicsDrivers
         {
             // No or unreadable meta.json: the folder name and driver-name are enough to run it.
         }
-        parts.Add(bundled ? "shipped with the app" : "imported");
+        parts.Add(bundled ? Strings.Driver_Shipped : Strings.Driver_Imported);
         return new GraphicsDriver(id, label, string.Join(" - ", parts), directory, bundled);
     }
 

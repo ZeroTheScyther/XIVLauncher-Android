@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SteamKit2;
 using SteamKit2.CDN;
+using XlaBoot.Localization;
 
 namespace XlaBoot.Steam;
 
@@ -24,8 +25,7 @@ public static class LosslessFetch
     public const uint AppId = 993090;
     public const string DllName = "Lossless.dll";
 
-    public const string NotOwnedMessage =
-        "This Steam account doesn't own Lossless Scaling. Please use an account that does or buy Lossless Scaling on Steam.";
+    public static string NotOwnedMessage => Strings.Lossless_NotOwned;
     private const string Branch = "public";
 
     // Enough to step past a bad CDN node or two without making a real outage take minutes to report.
@@ -58,7 +58,7 @@ public static class LosslessFetch
         var stampPath = Path.Combine(dir, "manifest");
         var dllPath = DllPath(filesDir);
 
-        progress("Asking Steam for Lossless Scaling...");
+        progress(Strings.Lossless_Asking);
         var depots = await GetDepotsAsync(apps).ConfigureAwait(false);
         ct.ThrowIfCancellationRequested();
 
@@ -172,7 +172,7 @@ public static class LosslessFetch
                 Console.WriteLine($"XlaSteam: {server.Host} failed: {ex.GetType().Name}: {ex.Message}");
             }
         }
-        throw new SteamSignInException("Could not download from Steam. Check the connection and try again.",
+        throw new SteamSignInException(Strings.Lossless_DownloadFailed,
             EResult.Invalid, last);
     }
 
@@ -189,7 +189,7 @@ public static class LosslessFetch
 
             foreach (var chunk in file.Chunks)
             {
-                progress($"Downloading Lossless.dll ({done * 100 / Math.Max(file.TotalSize, 1)}%)...");
+                progress(Loc.F(Strings.Lossless_Progress, done * 100 / Math.Max(file.TotalSize, 1)));
                 var buffer = new byte[chunk.UncompressedLength];
                 // With the depot key given, SteamKit decrypts, decompresses and checks the chunk's checksum.
                 var length = await OnAnyServer(servers, ct,
@@ -208,7 +208,7 @@ public static class LosslessFetch
         if (!hash.AsSpan().SequenceEqual(file.FileHash))
         {
             File.Delete(tmp);
-            throw new SteamSignInException("Lossless.dll did not download correctly. Try again.");
+            throw new SteamSignInException(Strings.Lossless_Corrupt);
         }
 
         File.Move(tmp, Path.Combine(dir, DllName), overwrite: true);

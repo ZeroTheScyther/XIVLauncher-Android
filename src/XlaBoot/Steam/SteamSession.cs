@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SteamKit2;
 using SteamKit2.Authentication;
+using XlaBoot.Localization;
 
 namespace XlaBoot.Steam;
 
@@ -111,9 +112,9 @@ public sealed class SteamSession : IDisposable
                 // first leaves nothing but a dead socket by the time the user is done.
                 var credentials = await prompts.AskCredentialsAsync(account ?? "", previousWasWrong: attempt > 0)
                                       .ConfigureAwait(false)
-                                  ?? throw new SteamSignInException("Steam sign-in cancelled.");
+                                  ?? throw new SteamSignInException(Strings.Steam_Cancelled);
 
-                prompts.Progress("Signing in to Steam...");
+                prompts.Progress(Strings.Greet_SigningInSteam);
                 var poll = await AuthenticateAsync(credentials, guardData, prompts, ct).ConfigureAwait(false);
                 account = poll.AccountName;
                 refreshToken = poll.RefreshToken;
@@ -121,13 +122,13 @@ public sealed class SteamSession : IDisposable
                     guardData = poll.NewGuardData;
             }
 
-            prompts.Progress("Signing in to Steam...");
+            prompts.Progress(Strings.Greet_SigningInSteam);
             await ConnectAsync(ct).ConfigureAwait(false); // a refused logon drops the connection
             var result = await LogOnAsync(account!, refreshToken!, ct).ConfigureAwait(false);
 
             if (result.Result == EResult.OK)
             {
-                prompts.Progress("Waiting for Steam...");
+                prompts.Progress(Strings.Steam_Waiting);
                 await Wait(_connectTokens.Task, ConnectTokenTimeout,
                     "Steam accepted the sign-in but sent no game token.", ct).ConfigureAwait(false);
 
@@ -143,7 +144,7 @@ public sealed class SteamSession : IDisposable
             refreshToken = null; // stale stored token: fall through and ask for the password
         }
 
-        throw new SteamSignInException("Could not sign in to Steam.");
+        throw new SteamSignInException(Strings.Steam_CouldNotSignIn);
     }
 
     /// <summary>
@@ -199,7 +200,7 @@ public sealed class SteamSession : IDisposable
             {
                 // Each call takes the next candidate; SteamKit remembers which ones let it down.
                 _client.Connect();
-                await Wait(waiter.Task, ConnectTimeout, "Could not reach Steam.", ct).ConfigureAwait(false);
+                await Wait(waiter.Task, ConnectTimeout, Strings.Steam_Unreachable, ct).ConfigureAwait(false);
                 return;
             }
             catch (SteamSignInException ex)
@@ -210,7 +211,7 @@ public sealed class SteamSession : IDisposable
         }
 
         throw new SteamSignInException(
-            "Could not reach Steam. Check the connection and try again.", EResult.Invalid, last);
+            Strings.Steam_UnreachableRetry, EResult.Invalid, last);
     }
 
     private async Task<SteamUser.LoggedOnCallback> LogOnAsync(string account, string refreshToken, CancellationToken ct)
@@ -227,7 +228,7 @@ public sealed class SteamSession : IDisposable
             MachineName = "XIVLauncher Android",
         });
 
-        return await Wait(waiter.Task, LogOnTimeout, "Steam did not answer the sign-in.", ct).ConfigureAwait(false);
+        return await Wait(waiter.Task, LogOnTimeout, Strings.Steam_NoAnswer, ct).ConfigureAwait(false);
     }
 
     private async Task<AuthPollResult> AuthenticateAsync(
@@ -280,7 +281,7 @@ public sealed class SteamSession : IDisposable
             return;
 
         IsSignedIn = false;
-        var dropped = new SteamSignInException("Steam closed the connection.");
+        var dropped = new SteamSignInException(Strings.Steam_Closed);
         _connected?.TrySetException(dropped);
         _loggedOn?.TrySetException(dropped);
     }
@@ -346,11 +347,11 @@ public sealed class SteamSession : IDisposable
 
         public async Task<string> GetDeviceCodeAsync(bool previousCodeWasIncorrect)
             => await _prompts.AskGuardCodeAsync(SteamGuardKind.Mobile, "", previousCodeWasIncorrect).ConfigureAwait(false)
-               ?? throw new SteamSignInException("Steam sign-in cancelled.");
+               ?? throw new SteamSignInException(Strings.Steam_Cancelled);
 
         public async Task<string> GetEmailCodeAsync(string email, bool previousCodeWasIncorrect)
             => await _prompts.AskGuardCodeAsync(SteamGuardKind.Email, email, previousCodeWasIncorrect).ConfigureAwait(false)
-               ?? throw new SteamSignInException("Steam sign-in cancelled.");
+               ?? throw new SteamSignInException(Strings.Steam_Cancelled);
 
         public Task<bool> AcceptDeviceConfirmationAsync() => _prompts.AskWaitForDeviceConfirmationAsync();
     }

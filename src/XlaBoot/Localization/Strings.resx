@@ -1,0 +1,1000 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Home_Subtitle" xml:space="preserve">
+    <value>FINAL FANTASY XIV on Android</value>
+  </data>
+  <data name="Home_UpdateAvailable" xml:space="preserve">
+    <value>Update available</value>
+  </data>
+  <data name="Home_Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="Home_About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Home_AboutDetail" xml:space="preserve">
+    <value>Credits, licences and more</value>
+  </data>
+  <data name="Login_Intro" xml:space="preserve">
+    <value>Log in to your Square Enix account to launch FFXIV.</value>
+  </data>
+  <data name="Login_Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Login_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Login_UseOtp" xml:space="preserve">
+    <value>Use one-time password</value>
+  </data>
+  <data name="Login_SteamAccount" xml:space="preserve">
+    <value>Use Steam service account</value>
+  </data>
+  <data name="Login_FreeTrial" xml:space="preserve">
+    <value>Free trial account</value>
+  </data>
+  <data name="Login_Remember" xml:space="preserve">
+    <value>Remember login</value>
+  </data>
+  <data name="Login_Button" xml:space="preserve">
+    <value>Log in &amp; Play</value>
+  </data>
+  <data name="Logs_Title" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="About_Subtitle" xml:space="preserve">
+    <value>Android Port</value>
+  </data>
+  <data name="About_Intro" xml:space="preserve">
+    <value>A community project that brings XIVLauncher and Dalamud to Android.</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="About_BuiltWith" xml:space="preserve">
+    <value>Built with</value>
+  </data>
+  <data name="About_RunsOn" xml:space="preserve">
+    <value>Runs on</value>
+  </data>
+  <data name="About_Thanks" xml:space="preserve">
+    <value>Acknowledgements</value>
+  </data>
+  <data name="About_ThanksText" xml:space="preserve">
+    <value>XIVLauncher and Dalamud by goatcorp and contributors. Wine, FEX-Emu, DXVK and Mesa Turnip by their authors. Winlator and GameNative for the Android container groundwork. And the FFXIV community.</value>
+  </data>
+  <data name="About_Coffee" xml:space="preserve">
+    <value>Buy me a coffee</value>
+  </data>
+  <data name="About_Discord" xml:space="preserve">
+    <value>Join the Discord</value>
+  </data>
+  <data name="About_Legal" xml:space="preserve">
+    <value>Not affiliated with or endorsed by Square Enix. FINAL FANTASY is a registered trademark of Square Enix Holdings Co., Ltd.</value>
+  </data>
+  <data name="About_Tagline" xml:space="preserve">
+    <value>Same adventure. New devices.</value>
+  </data>
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Otp_Title" xml:space="preserve">
+    <value>Enter your one-time password</value>
+  </data>
+  <data name="Otp_Detail" xml:space="preserve">
+    <value>The 6-digit code from your Square Enix authenticator.</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_LogIn" xml:space="preserve">
+    <value>Log in</value>
+  </data>
+  <data name="Common_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Common_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_TryAgain" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="Steam_SignInTitle" xml:space="preserve">
+    <value>Sign in to Steam</value>
+  </data>
+  <data name="Steam_AccountName" xml:space="preserve">
+    <value>Steam account name</value>
+  </data>
+  <data name="Steam_Password" xml:space="preserve">
+    <value>Steam password</value>
+  </data>
+  <data name="Steam_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Steam_EnterCodeInstead" xml:space="preserve">
+    <value>Enter a code instead</value>
+  </data>
+  <data name="NoGame_Title" xml:space="preserve">
+    <value>No game installation found</value>
+  </data>
+  <data name="NoGame_Question" xml:space="preserve">
+    <value>Would you like to install the whole game?</value>
+  </data>
+  <data name="NoGame_Hint" xml:space="preserve">
+    <value>Choose No and set the folder in settings if you already have the game copied from your PC.</value>
+  </data>
+  <data name="NoGame_No" xml:space="preserve">
+    <value>No, I have it</value>
+  </data>
+  <data name="NoGame_Yes" xml:space="preserve">
+    <value>Yes, install it</value>
+  </data>
+  <data name="Settings_TabGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Settings_TabGraphics" xml:space="preserve">
+    <value>Graphics</value>
+  </data>
+  <data name="Settings_TabAdvanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="Settings_TabRepos" xml:space="preserve">
+    <value>Dalamud Repos</value>
+  </data>
+  <data name="Settings_Footer" xml:space="preserve">
+    <value>These apply the next time you launch the game.</value>
+  </data>
+  <data name="Setup_Title" xml:space="preserve">
+    <value>Setting up</value>
+  </data>
+  <data name="Setup_Intro" xml:space="preserve">
+    <value>Downloading the files needed to run the game. This happens once, and takes a few minutes.</value>
+  </data>
+  <data name="Setup_Failed" xml:space="preserve">
+    <value>Setup could not finish</value>
+  </data>
+  <data name="Background_Hint" xml:space="preserve">
+    <value>Android may pause this download when you leave the app. Allowing it to run in the background lets it finish on its own.</value>
+  </data>
+  <data name="Background_Allow" xml:space="preserve">
+    <value>Allow background downloading</value>
+  </data>
+  <data name="Install_Intro" xml:space="preserve">
+    <value>You can leave the app while this runs. If it stops, everything downloaded so far is kept and it carries on from there.</value>
+  </data>
+  <data name="Install_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Install_Failed" xml:space="preserve">
+    <value>The install could not finish</value>
+  </data>
+  <data name="Install_RetryHint" xml:space="preserve">
+    <value>Tap Log in &amp; Play to try again.</value>
+  </data>
+  <data name="Common_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Common_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Common_Auto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="Settings_Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="Settings_Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Settings_PresentMailbox" xml:space="preserve">
+    <value>Mailbox (low latency)</value>
+  </data>
+  <data name="Settings_PresentFifo" xml:space="preserve">
+    <value>FIFO (v-synced)</value>
+  </data>
+  <data name="Settings_PresentImmediate" xml:space="preserve">
+    <value>Immediate (may tear)</value>
+  </data>
+  <data name="Settings_HeaderGame" xml:space="preserve">
+    <value>Game</value>
+  </data>
+  <data name="Settings_GameLocation" xml:space="preserve">
+    <value>Game install location</value>
+  </data>
+  <data name="Settings_Change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="Settings_GameLanguage" xml:space="preserve">
+    <value>Game language</value>
+  </data>
+  <data name="Settings_LauncherLanguage" xml:space="preserve">
+    <value>Launcher language</value>
+  </data>
+  <data name="Settings_SystemDefault" xml:space="preserve">
+    <value>System default</value>
+  </data>
+  <data name="Settings_HeaderPlugins" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+  <data name="Settings_DalamudDetail" xml:space="preserve">
+    <value>Loads the Dalamud plugin framework into the game. Downloads Dalamud on first use; falls back to a plain launch if it doesn't support the installed game version yet.</value>
+  </data>
+  <data name="Settings_DalamudBranch" xml:space="preserve">
+    <value>Dalamud branch</value>
+  </data>
+  <data name="Settings_Loading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+  <data name="Status_BranchesFailed" xml:space="preserve">
+    <value>Could not load Dalamud's branches: {0}</value>
+  </data>
+  <data name="Settings_Helper" xml:space="preserve">
+    <value>In-game helper</value>
+  </data>
+  <data name="Settings_HelperDetail" xml:space="preserve">
+    <value>Installs XIVLauncher Android Helper, a small plugin that shows this device's battery in the game's server info bar. Updated through Dalamud like any other plugin.</value>
+  </data>
+  <data name="Settings_SafeMode" xml:space="preserve">
+    <value>Run in safe mode</value>
+  </data>
+  <data name="Settings_NextLaunch" xml:space="preserve">
+    <value>Next launch</value>
+  </data>
+  <data name="Settings_SafeModeDetail" xml:space="preserve">
+    <value>Starts the game with Dalamud but every plugin disabled, for when a plugin makes the game crash. Turn the bad plugin off in /xlplugins, then launch normally. Applies to the next launch only.</value>
+  </data>
+  <data name="Settings_HeaderDriver" xml:space="preserve">
+    <value>Vulkan driver</value>
+  </data>
+  <data name="Settings_Driver" xml:space="preserve">
+    <value>Driver</value>
+  </data>
+  <data name="Settings_DriverImportHint" xml:space="preserve">
+    <value>Import another below if the game renders wrongly or will not start.</value>
+  </data>
+  <data name="Settings_ImportDriver" xml:space="preserve">
+    <value>Import a driver</value>
+  </data>
+  <data name="Settings_PickFile" xml:space="preserve">
+    <value>Pick file</value>
+  </data>
+  <data name="Settings_ImportDriverDetail" xml:space="preserve">
+    <value>An AdrenoTools .zip (a Turnip or Mesa build, the same packages Winlator and GameNative take).</value>
+  </data>
+  <data name="Settings_RemoveDriver" xml:space="preserve">
+    <value>Remove this driver</value>
+  </data>
+  <data name="Status_TapAgainDelete" xml:space="preserve">
+    <value>Tap again to delete {0}.</value>
+  </data>
+  <data name="Status_DriverRemoved" xml:space="preserve">
+    <value>Removed {0}; back on the bundled driver.</value>
+  </data>
+  <data name="Status_RemoveFailed" xml:space="preserve">
+    <value>Could not remove it: {0}</value>
+  </data>
+  <data name="Settings_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Settings_RemoveDriverDetail" xml:space="preserve">
+    <value>Deletes the imported package. The bundled driver cannot be removed.</value>
+  </data>
+  <data name="Settings_HeaderOutput" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Settings_Resolution" xml:space="preserve">
+    <value>Game resolution</value>
+  </data>
+  <data name="Settings_ResolutionDetail" xml:space="preserve">
+    <value>The Wine desktop the game renders into; the display scales it to the panel. Lower is faster and cooler.</value>
+  </data>
+  <data name="Settings_FpsCap" xml:space="preserve">
+    <value>Frame rate cap</value>
+  </data>
+  <data name="Settings_Renderer" xml:space="preserve">
+    <value>Renderer</value>
+  </data>
+  <data name="Settings_OpenGlFallback" xml:space="preserve">
+    <value>OpenGL (fallback)</value>
+  </data>
+  <data name="Settings_RendererDetail" xml:space="preserve">
+    <value>How the app itself presents the game's window. Vulkan hands the buffer to the display with no copy; OpenGL is the fallback for a device the Vulkan path cannot drive.</value>
+  </data>
+  <data name="Settings_HeaderCompat" xml:space="preserve">
+    <value>Compatibility</value>
+  </data>
+  <data name="Settings_PresentMode" xml:space="preserve">
+    <value>Present mode</value>
+  </data>
+  <data name="Settings_PresentModeDetail" xml:space="preserve">
+    <value>Mailbox is the default. Try FIFO on a driver that stutters or tears.</value>
+  </data>
+  <data name="Settings_Bcn" xml:space="preserve">
+    <value>Decompress BC textures</value>
+  </data>
+  <data name="Settings_BcnDetail" xml:space="preserve">
+    <value>Transcodes the game's BC-compressed textures on the CPU. Needed on a GPU with no native BC support; pure overhead on one that has it (Adreno does, so Auto skips it).</value>
+  </data>
+  <data name="Settings_ShaderCache" xml:space="preserve">
+    <value>Shader cache</value>
+  </data>
+  <data name="Settings_ShaderCacheDetail" xml:space="preserve">
+    <value>Keeps compiled pipelines on disk. Leave on: a cold cache costs minutes of CPU and a lot of heat on every launch. Turn it off only to rule the cache out after a driver change.</value>
+  </data>
+  <data name="Settings_HeaderGameSettings" xml:space="preserve">
+    <value>Game settings</value>
+  </data>
+  <data name="Settings_Optimize" xml:space="preserve">
+    <value>Optimize game settings</value>
+  </data>
+  <data name="Settings_Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Settings_Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="Settings_Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Status_AlreadyOptimized" xml:space="preserve">
+    <value>Game settings were already optimized.</value>
+  </data>
+  <data name="Status_Optimized" xml:space="preserve">
+    <value>Optimized {0} game settings.</value>
+  </data>
+  <data name="Status_CfgFailed" xml:space="preserve">
+    <value>Could not update FFXIV.cfg: {0}</value>
+  </data>
+  <data name="Settings_OptimizeDetail" xml:space="preserve">
+    <value>Set FFXIV's graphic options to a preset tuned for 30 FPS with the least heat on a phone.</value>
+  </data>
+  <data name="Settings_FrameGen" xml:space="preserve">
+    <value>Frame generation</value>
+  </data>
+  <data name="Settings_Downloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="Settings_Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Settings_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Settings_FlowScale" xml:space="preserve">
+    <value>Flow scale</value>
+  </data>
+  <data name="Settings_PerformanceMode" xml:space="preserve">
+    <value>Performance mode</value>
+  </data>
+  <data name="Status_LosslessDownloaded" xml:space="preserve">
+    <value>Lossless.dll downloaded.</value>
+  </data>
+  <data name="Status_LosslessUpToDate" xml:space="preserve">
+    <value>Lossless.dll is up to date.</value>
+  </data>
+  <data name="Steam_Cancelled" xml:space="preserve">
+    <value>Steam sign-in cancelled.</value>
+  </data>
+  <data name="Status_DownloadFailed" xml:space="preserve">
+    <value>Download failed: {0}</value>
+  </data>
+  <data name="Settings_HeaderDxvk" xml:space="preserve">
+    <value>DXVK</value>
+  </data>
+  <data name="Settings_DxvkVersion" xml:space="preserve">
+    <value>DXVK version</value>
+  </data>
+  <data name="Settings_DxvkStock" xml:space="preserve">
+    <value>Stock (runtime default)</value>
+  </data>
+  <data name="Settings_ActiveSuffix" xml:space="preserve">
+    <value>{0} (active)</value>
+  </data>
+  <data name="Status_DxvkStock" xml:space="preserve">
+    <value>Using runtime default.</value>
+  </data>
+  <data name="Status_DxvkUsing" xml:space="preserve">
+    <value>Using {0}.</value>
+  </data>
+  <data name="Settings_ImportDxvk" xml:space="preserve">
+    <value>Import DXVK</value>
+  </data>
+  <data name="Settings_PickZipTar" xml:space="preserve">
+    <value>Pick zip/tar.gz</value>
+  </data>
+  <data name="Settings_DxvkBuiltIn" xml:space="preserve">
+    <value>Using the runtime's built-in DXVK.</value>
+  </data>
+  <data name="Settings_DxvkActive" xml:space="preserve">
+    <value>Active: {0}.</value>
+  </data>
+  <data name="Settings_RemoveDxvk" xml:space="preserve">
+    <value>Remove this DXVK</value>
+  </data>
+  <data name="Status_DxvkRemoved" xml:space="preserve">
+    <value>Removed {0}; back on the runtime's DXVK.</value>
+  </data>
+  <data name="Settings_RemoveDxvkDetail" xml:space="preserve">
+    <value>Deletes the imported DXVK {0}.</value>
+  </data>
+  <data name="Status_ImportingDxvk" xml:space="preserve">
+    <value>Importing DXVK...</value>
+  </data>
+  <data name="Status_DxvkImported" xml:space="preserve">
+    <value>Imported. Next launch uses the new DLLs.</value>
+  </data>
+  <data name="Status_ImportFailedReason" xml:space="preserve">
+    <value>Import failed: {0}</value>
+  </data>
+  <data name="Settings_HeaderFex" xml:space="preserve">
+    <value>x86 emulation (FEXCore)</value>
+  </data>
+  <data name="Settings_Preset" xml:space="preserve">
+    <value>Preset</value>
+  </data>
+  <data name="Settings_FexIntermediate" xml:space="preserve">
+    <value>Intermediate</value>
+  </data>
+  <data name="Settings_FexPerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="Settings_PresetDetail" xml:space="preserve">
+    <value>How faithfully FEX emulates x86 memory ordering. Intermediate is what runs the game here; Performance drops the remaining barriers (faster, can break); Compatibility keeps them all (slower, cooler code paths).</value>
+  </data>
+  <data name="Settings_Multiblock" xml:space="preserve">
+    <value>Multi-block recompilation</value>
+  </data>
+  <data name="Settings_MultiblockDetail" xml:space="preserve">
+    <value>Lets FEX compile past a branch into one block. Faster; off is a debugging step for a device that crashes early.</value>
+  </data>
+  <data name="Settings_CodeCache" xml:space="preserve">
+    <value>Code cache</value>
+  </data>
+  <data name="Settings_CodeCacheDetail" xml:space="preserve">
+    <value>Keeps translated code between launches. Faster startup; off if the game misbehaves after a cached launch.</value>
+  </data>
+  <data name="Settings_EsyncDetail" xml:space="preserve">
+    <value>Eventfd-based synchronisation instead of the server round trip. Much faster; off if threads deadlock.</value>
+  </data>
+  <data name="Settings_DxvkAsync" xml:space="preserve">
+    <value>DXVK async shaders</value>
+  </data>
+  <data name="Settings_DxvkAsyncDetail" xml:space="preserve">
+    <value>Draws with a stand-in pipeline while the real one compiles. Hides compile stutter, can briefly show untextured geometry.</value>
+  </data>
+  <data name="Settings_WineLog" xml:space="preserve">
+    <value>Wine log</value>
+  </data>
+  <data name="Settings_ErrorsOnly" xml:space="preserve">
+    <value>Errors only</value>
+  </data>
+  <data name="Settings_Everything" xml:space="preserve">
+    <value>Everything</value>
+  </data>
+  <data name="Settings_WineLogDetail" xml:space="preserve">
+    <value>Enable wine logging (Slow). Turn it on when the game will not start at all to see why.</value>
+  </data>
+  <data name="Settings_HeaderRepos" xml:space="preserve">
+    <value>Custom plugin repos</value>
+  </data>
+  <data name="Settings_NoRepos" xml:space="preserve">
+    <value>No custom repos yet</value>
+  </data>
+  <data name="Settings_AddRepo" xml:space="preserve">
+    <value>Add repo</value>
+  </data>
+  <data name="Settings_AddRepoDetail" xml:space="preserve">
+    <value>Paste the link to a plugin repo, the same one you'd add in Dalamud's settings.</value>
+  </data>
+  <data name="Settings_HeaderImport" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Settings_ImportRepos" xml:space="preserve">
+    <value>Import from dalamudConfig.json</value>
+  </data>
+  <data name="Settings_ImportReposDetail" xml:space="preserve">
+    <value>Adds every repo from a dalamudConfig.json copied from your PC that isn't already here.</value>
+  </data>
+  <data name="Settings_ImportPluginConfigs" xml:space="preserve">
+    <value>Import plugin configs</value>
+  </data>
+  <data name="Settings_PickZip" xml:space="preserve">
+    <value>Pick zip</value>
+  </data>
+  <data name="Repo_NotALink" xml:space="preserve">
+    <value>That isn't a web link.</value>
+  </data>
+  <data name="Repo_Duplicate" xml:space="preserve">
+    <value>That repo is already added.</value>
+  </data>
+  <data name="Status_RepoAdded" xml:space="preserve">
+    <value>Repo added.</value>
+  </data>
+  <data name="Status_RepoRemoved" xml:space="preserve">
+    <value>Repo removed.</value>
+  </data>
+  <data name="Status_RepoGone" xml:space="preserve">
+    <value>That repo was already gone.</value>
+  </data>
+  <data name="Status_NoFilePicker" xml:space="preserve">
+    <value>No file picker on this platform.</value>
+  </data>
+  <data name="Status_NoFolderPicker" xml:space="preserve">
+    <value>No folder picker on this platform.</value>
+  </data>
+  <data name="Status_ReposNothingNew" xml:space="preserve">
+    <value>Nothing new in {0}; every repo is already here.</value>
+  </data>
+  <data name="Status_ReposAdded" xml:space="preserve">
+    <value>Repos added: {0}.</value>
+  </data>
+  <data name="Status_ReposAddedSkipped" xml:space="preserve">
+    <value>Repos added: {0}. Already here: {1}.</value>
+  </data>
+  <data name="Status_ImportingConfigs" xml:space="preserve">
+    <value>Importing plugin configs...</value>
+  </data>
+  <data name="Status_ConfigsImported" xml:space="preserve">
+    <value>Plugin configs imported: {0}.</value>
+  </data>
+  <data name="Status_ImportFailed" xml:space="preserve">
+    <value>Could not import: {0}</value>
+  </data>
+  <data name="Status_AllFilesAccess" xml:space="preserve">
+    <value>To install to this folder, allow XIVLauncher to manage all files, then come back.</value>
+  </data>
+  <data name="Status_CannotWrite" xml:space="preserve">
+    <value>XIVLauncher cannot write to {0}. Allow "All files access" for XIVLauncher, or pick a folder on internal storage.</value>
+  </data>
+  <data name="Status_LocationSaved" xml:space="preserve">
+    <value>Game location saved.</value>
+  </data>
+  <data name="Status_LocationSavedEmpty" xml:space="preserve">
+    <value>Game location saved. There is no game here yet - Log in &amp; Play will offer to install it.</value>
+  </data>
+  <data name="Status_Unpacking" xml:space="preserve">
+    <value>Unpacking {0}...</value>
+  </data>
+  <data name="Status_DriverInstalled" xml:space="preserve">
+    <value>Installed and selected {0}.</value>
+  </data>
+  <data name="Status_NotInstalled" xml:space="preserve">
+    <value>Not installed - {0}</value>
+  </data>
+  <data name="Main_UpdateText" xml:space="preserve">
+    <value>XIVLauncher {0} is available. Tap to download.</value>
+  </data>
+  <data name="Greet_SavedLoginFailed" xml:space="preserve">
+    <value>Could not load the saved login: {0}</value>
+  </data>
+  <data name="Greet_EnterCredentials" xml:space="preserve">
+    <value>Enter your username and password.</value>
+  </data>
+  <data name="Greet_RuntimeMissing" xml:space="preserve">
+    <value>The runtime is not installed yet.</value>
+  </data>
+  <data name="Greet_WaitingStorage" xml:space="preserve">
+    <value>Waiting for storage permission...</value>
+  </data>
+  <data name="Greet_NeedsStorage" xml:space="preserve">
+    <value>XIVLauncher needs access to your storage to reach the game folder.</value>
+  </data>
+  <data name="NoGame_NothingAt" xml:space="preserve">
+    <value>Nothing is installed at {0}.</value>
+  </data>
+  <data name="Greet_NoGame" xml:space="preserve">
+    <value>No game installation found.</value>
+  </data>
+  <data name="Install_TitleInstalling" xml:space="preserve">
+    <value>Installing FFXIV</value>
+  </data>
+  <data name="Install_TitleUpdating" xml:space="preserve">
+    <value>Updating FFXIV</value>
+  </data>
+  <data name="Greet_CheckingUpdates" xml:space="preserve">
+    <value>Checking for updates...</value>
+  </data>
+  <data name="Greet_UpdateCheckFailed" xml:space="preserve">
+    <value>Could not check for game updates. The servers may be under maintenance, or your connection is down. Try again in a moment.</value>
+  </data>
+  <data name="Greet_Installing" xml:space="preserve">
+    <value>Installing the game...</value>
+  </data>
+  <data name="Greet_Updating" xml:space="preserve">
+    <value>Updating the game...</value>
+  </data>
+  <data name="Greet_InstallFailed" xml:space="preserve">
+    <value>The install could not finish.</value>
+  </data>
+  <data name="Greet_InstallPaused" xml:space="preserve">
+    <value>Install paused.</value>
+  </data>
+  <data name="Greet_InstallPausedHint" xml:space="preserve">
+    <value>Install paused. Tap Log in &amp; Play to carry on where it stopped.</value>
+  </data>
+  <data name="Greet_WaitingOtp" xml:space="preserve">
+    <value>Waiting for the one-time password...</value>
+  </data>
+  <data name="Greet_LoginCancelled" xml:space="preserve">
+    <value>Login cancelled.</value>
+  </data>
+  <data name="Greet_SigningInSteam" xml:space="preserve">
+    <value>Signing in to Steam...</value>
+  </data>
+  <data name="Greet_LoggingIn" xml:space="preserve">
+    <value>Logging in...</value>
+  </data>
+  <data name="Greet_SaveLoginFailed" xml:space="preserve">
+    <value>Logged in, but saving the login failed: {0}</value>
+  </data>
+  <data name="Greet_Installed" xml:space="preserve">
+    <value>FFXIV is installed. Tap Log in &amp; Play to start.</value>
+  </data>
+  <data name="Greet_UpToDate" xml:space="preserve">
+    <value>FFXIV is up to date. Tap Log in &amp; Play to start.</value>
+  </data>
+  <data name="Greet_BootDamaged" xml:space="preserve">
+    <value>The game's boot files are damaged, so it can neither update nor start. Delete the game folder and install it again.</value>
+  </data>
+  <data name="Greet_NoService" xml:space="preserve">
+    <value>This account has no active subscription (NoService).</value>
+  </data>
+  <data name="Greet_NoTerms" xml:space="preserve">
+    <value>The terms of service have not been accepted on this account (NoTerms).</value>
+  </data>
+  <data name="Greet_LoginFailed" xml:space="preserve">
+    <value>Login failed: {0}</value>
+  </data>
+  <data name="Greet_PreparingDalamud" xml:space="preserve">
+    <value>Preparing Dalamud...</value>
+  </data>
+  <data name="Greet_StartingSafe" xml:space="preserve">
+    <value>Login OK, starting the game in safe mode (no plugins)...</value>
+  </data>
+  <data name="Greet_Starting" xml:space="preserve">
+    <value>Login OK, starting the game...</value>
+  </data>
+  <data name="Status_PickGameFolder" xml:space="preserve">
+    <value>Tap Game install location and pick the folder that holds the game's boot and game folders.</value>
+  </data>
+  <data name="Otp_EnterCode" xml:space="preserve">
+    <value>Enter the 6-digit code.</value>
+  </data>
+  <data name="Home_PlaySafe" xml:space="preserve">
+    <value>Launch in safe mode (no plugins)</value>
+  </data>
+  <data name="Home_PlayDetail" xml:space="preserve">
+    <value>Launch Final Fantasy XIV</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>Development build</value>
+  </data>
+  <data name="Home_GameInstalled" xml:space="preserve">
+    <value>Game installed</value>
+  </data>
+  <data name="Home_Version" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="Home_VersionUnknown" xml:space="preserve">
+    <value>Version unknown</value>
+  </data>
+  <data name="Home_FolderUnreadable" xml:space="preserve">
+    <value>Game folder not readable</value>
+  </data>
+  <data name="Home_FolderUnreadableDetail" xml:space="preserve">
+    <value>Tap Play to allow storage access, or pick the folder in Settings.</value>
+  </data>
+  <data name="Home_NoGame" xml:space="preserve">
+    <value>No game found</value>
+  </data>
+  <data name="Home_NoGameDetail" xml:space="preserve">
+    <value>Tap Play to install it, or pick your copy in Settings.</value>
+  </data>
+  <data name="Steam_SignedInAs" xml:space="preserve">
+    <value>Signed in to Steam as {0}.</value>
+  </data>
+  <data name="Steam_WillAsk" xml:space="preserve">
+    <value>You will be asked to sign in to Steam.</value>
+  </data>
+  <data name="Steam_ReasonLogin" xml:space="preserve">
+    <value>Your Square Enix account is linked to Steam, so Steam has to vouch for this login. Your Steam password is not saved.</value>
+  </data>
+  <data name="Steam_ReasonLossless" xml:space="preserve">
+    <value>In order to use this feature you must have Lossless Scaling on Steam. Please connect to your Steam account to download it.</value>
+  </data>
+  <data name="Steam_EnterCredentials" xml:space="preserve">
+    <value>Enter your Steam account name and password.</value>
+  </data>
+  <data name="Steam_EnterGuardCode" xml:space="preserve">
+    <value>Enter the 5-character code.</value>
+  </data>
+  <data name="Steam_SavedInvalid" xml:space="preserve">
+    <value>The saved Steam sign-in is no longer valid. Enter your password again.</value>
+  </data>
+  <data name="Greet_WaitingSteamSignIn" xml:space="preserve">
+    <value>Waiting for your Steam sign-in...</value>
+  </data>
+  <data name="Steam_CodeRejected" xml:space="preserve">
+    <value>That code was not accepted.</value>
+  </data>
+  <data name="Steam_EmailedCode" xml:space="preserve">
+    <value>Steam emailed a 5-character code to {0}.</value>
+  </data>
+  <data name="Steam_AppCode" xml:space="preserve">
+    <value>The 5-character code from your Steam mobile app.</value>
+  </data>
+  <data name="Greet_WaitingSteamGuard" xml:space="preserve">
+    <value>Waiting for Steam Guard...</value>
+  </data>
+  <data name="Steam_ConfirmInApp" xml:space="preserve">
+    <value>Steam sent a confirmation to your Steam mobile app. Approve it there to continue.</value>
+  </data>
+  <data name="Steam_NotLinked" xml:space="preserve">
+    <value>This Steam account is not linked to a Square Enix account yet. Link it once in the official launcher on a PC, then try again here.</value>
+  </data>
+  <data name="Steam_WrongAccount" xml:space="preserve">
+    <value>This Steam account is linked to the Square Enix ID "{0}", not "{1}".</value>
+  </data>
+  <data name="Steam_NoTicket" xml:space="preserve">
+    <value>Steam did not return a login ticket. Check that this Steam account owns FINAL FANTASY XIV, then try again.</value>
+  </data>
+  <data name="Steam_AuthFailed" xml:space="preserve">
+    <value>Could not authenticate with Steam: {0}</value>
+  </data>
+  <data name="Setup_Cancelled" xml:space="preserve">
+    <value>Setup was cancelled.</value>
+  </data>
+  <data name="Progress_Of" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Progress_OfAt" xml:space="preserve">
+    <value>{0} of {1} at {2}/s</value>
+  </data>
+  <data name="Install_Preparing" xml:space="preserve">
+    <value>Preparing</value>
+  </data>
+  <data name="Install_Stopping" xml:space="preserve">
+    <value>Stopping after this step...</value>
+  </data>
+  <data name="Install_Downloaded" xml:space="preserve">
+    <value>{0} of {1} downloaded</value>
+  </data>
+  <data name="Install_TimeLeft" xml:space="preserve">
+    <value>about {0} left</value>
+  </data>
+  <data name="Install_HoursMinutes" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="Install_Minutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="Install_AMinute" xml:space="preserve">
+    <value>a minute</value>
+  </data>
+  <data name="Installer_DownloadingOnly" xml:space="preserve">
+    <value>Downloading the update</value>
+  </data>
+  <data name="Installer_DownloadingN" xml:space="preserve">
+    <value>Downloading update {0} of {1}</value>
+  </data>
+  <data name="Installer_InstallingOnly" xml:space="preserve">
+    <value>Installing the update</value>
+  </data>
+  <data name="Installer_InstallingN" xml:space="preserve">
+    <value>Installing update {0} of {1}</value>
+  </data>
+  <data name="Space_RanOut" xml:space="preserve">
+    <value>The phone ran out of space while installing. Free up at least {0} and try again - everything downloaded so far is kept.</value>
+  </data>
+  <data name="Space_NotEnough" xml:space="preserve">
+    <value>Not enough free space. This needs {0}, but only {1} is free. Free up {2} and try again - everything downloaded so far is kept.</value>
+  </data>
+  <data name="Installer_DownloadFailed" xml:space="preserve">
+    <value>Could not download the game files. Check your internet connection and try again - everything downloaded so far is kept.</value>
+  </data>
+  <data name="Installer_InstallFailed" xml:space="preserve">
+    <value>Could not install {0}: {1}</value>
+  </data>
+  <data name="Runtime_Checking" xml:space="preserve">
+    <value>Checking for the runtime</value>
+  </data>
+  <data name="Runtime_TooOld" xml:space="preserve">
+    <value>The runtime on the server (version {0}) is older than this version of the app needs (version {1}).</value>
+  </data>
+  <data name="Runtime_UpToDate" xml:space="preserve">
+    <value>The runtime is up to date</value>
+  </data>
+  <data name="Runtime_Downloading" xml:space="preserve">
+    <value>Downloading {0}</value>
+  </data>
+  <data name="Runtime_Installing" xml:space="preserve">
+    <value>Installing {0}</value>
+  </data>
+  <data name="Runtime_CompWine" xml:space="preserve">
+    <value>the Windows compatibility layer</value>
+  </data>
+  <data name="Runtime_CompPrefix" xml:space="preserve">
+    <value>the Windows environment</value>
+  </data>
+  <data name="Runtime_CompOverlay" xml:space="preserve">
+    <value>graphics libraries and fonts</value>
+  </data>
+  <data name="Runtime_CompRootfs" xml:space="preserve">
+    <value>system libraries</value>
+  </data>
+  <data name="Runtime_CompVkextra" xml:space="preserve">
+    <value>the graphics driver</value>
+  </data>
+  <data name="Runtime_CompAlsa" xml:space="preserve">
+    <value>audio configuration</value>
+  </data>
+  <data name="Runtime_CompPulse" xml:space="preserve">
+    <value>the audio server</value>
+  </data>
+  <data name="Runtime_Linking" xml:space="preserve">
+    <value>Linking Windows system files</value>
+  </data>
+  <data name="Runtime_Finishing" xml:space="preserve">
+    <value>Finishing setup</value>
+  </data>
+  <data name="Runtime_NoSpace" xml:space="preserve">
+    <value>Not enough free space: the runtime needs about {0} GB and {1} GB is available. Free some space and try again.</value>
+  </data>
+  <data name="Notif_Channel" xml:space="preserve">
+    <value>Setup progress</value>
+  </data>
+  <data name="Notif_Working" xml:space="preserve">
+    <value>Working</value>
+  </data>
+  <data name="Logs_NoSave" xml:space="preserve">
+    <value>Saving files isn't available on this platform.</value>
+  </data>
+  <data name="Logs_NothingToExport" xml:space="preserve">
+    <value>There are no logs to export yet.</value>
+  </data>
+  <data name="Logs_ExportCancelled" xml:space="preserve">
+    <value>Export cancelled.</value>
+  </data>
+  <data name="Logs_Saved" xml:space="preserve">
+    <value>Saved {0} files to {1}. Send it our way with your bug report.</value>
+  </data>
+  <data name="Logs_ExportFailed" xml:space="preserve">
+    <value>Could not export the logs: {0}</value>
+  </data>
+  <data name="Logs_None" xml:space="preserve">
+    <value>No logs yet. They appear here after the game has been launched.</value>
+  </data>
+  <data name="Logs_Empty" xml:space="preserve">
+    <value>(empty)</value>
+  </data>
+  <data name="Logs_ShowingEnd" xml:space="preserve">
+    <value>showing the end</value>
+  </data>
+  <data name="Logs_Updated" xml:space="preserve">
+    <value>updated {0}</value>
+  </data>
+  <data name="Logs_ReadFailed" xml:space="preserve">
+    <value>Could not read {0}: {1}</value>
+  </data>
+  <data name="Game_NoFolder" xml:space="preserve">
+    <value>No game folder is set.</value>
+  </data>
+  <data name="Game_ExeEmpty" xml:space="preserve">
+    <value>game\ffxiv_dx11.exe is empty here. The game cannot start from this folder.</value>
+  </data>
+  <data name="Game_Unreadable" xml:space="preserve">
+    <value>This folder cannot be read. The app needs permission to access your storage.</value>
+  </data>
+  <data name="Game_NoExe" xml:space="preserve">
+    <value>No game\ffxiv_dx11.exe here. The game cannot start from this folder.</value>
+  </data>
+  <data name="Game_NoDir" xml:space="preserve">
+    <value>This folder does not exist.</value>
+  </data>
+  <data name="Game_ReadFailed" xml:space="preserve">
+    <value>Could not read it: {0}.</value>
+  </data>
+  <data name="Game_Found" xml:space="preserve">
+    <value>FFXIV found, version {0}.</value>
+  </data>
+  <data name="Driver_Bundled" xml:space="preserve">
+    <value>Bundled Turnip</value>
+  </data>
+  <data name="Driver_Shipped" xml:space="preserve">
+    <value>shipped with the app</value>
+  </data>
+  <data name="Driver_Imported" xml:space="preserve">
+    <value>imported</value>
+  </data>
+  <data name="Driver_NoMeta" xml:space="preserve">
+    <value>No meta.json inside, so this is not an AdrenoTools driver package.</value>
+  </data>
+  <data name="Driver_NoLibName" xml:space="preserve">
+    <value>The package's meta.json does not name a libraryName.</value>
+  </data>
+  <data name="Driver_MissingLib" xml:space="preserve">
+    <value>meta.json names {0}, but the package does not contain it.</value>
+  </data>
+  <data name="Lossless_NotOwned" xml:space="preserve">
+    <value>This Steam account doesn't own Lossless Scaling. Please use an account that does or buy Lossless Scaling on Steam.</value>
+  </data>
+  <data name="Lossless_Asking" xml:space="preserve">
+    <value>Asking Steam for Lossless Scaling...</value>
+  </data>
+  <data name="Lossless_DownloadFailed" xml:space="preserve">
+    <value>Could not download from Steam. Check the connection and try again.</value>
+  </data>
+  <data name="Lossless_Progress" xml:space="preserve">
+    <value>Downloading Lossless.dll ({0}%)...</value>
+  </data>
+  <data name="Lossless_Corrupt" xml:space="preserve">
+    <value>Lossless.dll did not download correctly. Try again.</value>
+  </data>
+  <data name="Steam_Waiting" xml:space="preserve">
+    <value>Waiting for Steam...</value>
+  </data>
+  <data name="Steam_CouldNotSignIn" xml:space="preserve">
+    <value>Could not sign in to Steam.</value>
+  </data>
+  <data name="Steam_Unreachable" xml:space="preserve">
+    <value>Could not reach Steam.</value>
+  </data>
+  <data name="Steam_UnreachableRetry" xml:space="preserve">
+    <value>Could not reach Steam. Check the connection and try again.</value>
+  </data>
+  <data name="Steam_NoAnswer" xml:space="preserve">
+    <value>Steam did not answer the sign-in.</value>
+  </data>
+  <data name="Steam_Closed" xml:space="preserve">
+    <value>Steam closed the connection.</value>
+  </data>
+  <data name="Repo_NotConfig" xml:space="preserve">
+    <value>That file isn't a dalamudConfig.json.</value>
+  </data>
+  <data name="Repo_ConfigDamaged" xml:space="preserve">
+    <value>Dalamud's config file is damaged, so it was left alone. Launch the game once to let Dalamud repair it.</value>
+  </data>
+  <data name="Configs_NotZip" xml:space="preserve">
+    <value>That file isn't a zip.</value>
+  </data>
+  <data name="Configs_Empty" xml:space="preserve">
+    <value>That zip has no plugin configs in it.</value>
+  </data>
+  <data name="Dxvk_NotArchive" xml:space="preserve">
+    <value>That file is not a .zip or .tar.gz archive.</value>
+  </data>
+  <data name="Dxvk_BadName" xml:space="preserve">
+    <value>"{0}" can't be used as a DXVK version name.</value>
+  </data>
+  <data name="Dxvk_NoDlls" xml:space="preserve">
+    <value>No DLLs under x32/ or x64/, so this is not a DXVK build.</value>
+  </data>
+  <data name="Picker_NotOnStorage" xml:space="preserve">
+    <value>That folder is not on device storage; pick one under Internal storage or an SD card.</value>
+  </data>
+  <data name="Picker_CannotOpen" xml:space="preserve">
+    <value>That file could not be opened.</value>
+  </data>
+  <data name="Picker_TheFile" xml:space="preserve">
+    <value>the file</value>
+  </data>
+  <data name="Picker_CannotWrite" xml:space="preserve">
+    <value>That location could not be written to.</value>
+  </data>
+  <data name="Logs_Copied" xml:space="preserve">
+    <value>Copied to the clipboard.</value>
+  </data>
+  <data name="Logs_CopyFailed" xml:space="preserve">
+    <value>Could not copy: {0}</value>
+  </data>
+</root>

@@ -17,6 +17,7 @@ using XIVLauncher.Common.PlatformAbstractions;
 using XIVLauncher.PlatformAbstractions; // CommonUniqueIdCache lives here despite its folder
 
 using XlaBoot.Install;
+using XlaBoot.Localization;
 
 namespace XlaBoot.ViewModels;
 
@@ -74,12 +75,20 @@ public partial class MainViewModel : ViewModelBase
     public bool IsUpdateAvailable => AvailableUpdate != null;
 
     public string UpdateText => AvailableUpdate is { } u
-        ? $"XIVLauncher {u.VersionName} is available. Tap to download."
+        ? Loc.F(Strings.Main_UpdateText, u.VersionName)
         : "";
 
     partial void OnAvailableUpdateChanged(AppRelease? value) => OnPropertyChanged(nameof(UpdateText));
 
     private static readonly System.Net.Http.HttpClient UpdateHttp = new() { Timeout = TimeSpan.FromSeconds(15) };
+
+    /// <summary>
+    /// The game's text language from Settings. It becomes the game's language= argument and Dalamud's client
+    /// language; voice language is a separate in-game setting. Anything unreadable launches in English.
+    /// </summary>
+    private static ClientLanguage GameLanguage =>
+        Enum.TryParse<ClientLanguage>(AppHost.Get("game_language", "English"), out var lang) ? lang : ClientLanguage.English;
+
     private bool _updateChecked;
 
     /// <summary>Once per launch, in the background, after setup so the first-run download is not competing.</summary>
@@ -191,7 +200,7 @@ public partial class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Greeting = $"Could not load the saved login: {ex.GetType().Name}";
+            Greeting = Loc.F(Strings.Greet_SavedLoginFailed, ex.GetType().Name);
         }
 
         // Installs the Wine runtime if it is missing, then gets out of the way. On every later launch
@@ -289,14 +298,14 @@ public partial class MainViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrEmpty(Password))
         {
-            Greeting = "Enter your username and password.";
+            Greeting = Strings.Greet_EnterCredentials;
             return;
         }
 
         if (!Provisioning.RuntimeInstaller.IsProvisioned(AppHost.FilesDir))
         {
             // Otherwise this fails much later, inside Wine, with nothing to point at.
-            Greeting = "The runtime is not installed yet.";
+            Greeting = Strings.Greet_RuntimeMissing;
             Setup.Begin();
             return;
         }
@@ -305,11 +314,11 @@ public partial class MainViewModel : ViewModelBase
         // Wine. One ordinary dialog, and the grant applies to this running process.
         if (!GameLocation.HasStorageAccess())
         {
-            Greeting = "Waiting for storage permission...";
+            Greeting = Strings.Greet_WaitingStorage;
             var granted = AppHost.RequestStoragePermission != null && await AppHost.RequestStoragePermission();
             if (!granted)
             {
-                Greeting = "XIVLauncher needs access to your storage to reach the game folder.";
+                Greeting = Strings.Greet_NeedsStorage;
                 return;
             }
         }
@@ -326,9 +335,9 @@ public partial class MainViewModel : ViewModelBase
         {
             NoGameDetail = game.Status == GameStatus.Unreadable
                 ? game.Message
-                : $"Nothing is installed at {GamePath}.";
+                : Loc.F(Strings.NoGame_NothingAt, GamePath);
             IsNoGamePromptOpen = true;
-            Greeting = "No game installation found.";
+            Greeting = Strings.Greet_NoGame;
             return;
         }
 
@@ -344,12 +353,12 @@ public partial class MainViewModel : ViewModelBase
             steam = IsSteamAccount ? new Steam.SteamKitSteam(SteamAppId, SteamLoginId) : null;
             // No cache file: the unique-id cache lives in memory only for this spike.
             var launcher = new Launcher((ISteam?)steam, new CommonUniqueIdCache(null), FrontierUrl, "en-us");
-            var installTitle = installing ? "Installing FFXIV" : "Updating FFXIV";
+            var installTitle = installing ? Strings.Install_TitleInstalling : Strings.Install_TitleUpdating;
 
             // Boot comes first and needs no login. Login cannot even be attempted without it: building the
             // version report reads the boot executables, so on a fresh install they must exist beforehand.
             // Checked on every launch, as upstream does, so a new boot version never strands the user.
-            Greeting = "Checking for updates...";
+            Greeting = Strings.Greet_CheckingUpdates;
             PatchListEntry[] bootPatches;
             try
             {
@@ -358,16 +367,15 @@ public partial class MainViewModel : ViewModelBase
             catch (Exception ex)
             {
                 Console.WriteLine($"XlaLauncher: boot version check failed: {ex}");
-                Greeting = "Could not check for game updates. The servers may be under maintenance, "
-                           + "or your connection is down. Try again in a moment.";
+                Greeting = Strings.Greet_UpdateCheckFailed;
                 return;
             }
             if (bootPatches.Length > 0)
             {
-                Greeting = installing ? "Installing the game..." : "Updating the game...";
+                Greeting = installing ? Strings.Greet_Installing : Strings.Greet_Updating;
                 if (!await Install.RunAsync(installTitle, GamePath, bootPatches))
                 {
-                    Greeting = Install.HasError ? "The install could not finish." : "Install paused.";
+                    Greeting = Install.HasError ? Strings.Greet_InstallFailed : Strings.Greet_InstallPaused;
                     return;
                 }
             }
@@ -375,11 +383,11 @@ public partial class MainViewModel : ViewModelBase
             var otp = "";
             if (UseOtp)
             {
-                Greeting = "Waiting for the one-time password...";
+                Greeting = Strings.Greet_WaitingOtp;
                 var code = await PromptForOtp();
                 if (code == null)
                 {
-                    Greeting = "Login cancelled.";
+                    Greeting = Strings.Greet_LoginCancelled;
                     return;
                 }
                 otp = code;
@@ -387,7 +395,7 @@ public partial class MainViewModel : ViewModelBase
 
             if (steam != null)
             {
-                Greeting = "Signing in to Steam...";
+                Greeting = Strings.Greet_SigningInSteam;
                 var signedIn = await SignInToSteamAsync(steam);
                 if (!ReferenceEquals(signedIn, steam))
                 {
@@ -397,12 +405,12 @@ public partial class MainViewModel : ViewModelBase
                 }
             }
 
-            Greeting = "Logging in...";
+            Greeting = Strings.Greet_LoggingIn;
 
             var result = await Task.Run(() => launcher.Login(
                 Username.Trim(), Password, otp,
                 isSteam: IsSteamAccount, useCache: false, gamePath,
-                forceBaseVersion: false, isFreeTrial: IsFreeTrial, ClientLanguage.English));
+                forceBaseVersion: false, isFreeTrial: IsFreeTrial, GameLanguage));
 
             // Login() returned without throwing, so Square Enix accepted these credentials.
             try
@@ -414,7 +422,7 @@ public partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                Greeting = $"Logged in, but saving the login failed: {ex.GetType().Name}";
+                Greeting = Loc.F(Strings.Greet_SaveLoginFailed, ex.GetType().Name);
             }
 
             switch (result.State)
@@ -424,12 +432,12 @@ public partial class MainViewModel : ViewModelBase
                 case Launcher.LoginState.NeedsPatchGame:
                     // The server lists only the repositories this account owns, so an account without
                     // every expansion gets a correspondingly smaller install.
-                    Greeting = installing ? "Installing the game..." : "Updating the game...";
+                    Greeting = installing ? Strings.Greet_Installing : Strings.Greet_Updating;
                     if (!await Install.RunAsync(installTitle, GamePath, result.PendingPatches))
                     {
                         Greeting = Install.HasError
-                            ? "The install could not finish."
-                            : "Install paused. Tap Log in & Play to carry on where it stopped.";
+                            ? Strings.Greet_InstallFailed
+                            : Strings.Greet_InstallPausedHint;
                         return;
                     }
                     // Upstream goes straight on into the game with the same session - unless the user has
@@ -437,25 +445,24 @@ public partial class MainViewModel : ViewModelBase
                     if (!AppHost.IsInForeground)
                     {
                         Greeting = installing
-                            ? "FFXIV is installed. Tap Log in & Play to start."
-                            : "FFXIV is up to date. Tap Log in & Play to start.";
+                            ? Strings.Greet_Installed
+                            : Strings.Greet_UpToDate;
                         return;
                     }
                     break;
                 case Launcher.LoginState.NeedsPatchBoot:
                     // Boot was patched moments ago, so the server rejecting it means the files were
                     // changed by something else. Upstream's answer too: there is no safe automatic repair.
-                    Greeting = "The game's boot files are damaged, so it can neither update nor start. "
-                               + "Delete the game folder and install it again.";
+                    Greeting = Strings.Greet_BootDamaged;
                     return;
                 case Launcher.LoginState.NoService:
-                    Greeting = "This account has no active subscription (NoService).";
+                    Greeting = Strings.Greet_NoService;
                     return;
                 case Launcher.LoginState.NoTerms:
-                    Greeting = "The terms of service have not been accepted on this account (NoTerms).";
+                    Greeting = Strings.Greet_NoTerms;
                     return;
                 default:
-                    Greeting = $"Login failed: {result.State}";
+                    Greeting = Loc.F(Strings.Greet_LoginFailed, result.State);
                     return;
             }
 
@@ -467,7 +474,7 @@ public partial class MainViewModel : ViewModelBase
             var dalamudEnabled = AppHost.Get("dalamud_enabled", "OFF") == "ON";
             if (dalamudEnabled)
             {
-                Greeting = "Preparing Dalamud...";
+                Greeting = Strings.Greet_PreparingDalamud;
                 await Provisioning.DalamudPrefixFix.EnsureAsync(FilesDir, DalamudHttp);
                 await EnsureHelperPluginAsync();
             }
@@ -475,7 +482,7 @@ public partial class MainViewModel : ViewModelBase
             // Safe mode is for one launch only: consumed here, so the next Log in & Play loads plugins again.
             var safeMode = dalamudEnabled && SafeModeNextLaunch;
             SafeModeNextLaunch = false;
-            Greeting = safeMode ? "Login OK, starting the game in safe mode (no plugins)..." : "Login OK, starting the game...";
+            Greeting = safeMode ? Strings.Greet_StartingSafe : Strings.Greet_Starting;
             var screen = GameResolution();
             AppLog.Note($"Starting the game at {screen.Width}x{screen.Height}"
                         + $", Dalamud {(dalamudEnabled ? safeMode ? "on (safe mode)" : "on" : "off")}"
@@ -521,7 +528,7 @@ public partial class MainViewModel : ViewModelBase
                 // LaunchGame parses into the same argument list.
                 additionalArguments: IsFreeTrial ? "IsFreeTrial=1" : "",
                 gamePath,
-                ClientLanguage.English,
+                GameLanguage,
                 // Plain arguments: the encrypted form keys off GetTickCount, which is not guaranteed to
                 // match between this process and the guest. Plain DEV.* args are proven to work here.
                 encryptArguments: false,
@@ -581,7 +588,7 @@ public partial class MainViewModel : ViewModelBase
         IsNoGamePromptOpen = false;
         Settings.TabIndex = 0;
         OpenSettings();
-        Settings.Status = "Tap Game install location and pick the folder that holds the game's boot and game folders.";
+        Settings.Status = Strings.Status_PickGameFolder;
     }
 
     /// <summary>
@@ -639,7 +646,7 @@ public partial class MainViewModel : ViewModelBase
         var code = Otp.Trim();
         if (!IsOtpCode(code))
         {
-            OtpError = "Enter the 6-digit code.";
+            OtpError = Strings.Otp_EnterCode;
             return;
         }
         CloseOtpPrompt(code);
@@ -742,7 +749,7 @@ public partial class MainViewModel : ViewModelBase
                 gamePath,
                 configDirectory: new DirectoryInfo(xlroaming),
                 logPath: new DirectoryInfo(Path.Combine(xlroaming, "logs")),
-                ClientLanguage.English,
+                GameLanguage,
                 injectionDelay: 0,
                 fakeLogin: false,
                 noPlugin: noPlugins,

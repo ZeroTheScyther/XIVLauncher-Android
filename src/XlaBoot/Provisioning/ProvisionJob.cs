@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using XlaBoot.Localization;
 
 namespace XlaBoot.Provisioning;
 
@@ -58,7 +59,7 @@ public static class ProvisionJob
 
             // The service keeps the process alive; without it Android freezes the work the moment the
             // user leaves the app, and it stops silently - nothing throws.
-            AppHost.StartKeepAlive?.Invoke("Setting up");
+            AppHost.StartKeepAlive?.Invoke(Strings.Setup_Title);
 
             _running = Task.Run(async () =>
             {

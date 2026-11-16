@@ -10,6 +10,7 @@ using XIVLauncher.Common.Game.Patch.PatchList;
 using XIVLauncher.Common.Patching.ZiPatch;
 using XIVLauncher.Common.Patching.ZiPatch.Util;
 using XlaBoot.Provisioning;
+using XlaBoot.Localization;
 
 namespace XlaBoot.Install;
 
@@ -38,10 +39,8 @@ public sealed class NotEnoughSpaceException(long required, long free) : IOExcept
     public long Free { get; } = free;
 
     private static string Describe(long required, long free) => free < 0
-        ? $"The phone ran out of space while installing. Free up at least {Gigabytes(required)} and try again - "
-          + "everything downloaded so far is kept."
-        : $"Not enough free space. This needs {Gigabytes(required)}, but only {Gigabytes(free)} is free. "
-          + $"Free up {Gigabytes(required - free)} and try again - everything downloaded so far is kept.";
+        ? Loc.F(Strings.Space_RanOut, Gigabytes(required))
+        : Loc.F(Strings.Space_NotEnough, Gigabytes(required), Gigabytes(free), Gigabytes(required - free));
 
     internal static string Gigabytes(long bytes) => $"{Math.Max(bytes, 0) / 1073741824.0:F1} GB";
 }
@@ -134,7 +133,10 @@ public static class GameInstaller
         string? installing = null;
         var installingNumber = 0;
 
-        string Label(int i) => patches.Count == 1 ? "the update" : $"update {i + 1} of {patches.Count}";
+        string Downloading(int i) => patches.Count == 1
+            ? Strings.Installer_DownloadingOnly : Loc.F(Strings.Installer_DownloadingN, i + 1, patches.Count);
+        string Installing(int i) => patches.Count == 1
+            ? Strings.Installer_InstallingOnly : Loc.F(Strings.Installer_InstallingN, i + 1, patches.Count);
         string FileOf(int i) => Path.Combine(patchStore, patches[i].GetFilePath());
 
         // While an apply runs it names the step: it is the slower half, and the one a cancel waits for.
@@ -156,7 +158,7 @@ public static class GameInstaller
                 {
                     downloaded = offsets[i] + done;
                     rate = r;
-                    Report($"Downloading {Label(i)}", i + 1);
+                    Report(Downloading(i), i + 1);
                 }
             }).ConfigureAwait(false);
             lock (gate)
@@ -200,7 +202,7 @@ public static class GameInstaller
 
             lock (gate)
             {
-                installing = $"Installing {Label(i)}";
+                installing = Installing(i);
                 installingNumber = i + 1;
             }
             try
@@ -242,7 +244,7 @@ public static class GameInstaller
         VerToBck(game);
         try { Directory.Delete(patchStore, recursive: true); }
         catch (Exception) { /* leftovers are cleaned by the next chain's DeleteStalePatches */ }
-        report(new InstallProgress("Done", patches.Count, patches.Count, total, total, total, 0));
+        report(new InstallProgress(Strings.Settings_Done, patches.Count, patches.Count, total, total, total, 0));
     }
 
     private static async Task DownloadAsync(PatchListEntry patch, string file, HttpClient http,
@@ -285,8 +287,7 @@ public static class GameInstaller
             catch (HttpRequestException ex)
             {
                 throw new HttpRequestException(
-                    "Could not download the game files. Check your internet connection and try again - "
-                    + "everything downloaded so far is kept.", ex);
+                    Strings.Installer_DownloadFailed, ex);
             }
         }
     }
@@ -322,7 +323,7 @@ public static class GameInstaller
         {
             // The version was not advanced, so the next attempt re-applies this patch from the start -
             // upstream's own recovery model. If that fails too, the install itself is damaged.
-            throw new IOException($"Could not install {patch}: {ex.Message}", ex);
+            throw new IOException(Loc.F(Strings.Installer_InstallFailed, patch, ex.Message), ex);
         }
         progress(patch.Length);
     }

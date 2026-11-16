@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using XlaBoot.Localization;
 
 namespace XlaBoot;
 
@@ -26,7 +27,7 @@ public static class PluginConfigs
         var target = Path.GetFullPath(Directory(filesDir));
         ZipArchive archive;
         try { archive = ZipFile.OpenRead(zipPath); }
-        catch (InvalidDataException) { throw new InvalidDataException("That file isn't a zip."); }
+        catch (InvalidDataException) { throw new InvalidDataException(Strings.Configs_NotZip); }
         using var _ = archive;
 
         var entries = archive.Entries
@@ -45,7 +46,7 @@ public static class PluginConfigs
 
         var files = entries.Where(e => !e.Path.EndsWith('/')).ToList();
         if (!files.Any(e => !e.Path.Contains('/') && e.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidDataException("That zip has no plugin configs in it.");
+            throw new InvalidDataException(Strings.Configs_Empty);
 
         var plugins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         System.IO.Directory.CreateDirectory(target);
