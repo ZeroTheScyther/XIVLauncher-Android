@@ -10,3 +10,4 @@ Devices where this app has been confirmed to work:
 - Samsung Galaxy Fold 5
 - Lenovo Legion Y700 Gen 5
 - OnePlus 15
+- OnePlus Pad 3

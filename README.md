@@ -23,11 +23,10 @@ are supported.
 - An arm64 Android device with a **Snapdragon** SoC (Adreno GPU). Developed on a
   Snapdragon 8 Elite; other recent Adreno 7xx/8xx devices may work.
 - **12 GB of RAM.**
-  If the game vanishes, the Logs tab says whether running out of memory was the cause.
 - Android 8.0 or newer.
 - About 2.5 GB for the runtime, plus the game (~130 GB), or copy your existing PC install onto the device.
 - A FINAL FANTASY XIV account with an active subscription. Square Enix and Steam service accounts both work.
-- A controller / bluetooth keyboard and mouse.
+- A controller / bluetooth keyboard and mouse. (Optional)
 
 For a list of compatible devices check [DEVICES.md](DEVICES.md). This list will keep growing as more people report their results.
 

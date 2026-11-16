@@ -48,3 +48,8 @@
 - Added a new on-screen button that opens the keyboard so you don't have to open the back-menu every time. While it works similarly to the on-screen gamepad, it's controlled by a toggle in the back-menu so it remains active while you have a controller connected.
 - Fixed a window focus bug along the way which caused inputs to not be sent to the game unless you tapped on it in either touchscreen mode or tap-to-click mode.
 - Added an option in the back-menu to turn off the auto-keyboard opening when selecting an input field.
+
+## 0.3.1-alpha
+
+- You can now use the android keyboard to write in the character creation screen. (Update the Dalamud plugin to 1.1.1 if you have Dalamud on. Without Dalamud it works just fine.) (Thanks Marv-Ahock)
+- The back-menu is also translated now. (Ooops. My bad. I forgot about that one.)
