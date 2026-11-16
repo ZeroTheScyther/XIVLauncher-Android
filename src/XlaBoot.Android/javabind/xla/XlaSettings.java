@@ -72,6 +72,24 @@ final class XlaSettings {
         prefs.edit().putBoolean("hud_visible", visible).apply();
     }
 
+    /** The on-screen keyboard button. Separate from the pad, so it can stay up with the pad hidden. */
+    boolean isKeyboardButtonVisible() {
+        return prefs.getBoolean("keyboard_button", true);
+    }
+
+    void setKeyboardButtonVisible(boolean visible) {
+        prefs.edit().putBoolean("keyboard_button", visible).apply();
+    }
+
+    /** Whether the keyboard bar comes up by itself when the game focuses a text field. */
+    boolean isKeyboardAutoOpen() {
+        return prefs.getBoolean("keyboard_auto_open", true);
+    }
+
+    void setKeyboardAutoOpen(boolean autoOpen) {
+        prefs.edit().putBoolean("keyboard_auto_open", autoOpen).apply();
+    }
+
     String getUpscaler() { return choice("upscaler", UPSCALERS); }
 
     void cycleUpscaler() { cycle("upscaler", UPSCALERS); }

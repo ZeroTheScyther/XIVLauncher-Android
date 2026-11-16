@@ -36,6 +36,9 @@ import java.util.Map;
  * Touches that miss every control return false, so a FrameLayout keeps dispatching them to the
  * views behind (XServerHost disables tap-to-click while the pad is up, so they simply do nothing).
  *
+ * The keyboard button lives here too, so it moves and resizes like any other control, but it has a
+ * visibility of its own: hiding the pad leaves it up, and it can be hidden while the pad stays.
+ *
  * GameNative's positions are only the defaults. In edit mode (side menu) every control can be
  * dragged and pinched to a new place and size; the result is kept in XlaSettings, as fractions of
  * the view like the profile's own, so it survives a resolution or orientation change.
@@ -70,6 +73,10 @@ final class TouchControls extends View {
 
     private final GamepadBridge gamepad;
     private final XlaSettings settings;
+    private final Runnable onKeyboard;
+
+    /** What is up outside edit mode. Editing shows everything, so every control can be placed. */
+    private boolean padShown = true, keyboardShown;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path = new Path();
     private final ArrayList<Element> elements = new ArrayList<>();
@@ -100,10 +107,12 @@ final class TouchControls extends View {
         invalidate();
     };
 
-    TouchControls(Context context, GamepadBridge gamepad, XlaSettings settings) {
+    /** @param onKeyboard run when the keyboard button is tapped. */
+    TouchControls(Context context, GamepadBridge gamepad, XlaSettings settings, Runnable onKeyboard) {
         super(context);
         this.gamepad = gamepad;
         this.settings = settings;
+        this.onKeyboard = onKeyboard;
         barTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 16,
                 context.getResources().getDisplayMetrics());
         loadLayout(settings.getPadLayout());
@@ -125,6 +134,24 @@ final class TouchControls extends View {
         stickMode = next;
         rebuild(getWidth(), getHeight());
         invalidate();
+    }
+
+    /** The pad and the keyboard button separately. The view itself is up while either is, or while editing. */
+    void setShown(boolean pad, boolean keyboard) {
+        if (padShown && !pad) releaseAll();
+        padShown = pad;
+        keyboardShown = keyboard;
+        setVisibility(editing || pad || keyboard ? VISIBLE : GONE);
+        invalidate();
+    }
+
+    /** Whether the pad itself is up, as opposed to only the keyboard button. */
+    boolean isPadShown() {
+        return padShown && getVisibility() == VISIBLE;
+    }
+
+    private boolean shown(Element element) {
+        return editing || (element instanceof KeyButton ? keyboardShown : padShown);
     }
 
     // ---- layout ---------------------------------------------------------------------------------
@@ -171,6 +198,9 @@ final class TouchControls extends View {
             elements.add(new Stick(false, 0.21568628f, 0.73333335f, 1f, false));
             elements.add(new Stick(true, 0.78431374f, 0.73333335f, 1f, false));
         }
+
+        // Top centre: clear of the triggers in the corners and the HUD top left.
+        elements.add(new KeyButton(0.5f, 0.08f, 1f));
 
         for (Element element : elements) {
             float[] saved = layout.get(element.id);
@@ -242,7 +272,7 @@ final class TouchControls extends View {
      * right half the camera, which is what makes the "FPS" layout comfortable.
      */
     private Element floatingStickFor(float x, float y) {
-        if (!STICKS_TOUCH.equals(stickMode)) return null;
+        if (!padShown || !STICKS_TOUCH.equals(stickMode)) return null;
         Stick stick = x < getWidth() * 0.5f ? floatingLeft : floatingRight;
         return stick.active ? null : stick; // one finger per stick
     }
@@ -251,7 +281,7 @@ final class TouchControls extends View {
         // Reverse order: the last added (smallest, most specific) wins an overlap.
         for (int i = elements.size() - 1; i >= 0; i--) {
             Element element = elements.get(i);
-            if (element.contains(x, y)) return element;
+            if (shown(element) && element.contains(x, y)) return element;
         }
         return null;
     }
@@ -259,7 +289,7 @@ final class TouchControls extends View {
     /** Releases every held control, so nothing sticks when the overlay is hidden or a gesture cancels. */
     void releaseAll() {
         captured.clear();
-        for (Element element : elements) element.onUp();
+        for (Element element : elements) element.cancel();
         floatingLeft.onUp();
         floatingRight.onUp();
     }
@@ -507,8 +537,8 @@ final class TouchControls extends View {
     protected void onDraw(Canvas canvas) {
         float strokeWidth = snapping * 0.25f;
         if (editing) canvas.drawColor(0x66000000);
-        for (Element element : elements) element.draw(canvas, strokeWidth);
-        if (STICKS_TOUCH.equals(stickMode)) {
+        for (Element element : elements) if (shown(element)) element.draw(canvas, strokeWidth);
+        if (padShown && STICKS_TOUCH.equals(stickMode)) {
             if (floatingLeft.active) floatingLeft.draw(canvas, strokeWidth);
             if (floatingRight.active) floatingRight.draw(canvas, strokeWidth);
         }
@@ -579,6 +609,8 @@ final class TouchControls extends View {
         void onDown(float x, float y) { onMove(x, y); }
         abstract void onMove(float x, float y);
         abstract void onUp();
+        /** A release that is not the player's: the overlay hid, or the gesture was cancelled. */
+        void cancel() { onUp(); }
         abstract void draw(Canvas canvas, float strokeWidth);
     }
 
@@ -666,6 +698,53 @@ final class TouchControls extends View {
             }
             drawLabel(canvas, text, bounds.centerX(), bounds.centerY(),
                     bounds.width() - strokeWidth * 4f, scale);
+        }
+    }
+
+    /** Opens or closes the Android keyboard bar. Drawn as a keyboard: an outline, two rows of keys and a space bar. */
+    private final class KeyButton extends Element {
+        private boolean down;
+
+        KeyButton(float nx, float ny, float scale) {
+            super("KEYBOARD", nx, ny, scale);
+        }
+
+        @Override int halfUnitsX() { return 4; }
+        @Override int halfUnitsY() { return 3; }
+
+        @Override void onMove(float x, float y) {
+            down = true;
+        }
+
+        @Override void onUp() {
+            if (!down) return;
+            down = false;
+            if (onKeyboard != null) onKeyboard.run();
+        }
+
+        @Override void cancel() {
+            down = false;
+        }
+
+        @Override void draw(Canvas canvas, float strokeWidth) {
+            strokePaint(down ? strokeWidth * 2f : strokeWidth);
+            float corner = snapping * scale;
+            canvas.drawRoundRect(bounds.left, bounds.top, bounds.right, bounds.bottom, corner, corner, paint);
+
+            float left = bounds.left + bounds.width() * 0.18f, right = bounds.right - bounds.width() * 0.18f;
+            float top = bounds.top + bounds.height() * 0.2f, bottom = bounds.bottom - bounds.height() * 0.2f;
+            float cell = (right - left) / 5f, row = (bottom - top) / 3f;
+            float key = Math.min(cell, row) * 0.55f;
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(primaryColor());
+            for (int r = 0; r < 2; r++) {
+                for (int c = 0; c < 5; c++) {
+                    float cx = left + cell * (c + 0.5f), cy = top + row * (r + 0.5f);
+                    canvas.drawRect(cx - key * 0.5f, cy - key * 0.5f, cx + key * 0.5f, cy + key * 0.5f, paint);
+                }
+            }
+            float space = top + row * 2.5f;
+            canvas.drawRect(left + cell, space - key * 0.5f, right - cell, space + key * 0.5f, paint);
         }
     }
 

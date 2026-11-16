@@ -37,7 +37,6 @@ final class GameMenu extends FrameLayout {
         void editTouchControls();
         void menuClosed();
         void exitGame();
-        void showKeyboard();
     }
 
     private static final int PANEL_WIDTH_DP = 300;
@@ -53,6 +52,8 @@ final class GameMenu extends FrameLayout {
     private final TextView upscalerRow;
     private final TextView fitRow;
     private final TextView touchControlsRow;
+    private final TextView keyboardButtonRow;
+    private final TextView keyboardAutoOpenRow;
     private final TextView stickModeRow;
     private final TextView touchModeRow;
     private final TextView deadZoneRow;
@@ -115,6 +116,16 @@ final class GameMenu extends FrameLayout {
             actions.applyInputSettings();
             refresh();
         });
+        // Shown apart from the pad, so the keyboard stays one tap away with the pad hidden.
+        keyboardButtonRow = row(v -> {
+            settings.setKeyboardButtonVisible(!settings.isKeyboardButtonVisible());
+            actions.applyInputSettings();
+            refresh();
+        });
+        keyboardAutoOpenRow = row(v -> {
+            settings.setKeyboardAutoOpen(!settings.isKeyboardAutoOpen());
+            refresh();
+        });
         stickModeRow = row(v -> {
             settings.cycleStickMode();
             actions.applyInputSettings();
@@ -137,12 +148,6 @@ final class GameMenu extends FrameLayout {
         });
 
         header("Game");
-        // For a field the helper plugin did not report, or when the plugin is not installed at all.
-        TextView keyboardRow = row(v -> {
-            hide();
-            actions.showKeyboard();
-        });
-        keyboardRow.setText("Keyboard");
         TextView back = row(v -> hide());
         back.setText("Back to game");
         exitRow = row(v -> {
@@ -226,6 +231,8 @@ final class GameMenu extends FrameLayout {
         upscalerRow.setText("Upscaler: " + XlaSettings.label(settings.getUpscaler()));
         fitRow.setText("Screen fit: " + XlaSettings.label(settings.getScreenFit()));
         touchControlsRow.setText("On-screen pad: " + XlaSettings.label(settings.getTouchControls()));
+        keyboardButtonRow.setText("Keyboard button: " + (settings.isKeyboardButtonVisible() ? "On" : "Off"));
+        keyboardAutoOpenRow.setText("Auto-open keyboard: " + (settings.isKeyboardAutoOpen() ? "On" : "Off"));
         stickModeRow.setText("On-screen sticks: " + XlaSettings.label(settings.getStickMode()));
         touchModeRow.setText("Touchscreen: " + XlaSettings.label(settings.getTouchMode()));
         deadZoneRow.setText("Stick dead zone: " + settings.getDeadZonePercent() + "%");

@@ -287,6 +287,22 @@ public class XServer {
         }
     }
 
+    /**
+     * A key by raw keycode, for the keycodes XKeycode does not name. With a keysym, the key is remapped to it first
+     * (InputDeviceManager sends MappingNotify), which is how xla.TextTyper types characters no key carries.
+     */
+    public void injectKeyPress(byte keycode, int keysym) {
+        try (XLock lock = lock(Lockable.WINDOW_MANAGER, Lockable.INPUT_DEVICE)) {
+            keyboard.setKeyPress(keycode, keysym);
+        }
+    }
+
+    public void injectKeyRelease(byte keycode) {
+        try (XLock lock = lock(Lockable.WINDOW_MANAGER, Lockable.INPUT_DEVICE)) {
+            keyboard.setKeyRelease(keycode);
+        }
+    }
+
     private void registerExtension(Extension ext, int[] nextEventId, int[] nextErrorId) {
         if (ext.getNumEvents() > 0) {
             ext.setFirstEventId((byte) nextEventId[0]);

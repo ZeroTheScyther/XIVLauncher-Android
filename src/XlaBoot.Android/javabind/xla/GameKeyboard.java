@@ -29,14 +29,22 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.function.BooleanSupplier;
 
 /**
  * The Android keyboard for the game's text fields.
  *
  * The game runs under Wine and has never heard of a touchscreen, so Android will not raise its keyboard for a field
- * it cannot see, and the player cannot type without a Bluetooth keyboard. The helper plugin watches the game's own
- * text-input flag and reports it here; this bar appears with a real Android field; the finished line goes back to
- * the plugin, which writes it into the game's field, and Enter is pressed as a normal key.
+ * it cannot see, and the player cannot type without a Bluetooth keyboard. The helper plugin reports a field taking
+ * input, either one of the game's own or a Dalamud (ImGui) window's; this bar appears with a real Android field; the
+ * finished line goes back to the plugin, which puts it into that field, and Enter is pressed as a normal key.
+ *
+ * The bar can also be opened by hand, from the on-screen keyboard button. If the plugin then reports no field, Enter
+ * opens the chat first and the line goes in once the plugin sees it. Typed into nothing, the game took the first
+ * keys while the chat was still opening and the line arrived scrambled ("Test" became "stTe").
+ *
+ * Without the plugin, or when it answers that it found no field, the line is typed as key presses instead
+ * (TextTyper), which reaches whatever field has focus.
  *
  * The bar sits at the TOP of the screen. The game window uses adjustNothing - resizing it would change the X screen
  * size mid-session - so the IME overlays the game from the bottom and a bar docked down there would be behind it.
@@ -59,6 +67,25 @@ final class GameKeyboard extends LinearLayout {
     /** The plugin writes the text on its next frame, so Enter waits long enough to land after it. */
     private static final long SUBMIT_DELAY_MS = 220;
 
+    /** After typed text, a couple of frames for the game to take the last characters before Enter. */
+    private static final long SUBMIT_AFTER_TYPING_MS = 120;
+
+    /**
+     * Closing the bar hides the IME and returns to immersive full screen, and the game window gets focus and size
+     * changes from that. Characters typed during it landed out of order ("Test" became "stTe": the text cursor moved
+     * mid-line), so typing waits for the window to settle.
+     */
+    private static final long TYPE_AFTER_CLOSE_MS = 350;
+
+    /** A version 2 plugin answers on its next frame or draw; past this, it is taken as not having delivered. */
+    private static final long ACK_TIMEOUT_MS = 500;
+
+    /** After the plugin confirms, a frame for the text to be in the field before Enter. */
+    private static final long SUBMIT_AFTER_ACK_MS = 120;
+
+    /** How long the chat gets to open after Enter before the line is handed back to the bar. */
+    private static final long CHAT_OPEN_TIMEOUT_MS = 1000;
+
     /** Fallback length limit when the plugin could not read the field's own. */
     private static final int DEFAULT_MAX_CHAR = 500;
 
@@ -66,6 +93,7 @@ final class GameKeyboard extends LinearLayout {
     private final EditText input;
     private final TextView notice;
     private final Runnable onClosed;
+    private final BooleanSupplier autoOpen;
 
     private InetAddress loopback;
     private DatagramSocket listener;
@@ -81,12 +109,50 @@ final class GameKeyboard extends LinearLayout {
     private boolean filtering;
 
     /**
+     * Whether the plugin reported the field this bar is for. Then the plugin writes the line into it. Opened by hand,
+     * nothing in the game knows about the bar, so the line is typed instead (TextTyper), which reaches any field.
+     */
+    private boolean fromPlugin;
+
+    /** The plugin's protocol version, from its field reports. Version 1 never acknowledges, so it is never second-guessed. */
+    private int pluginVersion = 1;
+
+    /** "game" or "imgui": which kind of field the plugin reported, and so where it should put the text. */
+    private String fieldKind = "game";
+
+    /** Whether a field report has arrived, and so whether the plugin is running at all. */
+    private boolean pluginSeen;
+
+    /** The field as last reported, so a bar opened by hand knows about a field that was already open. */
+    private boolean fieldActive;
+    private int fieldMax, fieldBytes, fieldAllow;
+    private boolean fieldLines;
+
+    /** A line waiting for the chat to open (Enter was pressed for it), or null. */
+    private String waitingForField;
+    private final Runnable chatOpenTimeout = this::chatDidNotOpen;
+
+    private int nextId;
+
+    /** The delivery waiting for the plugin's answer, or 0. */
+    private int awaitingId;
+    private String awaitingText = "";
+    private final Runnable ackTimeout = () -> {
+        if (awaitingId == 0) return;
+        Log.i(TAG, "no answer from the plugin; typing the text instead");
+        awaitingId = 0;
+        typeInstead(awaitingText, 0);
+    };
+
+    /**
      * @param onClosed run after the bar closes, so the caller can go back to immersive full screen (showing the IME
      *                 brings the system bars back).
+     * @param autoOpen whether a field the plugin reports opens the bar. Off, the bar only opens by hand.
      */
-    GameKeyboard(Context context, Runnable onClosed) {
+    GameKeyboard(Context context, Runnable onClosed, BooleanSupplier autoOpen) {
         super(context);
         this.onClosed = onClosed;
+        this.autoOpen = autoOpen;
         setOrientation(VERTICAL);
         setVisibility(GONE);
         setBackgroundColor(0xF2202127);
@@ -143,7 +209,8 @@ final class GameKeyboard extends LinearLayout {
 
     /** Opens the bar by hand, for a field the plugin did not report (or with no plugin at all). */
     void openManually() {
-        show("", 0, 0, 0, false);
+        if (fieldActive) show("", fieldMax, fieldBytes, fieldAllow, fieldLines, true);
+        else show("", 0, 0, 0, false, false);
     }
 
     /**
@@ -206,13 +273,33 @@ final class GameKeyboard extends LinearLayout {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 listener.receive(packet);
                 JSONObject json = new JSONObject(new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8));
+                if (json.has("ack")) {
+                    int id = json.optInt("ack", 0);
+                    boolean ok = json.optBoolean("ok", false);
+                    handler.post(() -> onAck(id, ok));
+                    continue;
+                }
+                int version = json.optInt("v", 1);
+                String kind = json.optString("kind", "game");
                 boolean active = json.optBoolean("input", false);
                 String text = json.optString("text", "");
                 int max = json.optInt("maxChar", 0);
                 int bytes = json.optInt("maxByte", 0);
                 int allowFlags = json.optInt("allow", 0);
                 boolean lines = json.optBoolean("multiline", false);
-                handler.post(() -> apply(active, text, max, bytes, allowFlags, lines));
+                handler.post(() -> {
+                    pluginVersion = version;
+                    pluginSeen = true;
+                    fieldActive = active;
+                    if (active) {
+                        fieldKind = kind;
+                        fieldMax = max;
+                        fieldBytes = bytes;
+                        fieldAllow = allowFlags;
+                        fieldLines = lines;
+                    }
+                    apply(active, text, max, bytes, allowFlags, lines);
+                });
             } catch (IOException e) {
                 return;   // closed by dispose()
             } catch (Exception e) {
@@ -224,18 +311,28 @@ final class GameKeyboard extends LinearLayout {
 
     /** Field state from the plugin, on the UI thread. */
     private void apply(boolean active, String text, int max, int bytes, int allowFlags, boolean lines) {
+        if (waitingForField != null) {
+            if (!active) return;
+            handler.removeCallbacks(chatOpenTimeout);
+            String line = GameText.forField(waitingForField, allowFlags, lines,
+                    max > 0 ? max : DEFAULT_MAX_CHAR, bytes);
+            waitingForField = null;
+            if (!line.isEmpty()) sendToPlugin(line);
+            return;
+        }
         if (!active) {
             close();
             return;
         }
+        if (!open && !autoOpen.getAsBoolean()) return;
         if (!open && hardwareKeyboard()) {
             Log.i(TAG, "text field active, but a keyboard is attached; not opening the bar");
             return;
         }
-        show(text, max, bytes, allowFlags, lines);
+        show(text, max, bytes, allowFlags, lines, true);
     }
 
-    private void show(String text, int max, int bytes, int allowFlags, boolean lines) {
+    private void show(String text, int max, int bytes, int allowFlags, boolean lines, boolean reported) {
         maxChar = max > 0 ? max : DEFAULT_MAX_CHAR;
         maxByte = bytes;
         allow = allowFlags;
@@ -243,9 +340,14 @@ final class GameKeyboard extends LinearLayout {
             multiline = lines;
             applyInputType();
         }
-        if (open) return;
+        if (open) {
+            // Opened by hand, then the plugin saw a field: it can write the line in.
+            if (reported) fromPlugin = true;
+            return;
+        }
 
         open = true;
+        fromPlugin = reported;
         filtering = true;
         String existing = GameText.forField(text, allow, multiline, maxChar, maxByte);
         input.setText(existing);
@@ -312,35 +414,91 @@ final class GameKeyboard extends LinearLayout {
             warn("Nothing here the game can show.");
             return;
         }
-        if (sender == null) {
-            warn("The in-game helper plugin is not running, so the text cannot be delivered.");
-            return;
+        boolean viaPlugin = fromPlugin && sender != null;
+        close();
+        if (viaPlugin) {
+            sendToPlugin(text);
+        } else if (pluginSeen && pluginVersion >= 2 && sender != null) {
+            // No field open: Enter opens the chat, and the plugin's report of it sends the line (apply).
+            waitingForField = text;
+            handler.postDelayed(this::pressEnter, TYPE_AFTER_CLOSE_MS);
+            handler.postDelayed(chatOpenTimeout, TYPE_AFTER_CLOSE_MS + CHAT_OPEN_TIMEOUT_MS);
+        } else {
+            typeInstead(text, TYPE_AFTER_CLOSE_MS);
         }
+    }
+
+    /** Hands the line to the plugin for the field it reported, then presses Enter once it is in. */
+    private void sendToPlugin(String text) {
+        // A version 2 plugin says whether the text arrived; anything it could not place is typed instead.
+        int id = pluginVersion >= 2 ? ++nextId : 0;
+        String target = fieldKind;
         // Android forbids socket work on the UI thread (NetworkOnMainThreadException), so the datagram goes out on
-        // its own thread and the bar only closes once it is really gone.
+        // its own thread.
         new Thread(() -> {
-            boolean sent = deliver(text);
+            boolean sent = deliver(text, target, id);
             handler.post(() -> {
                 if (!sent) {
-                    warn("Could not reach the game. The text was not sent.");
+                    typeInstead(text, TYPE_AFTER_CLOSE_MS);
                     return;
                 }
-                close();
-                // Enter is pressed as a real key once the plugin has had a frame to write the line.
-                handler.postDelayed(() -> {
-                    XServerHost.injectKey("KEY_ENTER", true);
-                    handler.postDelayed(() -> XServerHost.injectKey("KEY_ENTER", false), KEY_HOLD_MS);
-                }, SUBMIT_DELAY_MS);
+                if (id == 0) {
+                    // Version 1: no answer is coming. Enter once the plugin has had a frame to write the line.
+                    handler.postDelayed(this::pressEnter, SUBMIT_DELAY_MS);
+                    return;
+                }
+                awaitingId = id;
+                awaitingText = text;
+                handler.postDelayed(ackTimeout, ACK_TIMEOUT_MS);
             });
         }, "XlaKeyboardSend").start();
     }
 
+    /** Enter did not bring up a field: the line goes back into the bar rather than being lost. */
+    private void chatDidNotOpen() {
+        if (waitingForField == null) return;
+        Log.i(TAG, "the chat did not open; back to the bar");
+        String text = waitingForField;
+        waitingForField = null;
+        openManually();
+        filtering = true;
+        input.setText(text);
+        input.setSelection(text.length());
+        filtering = false;
+    }
+
+    /** The plugin's answer, on the UI thread. */
+    private void onAck(int id, boolean ok) {
+        if (id != awaitingId) return;   // late, after the timeout already typed it
+        awaitingId = 0;
+        handler.removeCallbacks(ackTimeout);
+        if (ok) {
+            handler.postDelayed(this::pressEnter, SUBMIT_AFTER_ACK_MS);
+        } else {
+            Log.i(TAG, "the plugin found no field for the text; typing it instead");
+            typeInstead(awaitingText, TYPE_AFTER_CLOSE_MS);
+        }
+    }
+
+    /** Types the line as key presses (TextTyper), then presses Enter. */
+    private void typeInstead(String text, long delayMs) {
+        handler.postDelayed(() -> XServerHost.typeText(text,
+                () -> handler.postDelayed(this::pressEnter, SUBMIT_AFTER_TYPING_MS)), delayMs);
+    }
+
+    private void pressEnter() {
+        XServerHost.injectKey("KEY_ENTER", true);
+        handler.postDelayed(() -> XServerHost.injectKey("KEY_ENTER", false), KEY_HOLD_MS);
+    }
+
     /** Never call from the UI thread. */
-    private boolean deliver(String text) {
+    private boolean deliver(String text, String target, int id) {
         try {
             JSONObject json = new JSONObject();
-            json.put("v", 1);
+            json.put("v", 2);
             json.put("text", text);
+            json.put("target", target);
+            if (id > 0) json.put("id", id);
             byte[] datagram = json.toString().getBytes(StandardCharsets.UTF_8);
             sender.send(new DatagramPacket(datagram, datagram.length, loopback, PLUGIN_PORT));
             return true;

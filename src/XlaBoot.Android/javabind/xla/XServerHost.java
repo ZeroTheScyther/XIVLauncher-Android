@@ -190,11 +190,10 @@ public final class XServerHost {
             @Override public void editTouchControls() { XServerHost.editTouchControls(); }
             @Override public void menuClosed() { hideSystemBars(); }
             @Override public void exitGame() { XServerHost.exitGame(context); }
-            @Override public void showKeyboard() { if (keyboard != null) keyboard.openManually(); }
         });
 
-        // Opened by the helper plugin when the game focuses a text field, or by hand from the menu.
-        keyboard = new GameKeyboard(context, XServerHost::hideSystemBars);
+        // Opened by the helper plugin when the game focuses a text field, or by hand from the keyboard button.
+        keyboard = new GameKeyboard(context, XServerHost::hideSystemBars, settings::isKeyboardAutoOpen);
 
         FrameLayout root = new FrameLayout(context);
         root.addView(view, new FrameLayout.LayoutParams(
@@ -202,13 +201,12 @@ public final class XServerHost {
 
         // The on-screen pad sits over the game but under the HUD and the menu. It returns false for
         // touches that miss a control, and a FrameLayout then keeps dispatching to the views behind
-        // it, so the pad never blocks the rest of the overlay.
-        if (gamepad != null) {
-            touchControls = new TouchControls(context, gamepad, settings);
-            root.addView(touchControls, new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-            gamepad.setConnectionListener(connected -> updateTouchControls());
-        }
+        // it, so the pad never blocks the rest of the overlay. It also carries the keyboard button, so it
+        // exists even without a virtual pad; the pad half is then never shown.
+        touchControls = new TouchControls(context, gamepad, settings, XServerHost::toggleKeyboard);
+        root.addView(touchControls, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        if (gamepad != null) gamepad.setConnectionListener(connected -> updateTouchControls());
 
         FrameLayout.LayoutParams hudParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.START);
@@ -293,13 +291,20 @@ public final class XServerHost {
         updateTouchControls();
     }
 
-    /** AUTO hides the on-screen pad whenever real hardware is attached. */
+    /** The on-screen keyboard button: opens the bar, or closes it when it is already open. */
+    private static void toggleKeyboard() {
+        if (keyboard == null) return;
+        if (keyboard.isOpen()) keyboard.close();
+        else keyboard.openManually();
+    }
+
+    /** AUTO hides the on-screen pad whenever real hardware is attached. The keyboard button has its own toggle. */
     private static void updateTouchControls() {
         if (touchControls == null || settings == null) return;
         String mode = settings.getTouchControls();
-        boolean show = touchControls.isEditing() || "ON".equals(mode)
-                || ("AUTO".equals(mode) && (gamepad == null || !gamepad.isPhysicalControllerConnected()));
-        touchControls.setVisibility(show ? View.VISIBLE : View.GONE);
+        boolean show = gamepad != null && (touchControls.isEditing() || "ON".equals(mode)
+                || ("AUTO".equals(mode) && !gamepad.isPhysicalControllerConnected()));
+        touchControls.setShown(show, settings.isKeyboardButtonVisible());
         // Only claim a pad exists while one is really usable, so FFXIV drops back to
         // keyboard/mouse prompts when there is neither hardware nor an overlay.
         if (gamepad != null) gamepad.setVirtualPadActive(show);
@@ -320,7 +325,7 @@ public final class XServerHost {
      */
     private static void updateCursorVisibility() {
         if (vulkanRenderer == null) return;
-        boolean padUp = touchControls != null && touchControls.getVisibility() == View.VISIBLE;
+        boolean padUp = touchControls != null && touchControls.isPadShown();
         boolean visible = !padUp || hasExternalMouse();
         MouseTrace.log("cursor visible=" + visible + " padUp=" + padUp);
         vulkanRenderer.setCursorVisible(visible);
@@ -499,6 +504,12 @@ public final class XServerHost {
     /** Absolute path of the X11 socket, for sanity-checking from the caller. */
     public static String socketPath(String rootPath) {
         return new File(rootPath, UnixSocketConfig.XSERVER_PATH).getPath();
+    }
+
+    /** Types text into the focused game field as key presses (see TextTyper), then runs after. No-op before create(). */
+    static void typeText(String text, Runnable after) {
+        if (xServer == null) return;
+        TextTyper.type(xServer, text, after);
     }
 
     /** Presses (down=true) or releases one X key by XKeycode name, e.g. "KEY_ESC". No-op before create(). */
