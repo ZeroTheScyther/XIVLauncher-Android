@@ -160,6 +160,7 @@ public final class XServerHost {
 
         vulkanRenderer = renderer instanceof VulkanRenderer ? (VulkanRenderer) renderer : null;
         settings = new XlaSettings(context);
+        UiText.init(context);
         applyDisplaySettings();
         hud = new PerfHud(context);
         hud.setVisible(settings.isHudVisible());

@@ -167,7 +167,7 @@ final class GameKeyboard extends LinearLayout {
         input = new EditText(context);
         input.setTextColor(Color.WHITE);
         input.setHintTextColor(0xFF9AA0A6);
-        input.setHint("Message");
+        input.setHint(UiText.get("message"));
         input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         input.setBackgroundColor(0xFF2B2D33);
         input.setPadding(dp(12), dp(10), dp(12), dp(10));
@@ -188,9 +188,9 @@ final class GameKeyboard extends LinearLayout {
         });
         row.addView(input, new LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
-        row.addView(button("Send", v -> send()),
+        row.addView(button(UiText.get("send"), v -> send()),
                 new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        row.addView(button("Close", v -> close()),
+        row.addView(button(UiText.get("close"), v -> close()),
                 new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
         notice = new TextView(context);
@@ -411,7 +411,7 @@ final class GameKeyboard extends LinearLayout {
     private void send() {
         String text = GameText.forField(input.getText().toString(), allow, multiline, maxChar, maxByte);
         if (text.isEmpty()) {
-            warn("Nothing here the game can show.");
+            warn(UiText.get("nothing_to_send"));
             return;
         }
         boolean viaPlugin = fromPlugin && sender != null;
@@ -533,8 +533,8 @@ final class GameKeyboard extends LinearLayout {
         input.setSelection(Math.max(0, cursor));
         filtering = false;
         notice.setText(allowed.length() >= maxChar
-                ? "That is as long as this field goes."
-                : "Emoji and symbols the game cannot show were removed.");
+                ? UiText.get("field_full")
+                : UiText.get("symbols_removed"));
         notice.setVisibility(VISIBLE);
     }
 

@@ -202,17 +202,17 @@ final class XlaSettings {
 
     static String label(String id) {
         switch (id) {
-            case "OFF": return "Off";
-            case "ON": return "On";
-            case "AUTO": return "Auto";
+            case "OFF": return UiText.get("off");
+            case "ON": return UiText.get("on");
+            case "AUTO": return UiText.get("auto");
             case "SGSR": return "Snapdragon GSR";
             case "FSR": return "AMD FSR 1";
-            case "FIT": return "Fit";
-            case "STRETCH": return "Stretch";
-            case "TOUCH": return "Under thumb";
-            case "FIXED": return "Fixed";
-            case "TAP": return "Tap-to-click";
-            case "TOUCHPAD": return "Touchpad";
+            case "FIT": return UiText.get("fit");
+            case "STRETCH": return UiText.get("stretch");
+            case "TOUCH": return UiText.get("under_thumb");
+            case "FIXED": return UiText.get("fixed");
+            case "TAP": return UiText.get("tap_to_click");
+            case "TOUCHPAD": return UiText.get("touchpad");
             default: return id;
         }
     }

@@ -465,7 +465,13 @@ final class TouchControls extends View {
     private void layoutBar(int w) {
         Context c = getContext();
         float height = PerfHud.dp(c, 44), gap = PerfHud.dp(c, 8), top = PerfHud.dp(c, 16);
-        float[] widths = {PerfHud.dp(c, 56), PerfHud.dp(c, 56), PerfHud.dp(c, 112), PerfHud.dp(c, 96)};
+        // Reset and Done grow to fit their text: translations run longer than the English.
+        paint.setTextSize(barTextSize);
+        float pad = PerfHud.dp(c, 32);
+        float reset = Math.max(paint.measureText(UiText.get("reset")), paint.measureText(UiText.get("tap_again")));
+        float[] widths = {PerfHud.dp(c, 56), PerfHud.dp(c, 56),
+                Math.max(PerfHud.dp(c, 112), reset + pad),
+                Math.max(PerfHud.dp(c, 96), paint.measureText(UiText.get("done")) + pad)};
         float left = w - gap * (widths.length - 1);
         for (float width : widths) left -= width;
         left *= 0.5f;
@@ -482,7 +488,7 @@ final class TouchControls extends View {
             paint.setColor(0xFF8AB4F8);
             canvas.drawRect(selected.bounds, paint);
         }
-        String[] labels = {"−", "+", resetArmed ? "Tap again" : "Reset", "Done"};
+        String[] labels = {"−", "+", UiText.get(resetArmed ? "tap_again" : "reset"), UiText.get("done")};
         float radius = PerfHud.dp(getContext(), 8);
         paint.setStyle(Paint.Style.FILL);
         paint.setTextSize(barTextSize);

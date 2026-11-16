@@ -91,7 +91,7 @@ final class GameMenu extends FrameLayout {
         title.setPadding(dp(20), dp(4), dp(20), dp(8));
         panel.addView(title);
 
-        header("Display");
+        header(UiText.get("display"));
         hudRow = row(v -> {
             boolean visible = !settings.isHudVisible();
             settings.setHudVisible(visible);
@@ -110,7 +110,7 @@ final class GameMenu extends FrameLayout {
             refresh();
         });
 
-        header("Controls");
+        header(UiText.get("controls"));
         touchControlsRow = row(v -> {
             settings.cycleTouchControls();
             actions.applyInputSettings();
@@ -135,7 +135,7 @@ final class GameMenu extends FrameLayout {
             hide();
             actions.editTouchControls();
         });
-        editRow.setText("Edit on-screen controls");
+        editRow.setText(UiText.get("edit_controls"));
         touchModeRow = row(v -> {
             settings.cycleTouchMode();
             actions.applyInputSettings();
@@ -147,9 +147,9 @@ final class GameMenu extends FrameLayout {
             refresh();
         });
 
-        header("Game");
+        header(UiText.get("game"));
         TextView back = row(v -> hide());
-        back.setText("Back to game");
+        back.setText(UiText.get("back_to_game"));
         exitRow = row(v -> {
             if (exitArmed) {
                 actions.exitGame();
@@ -227,16 +227,16 @@ final class GameMenu extends FrameLayout {
     }
 
     private void refresh() {
-        hudRow.setText("Performance overlay: " + (settings.isHudVisible() ? "On" : "Off"));
-        upscalerRow.setText("Upscaler: " + XlaSettings.label(settings.getUpscaler()));
-        fitRow.setText("Screen fit: " + XlaSettings.label(settings.getScreenFit()));
-        touchControlsRow.setText("On-screen pad: " + XlaSettings.label(settings.getTouchControls()));
-        keyboardButtonRow.setText("Keyboard button: " + (settings.isKeyboardButtonVisible() ? "On" : "Off"));
-        keyboardAutoOpenRow.setText("Auto-open keyboard: " + (settings.isKeyboardAutoOpen() ? "On" : "Off"));
-        stickModeRow.setText("On-screen sticks: " + XlaSettings.label(settings.getStickMode()));
-        touchModeRow.setText("Touchscreen: " + XlaSettings.label(settings.getTouchMode()));
-        deadZoneRow.setText("Stick dead zone: " + settings.getDeadZonePercent() + "%");
-        exitRow.setText(exitArmed ? "Tap again to exit" : "Exit game");
+        hudRow.setText(UiText.row("performance_overlay", UiText.onOff(settings.isHudVisible())));
+        upscalerRow.setText(UiText.row("upscaler", XlaSettings.label(settings.getUpscaler())));
+        fitRow.setText(UiText.row("screen_fit", XlaSettings.label(settings.getScreenFit())));
+        touchControlsRow.setText(UiText.row("onscreen_pad", XlaSettings.label(settings.getTouchControls())));
+        keyboardButtonRow.setText(UiText.row("keyboard_button", UiText.onOff(settings.isKeyboardButtonVisible())));
+        keyboardAutoOpenRow.setText(UiText.row("keyboard_auto_open", UiText.onOff(settings.isKeyboardAutoOpen())));
+        stickModeRow.setText(UiText.row("onscreen_sticks", XlaSettings.label(settings.getStickMode())));
+        touchModeRow.setText(UiText.row("touchscreen", XlaSettings.label(settings.getTouchMode())));
+        deadZoneRow.setText(UiText.row("dead_zone", settings.getDeadZonePercent() + "%"));
+        exitRow.setText(UiText.get(exitArmed ? "exit_confirm" : "exit_game"));
     }
 
     private void header(String label) {
