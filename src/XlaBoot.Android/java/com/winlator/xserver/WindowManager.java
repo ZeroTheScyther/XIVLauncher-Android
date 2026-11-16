@@ -1,5 +1,6 @@
 package com.winlator.xserver;
 
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.winlator.xconnector.XInputStream;
@@ -127,6 +128,18 @@ public class WindowManager extends XResourceManager {
     }
 
     public void revertFocus() {
+        Window from = focusedWindow;
+        revertFocusTo();
+        // A short-lived window (a popup Wine opened at startup) took the focus and is now gone. Falling back to the
+        // root left the game unfocused: no keys, and the game ignoring the pad until the screen was tapped.
+        if (focusedWindow == null || focusedWindow == rootWindow) {
+            Window app = topApplicationWindow(from);
+            if (app != null) focusedWindow = app;
+        }
+        Log.i("XlaFocus", "focus reverted (" + focusRevertTo + "): " + describe(from) + " -> " + describe(focusedWindow));
+    }
+
+    private void revertFocusTo() {
         switch (focusRevertTo) {
             case NONE:
                 focusedWindow = null;
@@ -141,6 +154,8 @@ public class WindowManager extends XResourceManager {
     }
 
     public void setFocus(Window focusedWindow, FocusRevertTo focusRevertTo) {
+        if (focusedWindow != this.focusedWindow)
+            Log.i("XlaFocus", "focus: " + describe(this.focusedWindow) + " -> " + describe(focusedWindow) + " (" + focusRevertTo + ")");
         this.focusedWindow = focusedWindow;
         this.focusRevertTo = focusRevertTo;
     }
@@ -369,5 +384,23 @@ public class WindowManager extends XResourceManager {
         for (int i = onWindowModificationListeners.size()-1; i >= 0; i--) {
             onWindowModificationListeners.get(i).onModifyWindowProperty(window, property);
         }
+    }
+
+    /** The topmost mapped application window under the root, other than the one going away. */
+    private Window topApplicationWindow(Window excluded) {
+        List<Window> children = rootWindow.getChildren();
+        for (int i = children.size() - 1; i >= 0; i--) {
+            Window child = children.get(i);
+            if (child != excluded && child.attributes.isMapped() && child.isApplicationWindow()) return child;
+        }
+        return null;
+    }
+
+    /** For the focus log: which window, so a lost focus can be traced to the window that took it. */
+    private String describe(Window window) {
+        if (window == null) return "none";
+        if (window == rootWindow) return "root";
+        return "0x" + Integer.toHexString(window.id) + " \"" + window.getClassName() + "\""
+                + (window.isApplicationWindow() ? " app" : "");
     }
 }

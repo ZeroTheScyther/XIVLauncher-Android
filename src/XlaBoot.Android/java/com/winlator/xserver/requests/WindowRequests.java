@@ -366,19 +366,18 @@ public abstract class WindowRequests {
         int windowId = inputStream.readInt();
         inputStream.skip(4);
 
-        switch (focusRevertTo) {
-            case NONE:
-                client.xServer.windowManager.setFocus(null, focusRevertTo);
-                break;
-            case POINTER_ROOT:
-                client.xServer.windowManager.setFocus(client.xServer.windowManager.rootWindow, focusRevertTo);
-                break;
-            case PARENT:
-                Window window = client.xServer.windowManager.getWindow(windowId);
-                if (window == null) throw new BadWindow(windowId);
-                client.xServer.windowManager.setFocus(window, focusRevertTo);
-                break;
+        // The focus target is the window field: 0 is None, 1 is PointerRoot, anything else a window. The revert-to
+        // value only says where focus goes if that window later disappears. Upstream switched on revert-to instead,
+        // so a client focusing its own window with RevertToPointerRoot handed the focus to the root, and the game
+        // sat unfocused until tapped.
+        Window target;
+        if (windowId == 0) target = null;
+        else if (windowId == 1) target = client.xServer.windowManager.rootWindow;
+        else {
+            target = client.xServer.windowManager.getWindow(windowId);
+            if (target == null) throw new BadWindow(windowId);
         }
+        client.xServer.windowManager.setFocus(target, focusRevertTo);
     }
 
     public static void getInputFocus(XClient client, XInputStream inputStream, XOutputStream outputStream) throws IOException, XRequestError {
