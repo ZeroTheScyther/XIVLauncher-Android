@@ -271,6 +271,25 @@ public static class ComponentImporter
         File.WriteAllText(SelectedFile(filesDir), version);
     }
 
+    /// <summary>
+    /// Drops run-wine.sh's copy of the prefix's stock DXVK/vkd3d DLLs. Called after the overlay is reinstalled, since
+    /// the copy then holds the previous stock. With an imported build still selected, the next launch backs up the
+    /// new stock files before copying the import over them.
+    /// </summary>
+    public static void ForgetStockBackup(string filesDir)
+    {
+        var backup = Path.Combine(DxvkRoot(filesDir), "stock-backup");
+        try
+        {
+            if (Directory.Exists(backup))
+                Directory.Delete(backup, true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Console.WriteLine($"XlaLauncher: could not clear the DXVK stock backup: {ex.GetType().Name}");
+        }
+    }
+
     /// <summary>Deletes an imported version; if it was the selected one, the next launch goes back to stock.</summary>
     public static void RemoveDxvk(string filesDir, string version)
     {

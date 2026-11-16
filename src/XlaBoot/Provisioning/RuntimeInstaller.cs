@@ -179,6 +179,12 @@ public static class RuntimeInstaller
                 PrefixSetup.LinkBuiltins(filesDir);
             }
 
+            // The overlay just put fresh stock DXVK/vkd3d into the prefix. A backup taken from the old stock
+            // would put the old DLLs back when the player returns to stock, so the next launch with an
+            // imported build snapshots these instead.
+            if (component.Name == "overlay")
+                ComponentImporter.ForgetStockBackup(filesDir);
+
             // Recorded per component, so an interrupted run resumes at the right place.
             state.Components[component.Name] = component.Sha256;
             state.Save(filesDir);
