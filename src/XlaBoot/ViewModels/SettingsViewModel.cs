@@ -72,6 +72,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     /// <summary>Second tap confirms deleting an imported driver, like the in-game menu's Exit row.</summary>
     private bool _removeArmed;
+    private bool _removeDxvkArmed;
 
     partial void OnTabIndexChanged(int value)
     {
@@ -104,6 +105,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void Rebuild()
     {
         _removeArmed = false;
+        _removeDxvkArmed = false;
         Rows.Clear();
         switch (TabIndex)
         {
@@ -402,6 +404,58 @@ public partial class SettingsViewModel : ViewModelBase
             "Lets FEX compile past a branch into one block. Faster; off is a debugging step for a device that crashes early."));
         Rows.Add(Choice("fex_diskcache", "Code cache", OnOff, OnOffLabels,
             "Keeps translated code between launches. Faster startup; off if the game misbehaves after a cached launch."));
+
+        Rows.Add(new SettingsHeader("DXVK"));
+        var dxvkVersions = ComponentImporter.DxvkVersions(AppHost.FilesDir);
+        var selected = ComponentImporter.SelectedVersion(AppHost.FilesDir);
+        var dxvkLabels = dxvkVersions
+            .Select(v => v == selected ? v + " (active)" : v)
+            .Prepend("Stock (runtime default)")
+            .ToArray();
+        var selectedIndex = selected == "stock" ? 0 : dxvkVersions.ToList().IndexOf(selected) + 1;
+
+        Rows.Add(Dropdown("DXVK version", dxvkLabels,
+            () => selectedIndex,
+            index =>
+            {
+                var version = index == 0 ? "stock" : dxvkVersions[index - 1];
+                ComponentImporter.SelectVersion(AppHost.FilesDir, version);
+                Status = version == "stock" ? "Using runtime default." : $"Using {version}.";
+                Rebuild();
+            }));
+        Rows.Add(new SettingsRow("Import DXVK", ImportDxvk)
+        {
+            Value = "Pick zip/tar.gz",
+            Detail = selected == "stock" ? "Using the runtime's built-in DXVK." : $"Active: {selected}.",
+        });
+
+        if (selected != "stock")
+        {
+            Rows.Add(new SettingsRow("Remove this DXVK", () =>
+            {
+                if (!_removeDxvkArmed)
+                {
+                    _removeDxvkArmed = true;
+                    Status = $"Tap again to delete {selected}.";
+                    return;
+                }
+                try
+                {
+                    ComponentImporter.RemoveDxvk(AppHost.FilesDir, selected);
+                    Status = $"Removed {selected}; back on the runtime's DXVK.";
+                }
+                catch (Exception ex)
+                {
+                    Status = $"Could not remove it: {ex.GetType().Name}: {ex.Message}";
+                }
+                Rebuild();
+            })
+            {
+                Value = "Delete",
+                Detail = $"Deletes the imported DXVK {selected}.",
+                IsWarning = true,
+            });
+        }
 
         Rows.Add(new SettingsHeader("Wine"));
         Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels,
@@ -715,6 +769,38 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 try { File.Delete(file.Path); }
                 catch (Exception) { /* the cache dir is Android's to reclaim */ }
+            }
+        }
+    }
+    private async Task ImportDxvk()
+    {
+        if (AppHost.PickFile == null)
+        {
+            Status = "No file picker on this platform.";
+            return;
+        }
+
+        PickedFile? file = null;
+        try
+        {
+            file = await AppHost.PickFile();
+            if (file == null)
+                return;
+            Status = "Importing DXVK...";
+            await Task.Run(() => ComponentImporter.ImportDxvk(file.Path, AppHost.FilesDir));
+            Status = "Imported. Next launch uses the new DLLs.";
+            Rebuild();
+        }
+        catch (Exception ex)
+        {
+            Status = "Import failed: " + ex.Message;
+        }
+        finally
+        {
+            if (file != null)
+            {
+                try { File.Delete(file.Path); }
+                catch (Exception) { }
             }
         }
     }

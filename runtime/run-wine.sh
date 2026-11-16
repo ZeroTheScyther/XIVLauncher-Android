@@ -285,6 +285,51 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
   echo "game=$GAME dalamud=${XLA_DALAMUD:-0} lsfg=${XLA_LSFG:-0}${LSFG_CONFIG:+ x2 flow=${XLA_LSFG_FLOW_SCALE:-0.80}}"
   echo "overrides: ${XLA_OVERRIDES:-none}"
   echo "xsock: $XSOCK"
+  # DXVK import. stock-backup holds the prefix's own DXVK/vkd3d DLLs from before the first import,
+  # so it exists exactly while an imported build is applied: switching back to stock restores it
+  # and deletes it, and the next import snapshots the (possibly updated) stock files again.
+  DXVK_DIR="$HOME/dxvk-import"
+  DXVK_BAK="$DXVK_DIR/stock-backup"
+  DXVK_DLLS="d3d8.dll d3d9.dll d3d10.dll d3d10_1.dll d3d10core.dll d3d11.dll d3d12.dll d3d12core.dll dxgi.dll"
+  DXVK_SEL=stock
+  [ -f "$DXVK_DIR/selected.txt" ] && IFS= read -r DXVK_SEL < "$DXVK_DIR/selected.txt"
+  case "$DXVK_SEL" in ""|.|..|*/*) DXVK_SEL=stock ;; esac
+  [ "$DXVK_SEL" != stock ] && [ ! -d "$DXVK_DIR/$DXVK_SEL" ] && DXVK_SEL=stock
+  if [ "$DXVK_SEL" = stock ]; then
+      if [ -d "$DXVK_BAK" ]; then
+          for d in x32 x64; do
+              [ "$d" = x32 ] && dest="$WINEPREFIX/drive_c/windows/syswow64" || dest="$WINEPREFIX/drive_c/windows/system32"
+              for f in $DXVK_DLLS; do
+                  if [ -f "$DXVK_BAK/$d/$f" ]; then cp -f "$DXVK_BAK/$d/$f" "$dest/$f"
+                  elif [ -f "$DXVK_BAK/$d/$f.absent" ]; then rm -f "$dest/$f"
+                  fi
+              done
+          done
+          rm -rf "$DXVK_BAK"
+          echo "dxvk-import: stock (restored)"
+      else
+          echo "dxvk-import: stock"
+      fi
+  else
+      if [ ! -d "$DXVK_BAK" ]; then
+          for d in x32 x64; do
+              [ "$d" = x32 ] && dest="$WINEPREFIX/drive_c/windows/syswow64" || dest="$WINEPREFIX/drive_c/windows/system32"
+              mkdir -p "$DXVK_BAK/$d"
+              for f in $DXVK_DLLS; do
+                  if [ -f "$dest/$f" ]; then cp -f "$dest/$f" "$DXVK_BAK/$d/$f"
+                  else : > "$DXVK_BAK/$d/$f.absent"
+                  fi
+              done
+          done
+      fi
+      for d in x32 x64; do
+          [ "$d" = x32 ] && dest="$WINEPREFIX/drive_c/windows/syswow64" || dest="$WINEPREFIX/drive_c/windows/system32"
+          for f in $DXVK_DLLS; do
+              [ -f "$DXVK_DIR/$DXVK_SEL/$d/$f" ] && cp -f "$DXVK_DIR/$DXVK_SEL/$d/$f" "$dest/$f"
+          done
+      done
+      echo "dxvk-import: $DXVK_SEL"
+  fi
   echo "--- run ---"
   eval "LD_PRELOAD=\"\$WINE_PRELOAD\" \"\$WINE/bin/wine\" $TARGET"
   echo "--- exit=$? ---"
