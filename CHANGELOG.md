@@ -38,3 +38,9 @@
 ## 0.2.12-alpha
 
 - Added FEX code cache for faster game startup.
+
+## 0.2.13-alpha
+
+- Added DXVK importer (by K1r0h)
+- Added language picker in Settings for both the game and the launcher. The launcher translations are a first pass, so corrections are welcome as issues or PRs (src/XlaBoot/Localization/Strings.*.resx).
+- 
