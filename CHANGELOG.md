@@ -39,8 +39,12 @@
 
 - Added FEX code cache for faster game startup.
 
-## 0.2.13-alpha
+## 0.3.0-alpha
 
 - Added DXVK importer (by K1r0h)
 - Added language picker in Settings for both the game and the launcher. The launcher translations are a first pass, so corrections are welcome as issues or PRs (src/XlaBoot/Localization/Strings.*.resx).
-- 
+- Keyboard typing now works without Dalamud on.
+- Keyboard typing now supports typing in Dalamud windows.
+- Added a new on-screen button that opens the keyboard so you don't have to open the back-menu every time. While it works similarly to the on-screen gamepad, it's controlled by a toggle in the back-menu so it remains active while you have a controller connected.
+- Fixed a window focus bug along the way which caused inputs to not be sent to the game unless you tapped on it in either touchscreen mode or tap-to-click mode.
+- Added an option in the back-menu to turn off the auto-keyboard opening when selecting an input field.
