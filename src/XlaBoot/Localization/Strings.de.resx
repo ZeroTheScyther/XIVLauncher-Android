@@ -853,6 +853,12 @@
   <data name="Notif_Channel" xml:space="preserve">
     <value>Fortschritt der Einrichtung</value>
   </data>
+  <data name="Notif_GameRunning" xml:space="preserve">
+    <value>FINAL FANTASY XIV läuft</value>
+  </data>
+  <data name="Notif_GameRunningDetail" xml:space="preserve">
+    <value>Bleibt verbunden, während du andere Apps verwendest.</value>
+  </data>
   <data name="Notif_Working" xml:space="preserve">
     <value>Läuft</value>
   </data>

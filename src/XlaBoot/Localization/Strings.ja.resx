@@ -853,6 +853,12 @@
   <data name="Notif_Channel" xml:space="preserve">
     <value>セットアップの進行状況</value>
   </data>
+  <data name="Notif_GameRunning" xml:space="preserve">
+    <value>FINAL FANTASY XIV を実行中</value>
+  </data>
+  <data name="Notif_GameRunningDetail" xml:space="preserve">
+    <value>他のアプリを使っている間も接続を維持します。</value>
+  </data>
   <data name="Notif_Working" xml:space="preserve">
     <value>処理中</value>
   </data>
