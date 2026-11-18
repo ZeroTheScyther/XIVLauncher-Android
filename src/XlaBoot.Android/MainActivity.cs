@@ -276,6 +276,9 @@ public class MainActivity : AvaloniaMainActivity<App>
 
                 XServerHost.Start(RootPath);
                 result = XServerHost.SocketPath(RootPath);
+
+                // Keeps the network up while the player switches apps; see KeepAliveService.StartGameSession.
+                KeepAliveService.StartGameSession(this);
             }
             catch (System.Exception e)
             {

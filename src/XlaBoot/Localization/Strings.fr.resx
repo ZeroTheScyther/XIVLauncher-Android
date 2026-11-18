@@ -391,47 +391,47 @@
   <data name="Settings_HeaderDxvk" xml:space="preserve">
     <value>DXVK</value>
   </data>
-  <data name="Settings_DxvkVersion" xml:space="preserve">
-    <value>Version de DXVK</value>
+  <data name="Settings_ComponentVersion" xml:space="preserve">
+    <value>Version de {0}</value>
   </data>
-  <data name="Settings_DxvkStock" xml:space="preserve">
-    <value>Par défaut (fourni avec le runtime)</value>
+  <data name="Settings_DefaultSuffix" xml:space="preserve">
+    <value>{0} (par défaut)</value>
+  </data>
+  <data name="Status_ComponentDefault" xml:space="preserve">
+    <value>Le prochain lancement utilisera {0} {1} par défaut.</value>
+  </data>
+  <data name="Status_ComponentUsing" xml:space="preserve">
+    <value>Le prochain lancement utilisera {0} {1}.</value>
+  </data>
+  <data name="Settings_ImportComponent" xml:space="preserve">
+    <value>Importer {0}</value>
+  </data>
+  <data name="Settings_PickArchive" xml:space="preserve">
+    <value>Choisir un zip/tar.gz/wcp</value>
+  </data>
+  <data name="Settings_DxvkSource" xml:space="preserve">
+    <value>Depuis les versions de DXVK ou le WCP Hub (versions ARM64EC comprises). Appliqué au prochain lancement.</value>
+  </data>
+  <data name="Settings_FexSource" xml:space="preserve">
+    <value>Depuis le WCP Hub ou GameNative. Appliqué au prochain lancement.</value>
+  </data>
+  <data name="Settings_RemoveComponent" xml:space="preserve">
+    <value>Supprimer ce {0}</value>
+  </data>
+  <data name="Status_ComponentRemoved" xml:space="preserve">
+    <value>{0} {1} supprimé ; retour à la version par défaut {2}.</value>
+  </data>
+  <data name="Settings_RemoveComponentDetail" xml:space="preserve">
+    <value>Supprime le {0} importé {1}.</value>
+  </data>
+  <data name="Status_ImportingComponent" xml:space="preserve">
+    <value>Importation de {0}...</value>
+  </data>
+  <data name="Status_ComponentImported" xml:space="preserve">
+    <value>{0} {1} importé. Le prochain lancement l’utilisera.</value>
   </data>
   <data name="Settings_ActiveSuffix" xml:space="preserve">
     <value>{0} (actif)</value>
-  </data>
-  <data name="Status_DxvkStock" xml:space="preserve">
-    <value>DXVK par défaut utilisé.</value>
-  </data>
-  <data name="Status_DxvkUsing" xml:space="preserve">
-    <value>{0} utilisé.</value>
-  </data>
-  <data name="Settings_ImportDxvk" xml:space="preserve">
-    <value>Importer DXVK</value>
-  </data>
-  <data name="Settings_PickZipTar" xml:space="preserve">
-    <value>Choisir un zip/tar.gz</value>
-  </data>
-  <data name="Settings_DxvkBuiltIn" xml:space="preserve">
-    <value>DXVK intégré au runtime utilisé.</value>
-  </data>
-  <data name="Settings_DxvkActive" xml:space="preserve">
-    <value>Actif : {0}.</value>
-  </data>
-  <data name="Settings_RemoveDxvk" xml:space="preserve">
-    <value>Supprimer ce DXVK</value>
-  </data>
-  <data name="Status_DxvkRemoved" xml:space="preserve">
-    <value>{0} supprimé ; retour au DXVK du runtime.</value>
-  </data>
-  <data name="Settings_RemoveDxvkDetail" xml:space="preserve">
-    <value>Supprime le DXVK importé {0}.</value>
-  </data>
-  <data name="Status_ImportingDxvk" xml:space="preserve">
-    <value>Importation de DXVK...</value>
-  </data>
-  <data name="Status_DxvkImported" xml:space="preserve">
-    <value>Importé. Le prochain lancement utilisera les nouvelles DLL.</value>
   </data>
   <data name="Status_ImportFailedReason" xml:space="preserve">
     <value>Échec de l'importation : {0}</value>
@@ -852,6 +852,12 @@
   </data>
   <data name="Notif_Channel" xml:space="preserve">
     <value>Progression de la configuration</value>
+  </data>
+  <data name="Notif_GameRunning" xml:space="preserve">
+    <value>FINAL FANTASY XIV est en cours d’exécution</value>
+  </data>
+  <data name="Notif_GameRunningDetail" xml:space="preserve">
+    <value>Reste connecté pendant que vous utilisez d’autres applications.</value>
   </data>
   <data name="Notif_Working" xml:space="preserve">
     <value>En cours</value>
