@@ -351,6 +351,38 @@ WINE_PRELOAD="$LD_PRELOAD${EVSHIM_PRELOAD:+:$EVSHIM_PRELOAD}"
       done
       echo "dxvk-import: $DXVK_SEL"
   fi
+  # FEXCore import: the same scheme for FEX's two Windows DLLs in system32. Proton's unix loaders for
+  # them (wine/lib/wine/aarch64-unix) stay the runtime's own.
+  FEX_DIR="$HOME/fex-import"
+  FEX_BAK="$FEX_DIR/stock-backup"
+  FEX_DLLS="libarm64ecfex.dll libwow64fex.dll"
+  FEX_SYS="$WINEPREFIX/drive_c/windows/system32"
+  FEX_SEL=stock
+  [ -f "$FEX_DIR/selected.txt" ] && IFS= read -r FEX_SEL < "$FEX_DIR/selected.txt"
+  case "$FEX_SEL" in ""|.|..|*/*) FEX_SEL=stock ;; esac
+  [ "$FEX_SEL" != stock ] && [ ! -d "$FEX_DIR/$FEX_SEL" ] && FEX_SEL=stock
+  if [ "$FEX_SEL" = stock ]; then
+      if [ -d "$FEX_BAK" ]; then
+          for f in $FEX_DLLS; do
+              [ -f "$FEX_BAK/$f" ] && cp -f "$FEX_BAK/$f" "$FEX_SYS/$f"
+          done
+          rm -rf "$FEX_BAK"
+          echo "fex-import: stock (restored)"
+      else
+          echo "fex-import: stock"
+      fi
+  else
+      if [ ! -d "$FEX_BAK" ]; then
+          mkdir -p "$FEX_BAK"
+          for f in $FEX_DLLS; do
+              [ -f "$FEX_SYS/$f" ] && cp -f "$FEX_SYS/$f" "$FEX_BAK/$f"
+          done
+      fi
+      for f in $FEX_DLLS; do
+          [ -f "$FEX_DIR/$FEX_SEL/$f" ] && cp -f "$FEX_DIR/$FEX_SEL/$f" "$FEX_SYS/$f"
+      done
+      echo "fex-import: $FEX_SEL"
+  fi
   echo "--- run ---"
   eval "LD_PRELOAD=\"\$WINE_PRELOAD\" \"\$WINE/bin/wine\" $TARGET"
   echo "--- exit=$? ---"

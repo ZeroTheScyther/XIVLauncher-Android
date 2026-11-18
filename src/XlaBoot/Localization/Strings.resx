@@ -391,47 +391,47 @@
   <data name="Settings_HeaderDxvk" xml:space="preserve">
     <value>DXVK</value>
   </data>
-  <data name="Settings_DxvkVersion" xml:space="preserve">
-    <value>DXVK version</value>
+  <data name="Settings_ComponentVersion" xml:space="preserve">
+    <value>{0} version</value>
   </data>
-  <data name="Settings_DxvkStock" xml:space="preserve">
-    <value>Stock (runtime default)</value>
+  <data name="Settings_DefaultSuffix" xml:space="preserve">
+    <value>{0} (default)</value>
+  </data>
+  <data name="Status_ComponentDefault" xml:space="preserve">
+    <value>Next launch uses the default {0} {1}.</value>
+  </data>
+  <data name="Status_ComponentUsing" xml:space="preserve">
+    <value>Next launch uses {0} {1}.</value>
+  </data>
+  <data name="Settings_ImportComponent" xml:space="preserve">
+    <value>Import {0}</value>
+  </data>
+  <data name="Settings_PickArchive" xml:space="preserve">
+    <value>Pick zip/tar.gz/wcp</value>
+  </data>
+  <data name="Settings_DxvkSource" xml:space="preserve">
+    <value>From DXVK releases or the WCP Hub (ARM64EC builds too). Applied at the next launch.</value>
+  </data>
+  <data name="Settings_FexSource" xml:space="preserve">
+    <value>From the WCP Hub or GameNative. Applied at the next launch.</value>
+  </data>
+  <data name="Settings_RemoveComponent" xml:space="preserve">
+    <value>Remove this {0}</value>
+  </data>
+  <data name="Status_ComponentRemoved" xml:space="preserve">
+    <value>Removed {0} {1}; back on the default {2}.</value>
+  </data>
+  <data name="Settings_RemoveComponentDetail" xml:space="preserve">
+    <value>Deletes the imported {0} {1}.</value>
+  </data>
+  <data name="Status_ImportingComponent" xml:space="preserve">
+    <value>Importing {0}...</value>
+  </data>
+  <data name="Status_ComponentImported" xml:space="preserve">
+    <value>Imported {0} {1}. Next launch uses it.</value>
   </data>
   <data name="Settings_ActiveSuffix" xml:space="preserve">
     <value>{0} (active)</value>
-  </data>
-  <data name="Status_DxvkStock" xml:space="preserve">
-    <value>Using runtime default.</value>
-  </data>
-  <data name="Status_DxvkUsing" xml:space="preserve">
-    <value>Using {0}.</value>
-  </data>
-  <data name="Settings_ImportDxvk" xml:space="preserve">
-    <value>Import DXVK</value>
-  </data>
-  <data name="Settings_PickZipTar" xml:space="preserve">
-    <value>Pick zip/tar.gz</value>
-  </data>
-  <data name="Settings_DxvkBuiltIn" xml:space="preserve">
-    <value>Using the runtime's built-in DXVK.</value>
-  </data>
-  <data name="Settings_DxvkActive" xml:space="preserve">
-    <value>Active: {0}.</value>
-  </data>
-  <data name="Settings_RemoveDxvk" xml:space="preserve">
-    <value>Remove this DXVK</value>
-  </data>
-  <data name="Status_DxvkRemoved" xml:space="preserve">
-    <value>Removed {0}; back on the runtime's DXVK.</value>
-  </data>
-  <data name="Settings_RemoveDxvkDetail" xml:space="preserve">
-    <value>Deletes the imported DXVK {0}.</value>
-  </data>
-  <data name="Status_ImportingDxvk" xml:space="preserve">
-    <value>Importing DXVK...</value>
-  </data>
-  <data name="Status_DxvkImported" xml:space="preserve">
-    <value>Imported. Next launch uses the new DLLs.</value>
   </data>
   <data name="Status_ImportFailedReason" xml:space="preserve">
     <value>Import failed: {0}</value>

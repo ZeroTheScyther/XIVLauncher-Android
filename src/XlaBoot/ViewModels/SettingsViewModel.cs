@@ -8,7 +8,9 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using XIVLauncher.Common.Dalamud;
+using XlaBoot.Imports;
 using XlaBoot.Localization;
+using XlaBoot.Provisioning;
 using XlaBoot.Steam;
 
 namespace XlaBoot.ViewModels;
@@ -75,7 +77,8 @@ public partial class SettingsViewModel : ViewModelBase
 
     /// <summary>Second tap confirms deleting an imported driver, like the in-game menu's Exit row.</summary>
     private bool _removeArmed;
-    private bool _removeDxvkArmed;
+    /// <summary>The component whose "Remove this" row was tapped once, waiting for the second tap.</summary>
+    private string? _removeComponentArmed;
 
     partial void OnTabIndexChanged(int value)
     {
@@ -108,7 +111,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void Rebuild()
     {
         _removeArmed = false;
-        _removeDxvkArmed = false;
+        _removeComponentArmed = null;
         Rows.Clear();
         switch (TabIndex)
         {
@@ -411,58 +414,12 @@ public partial class SettingsViewModel : ViewModelBase
             Strings.Settings_PresetDetail));
         Rows.Add(Choice("fex_multiblock", Strings.Settings_Multiblock, OnOff, OnOffLabels, Strings.Settings_MultiblockDetail));
         Rows.Add(Choice("fex_diskcache", Strings.Settings_CodeCache, OnOff, OnOffLabels, Strings.Settings_CodeCacheDetail));
+        BuildComponentRows("FEXCore", FexImport.Store(AppHost.FilesDir), RuntimeInstaller.StockFexVersion,
+            Strings.Settings_FexSource, FexImport.Import);
 
         Rows.Add(new SettingsHeader(Strings.Settings_HeaderDxvk));
-        var dxvkVersions = ComponentImporter.DxvkVersions(AppHost.FilesDir);
-        var selected = ComponentImporter.SelectedVersion(AppHost.FilesDir);
-        var dxvkLabels = dxvkVersions
-            .Select(v => v == selected ? Loc.F(Strings.Settings_ActiveSuffix, v) : v)
-            .Prepend(Strings.Settings_DxvkStock)
-            .ToArray();
-        var selectedIndex = selected == "stock" ? 0 : dxvkVersions.ToList().IndexOf(selected) + 1;
-
-        Rows.Add(Dropdown(Strings.Settings_DxvkVersion, dxvkLabels,
-            () => selectedIndex,
-            index =>
-            {
-                var version = index == 0 ? "stock" : dxvkVersions[index - 1];
-                ComponentImporter.SelectVersion(AppHost.FilesDir, version);
-                Status = version == "stock" ? Strings.Status_DxvkStock : Loc.F(Strings.Status_DxvkUsing, version);
-                Rebuild();
-            }));
-        Rows.Add(new SettingsRow(Strings.Settings_ImportDxvk, ImportDxvk)
-        {
-            Value = Strings.Settings_PickZipTar,
-            Detail = selected == "stock" ? Strings.Settings_DxvkBuiltIn : Loc.F(Strings.Settings_DxvkActive, selected),
-        });
-
-        if (selected != "stock")
-        {
-            Rows.Add(new SettingsRow(Strings.Settings_RemoveDxvk, () =>
-            {
-                if (!_removeDxvkArmed)
-                {
-                    _removeDxvkArmed = true;
-                    Status = Loc.F(Strings.Status_TapAgainDelete, selected);
-                    return;
-                }
-                try
-                {
-                    ComponentImporter.RemoveDxvk(AppHost.FilesDir, selected);
-                    Status = Loc.F(Strings.Status_DxvkRemoved, selected);
-                }
-                catch (Exception ex)
-                {
-                    Status = Loc.F(Strings.Status_RemoveFailed, $"{ex.GetType().Name}: {ex.Message}");
-                }
-                Rebuild();
-            })
-            {
-                Value = Strings.Settings_Delete,
-                Detail = Loc.F(Strings.Settings_RemoveDxvkDetail, selected),
-                IsWarning = true,
-            });
-        }
+        BuildComponentRows("DXVK", DxvkImport.Store(AppHost.FilesDir), RuntimeInstaller.StockDxvkVersion,
+            Strings.Settings_DxvkSource, DxvkImport.Import);
 
         Rows.Add(new SettingsHeader("Wine"));
         Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels, Strings.Settings_EsyncDetail));
@@ -777,23 +734,77 @@ public partial class SettingsViewModel : ViewModelBase
             }
         }
     }
-    private async Task ImportDxvk()
+    /// <summary>
+    /// The version dropdown, import row and (for an imported version) double-tap remove row of a swappable
+    /// runtime component. The runtime's own build is listed first as "&lt;version&gt; (default)".
+    /// </summary>
+    private void BuildComponentRows(string name, ComponentStore store, string defaultVersion, string source,
+        Func<string, string?, string, string> import)
+    {
+        var versions = store.Versions();
+        var selected = store.Selected();
+        Rows.Add(Dropdown(Loc.F(Strings.Settings_ComponentVersion, name),
+            versions.Select(v => v == selected ? Loc.F(Strings.Settings_ActiveSuffix, v) : v)
+                .Prepend(Loc.F(Strings.Settings_DefaultSuffix, defaultVersion)).ToArray(),
+            () => selected == ComponentStore.Stock ? 0 : Array.IndexOf(versions, selected) + 1,
+            index =>
+            {
+                var version = index == 0 ? ComponentStore.Stock : versions[index - 1];
+                store.Select(version);
+                Status = version == ComponentStore.Stock
+                    ? Loc.F(Strings.Status_ComponentDefault, name, defaultVersion)
+                    : Loc.F(Strings.Status_ComponentUsing, name, version);
+                Rebuild();
+            }));
+        Rows.Add(new SettingsRow(Loc.F(Strings.Settings_ImportComponent, name), () => ImportComponent(name, import))
+        {
+            Value = Strings.Settings_PickArchive,
+            Detail = source,
+        });
+        if (selected == ComponentStore.Stock)
+            return;
+        Rows.Add(new SettingsRow(Loc.F(Strings.Settings_RemoveComponent, name), () =>
+        {
+            if (_removeComponentArmed != name)
+            {
+                _removeComponentArmed = name;
+                Status = Loc.F(Strings.Status_TapAgainDelete, $"{name} {selected}");
+                return;
+            }
+            try
+            {
+                store.Remove(selected);
+                Status = Loc.F(Strings.Status_ComponentRemoved, name, selected, defaultVersion);
+            }
+            catch (Exception ex)
+            {
+                Status = Loc.F(Strings.Status_RemoveFailed, $"{ex.GetType().Name}: {ex.Message}");
+            }
+            Rebuild();
+        })
+        {
+            Value = Strings.Settings_Delete,
+            Detail = Loc.F(Strings.Settings_RemoveComponentDetail, name, selected),
+            IsWarning = true,
+        });
+    }
+
+    private async Task ImportComponent(string name, Func<string, string?, string, string> import)
     {
         if (AppHost.PickFile == null)
         {
             Status = Strings.Status_NoFilePicker;
             return;
         }
-
         PickedFile? file = null;
         try
         {
             file = await AppHost.PickFile();
             if (file == null)
                 return;
-            Status = Strings.Status_ImportingDxvk;
-            await Task.Run(() => ComponentImporter.ImportDxvk(file.Path, AppHost.FilesDir));
-            Status = Strings.Status_DxvkImported;
+            Status = Loc.F(Strings.Status_ImportingComponent, name);
+            var version = await Task.Run(() => import(file.Path, file.Name, AppHost.FilesDir));
+            Status = Loc.F(Strings.Status_ComponentImported, name, version);
             Rebuild();
         }
         catch (Exception ex)
@@ -805,7 +816,7 @@ public partial class SettingsViewModel : ViewModelBase
             if (file != null)
             {
                 try { File.Delete(file.Path); }
-                catch (Exception) { }
+                catch (Exception) { /* the cache dir is Android's to reclaim */ }
             }
         }
     }
