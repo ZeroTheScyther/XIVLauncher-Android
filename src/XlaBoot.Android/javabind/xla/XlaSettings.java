@@ -46,8 +46,11 @@ final class XlaSettings {
     /** Defaults for the launcher-owned keys. Kept in step with SettingsViewModel's option lists. */
     static final String DEFAULT_GAME_PATH = "/storage/emulated/0/Emulation/windows/import/FFXIV";
     private static final String DEFAULT_RESOLUTION = "1280x720";
-    /** The launcher's fps_cap_hz values, default first: 60 on screen is the ceiling, 30 the stable target. */
-    private static final String[] FPS_CAPS = {"30", "60"};
+    /**
+     * The launcher's fps_cap_hz values, default first: 60 on screen is the ceiling, 30 the stable target, 40 the
+     * middle for 120 Hz panels (an even divisor there, so frames stay evenly paced).
+     */
+    private static final String[] FPS_CAPS = {"30", "40", "60"};
     private static final String DEFAULT_FEX_PRESET = "INTERMEDIATE";
 
     private final SharedPreferences prefs;
