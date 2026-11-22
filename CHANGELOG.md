@@ -54,10 +54,10 @@
 - You can now use the android keyboard to write in the character creation screen. (Update the Dalamud plugin to 1.1.1 if you have Dalamud on. Without Dalamud it works just fine.) (Thanks Marv-Ahock)
 - The back-menu is also translated now. (Ooops. My bad. I forgot about that one.)
 
-## Unreleased
+## 0.3.2-alpha
 
-- DXVK now defaults to a native ARM64EC build. The x86-64 build is still in the DXVK setting.
-- Swappable FEXCore builds, and .wcp packages for DXVK (by K1r0h).
-- The Vulkan version now follows the selected driver (by K1r0h).
-- The game stays connected while you switch apps (by K1r0h).
+- DXVK now uses a native ARM64EC build by default, so graphics translation no longer runs under emulation. The old x86-64 build is still selectable in the DXVK setting.
+- You can now import FEXCore builds, and DXVK accepts .wcp packages too (by K1r0h).
+- The Vulkan version now follows the selected driver, so 1.4 drivers get Vulkan 1.4 (by K1r0h).
+- The game stays connected while you're in another app (by K1r0h).
 - Added 16:10 resolutions and a 40 fps cap (by K1r0h).
