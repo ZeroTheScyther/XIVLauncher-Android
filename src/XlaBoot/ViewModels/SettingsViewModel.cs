@@ -293,11 +293,12 @@ public partial class SettingsViewModel : ViewModelBase
 
         Rows.Add(new SettingsHeader(Strings.Settings_HeaderOutput));
         Rows.Add(Choice("resolution", Strings.Settings_Resolution,
-            new[] { "1280x720", "1560x720", "1170x540", "960x540" },
-            new[] { "1280x720", "1560x720 (19.5:9)", "1170x540 (19.5:9)", "960x540" },
+            new[] { "1280x720", "1560x720", "1170x540", "960x540", "1280x800", "1152x720", "864x540" },
+            new[] { "1280x720", "1560x720 (19.5:9)", "1170x540 (19.5:9)", "960x540",
+                "1280x800 (16:10)", "1152x720 (16:10)", "864x540 (16:10)" },
             Strings.Settings_ResolutionDetail));
         Rows.Add(Choice("fps_cap_hz", Strings.Settings_FpsCap,
-            new[] { "30", "60" }, new[] { "30 fps", "60 fps" }, ""));
+            new[] { "30", "40", "60" }, new[] { "30 fps", "40 fps", "60 fps" }, ""));
         Rows.Add(Choice("renderer", Strings.Settings_Renderer,
             new[] { "VULKAN", "GL" }, new[] { "Vulkan", Strings.Settings_OpenGlFallback },
             Strings.Settings_RendererDetail));
