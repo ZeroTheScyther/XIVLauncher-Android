@@ -25,7 +25,7 @@ P="$(cd "$(dirname "$0")/.." && pwd)"
 SRCROOT="${XLA_RUNTIME_SRC:-$P/work}"
 OUT="$SRCROOT/bundle"
 # Bump together with RuntimeInstaller.RequiredRuntimeVersion when the app needs the new runtime.
-RUNTIME_VERSION=3
+RUNTIME_VERSION=4
 ZSTD_ARGS=(-19 --long=27 -T0 -q)
 
 MANIFEST_ONLY=0
@@ -156,6 +156,16 @@ want rootfs && pack rootfs "$SRCROOT/rootfs-build/stage" usr
 # --- overlay: Windows/Japanese fonts + DXVK 2.4.1-gplasync + vkd3d 2.14.1, extracted over the prefix.
 want overlay && pack overlay "$SRCROOT/rootfs-build/overlay" drive_c
 
+# --- dxvkec: DXVK 2.4.1-gplasync built as ARM64EC by scripts/build-dxvk-arm64ec.sh. It lands as a DXVK import
+# (dxvk-import/<name>/x64), which the app selects by default; the overlay's x86-64 build stays as "stock".
+DXVKEC_DIR="${XLA_DXVKEC_DIR:-$SRCROOT/dxvk-arm64ec/out}"
+if want dxvkec; then
+    mkdir -p "$TMP/dxvkec"
+    cp -rp -- "$DXVKEC_DIR/x64" "$TMP/dxvkec/"
+    normalise_dir_times "$TMP/dxvkec"
+    pack dxvkec "$TMP/dxvkec" x64
+fi
+
 # --- vkextra: the Vulkan wrapper ICD, adrenotools hook libs and the Turnip driver packages: usr/lib/turnip
 # is Gen8 V30 (StevenMXZ/Adreno-Tools-Drivers), usr/lib/turnip-mrpurple is Mr_Purple's T30
 # (downloads.gamenative.app/drivers/turnip_mrpurple_T30-toasted.adpkg.zip, sha256 f65b2d33...).
@@ -188,6 +198,7 @@ dest = {
     "prefix": "prefix/.wine",
     "rootfs": "rootfs",
     "overlay": "prefix/.wine",
+    "dxvkec": "dxvk-import/2.4.1-gplasync-arm64ec",
     "vkextra": "rootfs",
     "alsa": "rootfs",
     "pulseaudio": "pulseaudio",
@@ -197,7 +208,7 @@ dest = {
 # very different contents - rootfs carries the old build, vkextra the GameNative wrapper that actually
 # renders correctly. vkextra MUST come after rootfs, or provisioning silently restores the wrapper that
 # caused the texture garbage.
-sequence = ["wine", "prefix", "overlay", "rootfs", "vkextra", "alsa", "pulseaudio"]
+sequence = ["wine", "prefix", "overlay", "dxvkec", "rootfs", "vkextra", "alsa", "pulseaudio"]
 
 path = os.path.join(out, "runtime-manifest.json")
 existing = {}

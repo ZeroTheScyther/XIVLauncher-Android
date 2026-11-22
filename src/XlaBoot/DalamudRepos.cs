@@ -108,7 +108,7 @@ public static class DalamudRepos
 
     // ---- JSON ----------------------------------------------------------------------------------
 
-    private static JsonObject Load(string path)
+    internal static JsonObject Load(string path)
     {
         try
         {
@@ -126,7 +126,7 @@ public static class DalamudRepos
     /// Before Dalamud's first run there is no file. A minimal one with just the repo list is enough: Newtonsoft only
     /// sets the keys that are present, so Dalamud keeps its defaults for everything else.
     /// </summary>
-    private static JsonObject LoadOrNew(string path) =>
+    internal static JsonObject LoadOrNew(string path) =>
         File.Exists(path) ? Load(path) : new JsonObject { ["$type"] = ConfigType };
 
     private static JsonArray Values(JsonObject config)
@@ -161,7 +161,7 @@ public static class DalamudRepos
         ["IsEnabled"] = enabled,
     };
 
-    private static void Save(string path, JsonObject config)
+    internal static void Save(string path, JsonObject config)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var tmp = path + ".tmp";

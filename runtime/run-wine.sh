@@ -118,7 +118,7 @@ VK_API=1.3.289
 case "$DRIVER_DIR" in
     */turnip-mrpurple) VK_API=1.4.359 ;;
 esac
-# AdrenoTools packages usually say "driverVersion": "Vulkan 1.4.367" in meta.json. Builtins only.
+# AdrenoTools packages usually say "driverVersion": "Vulkan 1.4.367" in meta.json, imported ones included.
 if [ -f "$DRIVER_DIR/meta.json" ]; then
     while IFS= read -r line; do
         case "$line" in

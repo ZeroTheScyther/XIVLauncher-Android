@@ -769,6 +769,9 @@ public partial class MainViewModel : ViewModelBase
                 return new WineCmdGameRunner().Start(path, workingDirectory, arguments, environment, dpiAwareness);
             }
 
+            if (DalamudHookMode.Apply(FilesDir) is { } hookNote)
+                AppLog.Note(hookNote);
+
             return launcher.Run(new FileInfo(path), arguments, environment);
         }
     }

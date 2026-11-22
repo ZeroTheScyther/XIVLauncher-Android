@@ -12,7 +12,13 @@ namespace XlaBoot.Imports;
 /// </summary>
 public static class DxvkImport
 {
-    public static ComponentStore Store(string filesDir) => new(filesDir, "dxvk-import");
+    /// <summary>
+    /// DXVK 2.4.1-gplasync built as ARM64EC (scripts/build-dxvk-arm64ec.sh), installed by the runtime's dxvkec
+    /// component into dxvk-import/ and selected by default. The overlay's x86-64 build stays as "stock".
+    /// </summary>
+    public const string BuiltInArm64Ec = "2.4.1-gplasync-arm64ec";
+
+    public static ComponentStore Store(string filesDir) => new(filesDir, "dxvk-import", BuiltInArm64Ec);
 
     /// <summary>Imports the archive and selects it. Returns the version name. Throws with a message for the user.</summary>
     public static string Import(string archivePath, string? displayName, string filesDir)
@@ -63,6 +69,60 @@ public static class DxvkImport
             if (extracted == 0)
                 throw new InvalidDataException("No DLLs under x32/x64 or system32/syswow64, so this is not a DXVK build.");
         });
+    }
+
+    /// <summary>
+    /// True when the next launch uses an ARM64EC dxgi.dll. Dalamud's default swapchain hook patches Present's first
+    /// instructions as x86-64, which fails on ARM64EC code; see DalamudHookMode.
+    /// </summary>
+    public static bool SelectedIsArm64Ec(string filesDir)
+    {
+        var store = Store(filesDir);
+        var version = store.Selected();
+        return version != ComponentStore.Stock && IsArm64Ec(Path.Combine(store.Root, version, "x64", "dxgi.dll"));
+    }
+
+    /// <summary>
+    /// An ARM64EC image keeps the AMD64 machine field so x64 code can load it. What marks it is a CHPE metadata
+    /// pointer in the load config (offset 200 of the 64-bit layout). A plain x64 build has none, or no load config.
+    /// </summary>
+    public static bool IsArm64Ec(string dllPath)
+    {
+        try
+        {
+            var b = File.ReadAllBytes(dllPath);
+            int pe = BitConverter.ToInt32(b, 0x3c);
+            if (BitConverter.ToUInt16(b, pe + 4) != 0x8664)
+                return false;
+            int sections = BitConverter.ToUInt16(b, pe + 6);
+            int optional = pe + 24;
+            if (BitConverter.ToUInt16(b, optional) != 0x20b)
+                return false;
+            const int loadConfigEntry = 10;
+            uint rva = BitConverter.ToUInt32(b, optional + 112 + loadConfigEntry * 8);
+            if (rva == 0)
+                return false;
+            int table = optional + BitConverter.ToUInt16(b, pe + 20);
+            for (int i = 0; i < sections; i++)
+            {
+                int s = table + i * 40;
+                uint virtualSize = BitConverter.ToUInt32(b, s + 8);
+                uint virtualAddress = BitConverter.ToUInt32(b, s + 12);
+                uint rawSize = BitConverter.ToUInt32(b, s + 16);
+                uint rawPointer = BitConverter.ToUInt32(b, s + 20);
+                if (rva < virtualAddress || rva >= virtualAddress + Math.Max(virtualSize, rawSize))
+                    continue;
+                long config = rva - virtualAddress + rawPointer;
+                const int chpeOffset = 200;
+                return BitConverter.ToUInt32(b, (int)config) >= chpeOffset + 8
+                       && BitConverter.ToUInt64(b, (int)config + chpeOffset) != 0;
+            }
+            return false;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
     }
 
     /// <summary>x64 for x64/ or system32/, x32 for x32/ or syswow64/, else null.</summary>

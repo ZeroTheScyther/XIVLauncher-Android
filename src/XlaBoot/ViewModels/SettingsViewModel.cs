@@ -416,11 +416,11 @@ public partial class SettingsViewModel : ViewModelBase
         Rows.Add(Choice("fex_multiblock", Strings.Settings_Multiblock, OnOff, OnOffLabels, Strings.Settings_MultiblockDetail));
         Rows.Add(Choice("fex_diskcache", Strings.Settings_CodeCache, OnOff, OnOffLabels, Strings.Settings_CodeCacheDetail));
         BuildComponentRows("FEXCore", FexImport.Store(AppHost.FilesDir), RuntimeInstaller.StockFexVersion,
-            Strings.Settings_FexSource, FexImport.Import);
+            FexImport.Import);
 
         Rows.Add(new SettingsHeader(Strings.Settings_HeaderDxvk));
-        BuildComponentRows("DXVK", DxvkImport.Store(AppHost.FilesDir), RuntimeInstaller.StockDxvkVersion,
-            Strings.Settings_DxvkSource, DxvkImport.Import);
+        BuildComponentRows("DXVK", DxvkImport.Store(AppHost.FilesDir), RuntimeInstaller.StockDxvkVersion + " (x86-64)",
+            DxvkImport.Import);
 
         Rows.Add(new SettingsHeader("Wine"));
         Rows.Add(Choice("esync", "Esync", OnOff, OnOffLabels, Strings.Settings_EsyncDetail));
@@ -737,32 +737,38 @@ public partial class SettingsViewModel : ViewModelBase
     }
     /// <summary>
     /// The version dropdown, import row and (for an imported version) double-tap remove row of a swappable
-    /// runtime component. The runtime's own build is listed first as "&lt;version&gt; (default)".
+    /// runtime component. The default is listed first as "&lt;version&gt; (default)": the store's built-in version
+    /// when the runtime installed one, else the runtime's own build ("stock", <paramref name="stockVersion"/>).
     /// </summary>
-    private void BuildComponentRows(string name, ComponentStore store, string defaultVersion, string source,
+    private void BuildComponentRows(string name, ComponentStore store, string stockVersion,
         Func<string, string?, string, string> import)
     {
-        var versions = store.Versions();
         var selected = store.Selected();
+        var fallback = store.Default;
+        var choices = store.Versions().Where(v => v != fallback).Prepend(ComponentStore.Stock).ToList();
+        if (fallback != ComponentStore.Stock)
+            choices.Insert(0, fallback);
+        string Shown(string v) => v == ComponentStore.Stock ? stockVersion : v;
+        string Label(string v) => v == fallback ? Loc.F(Strings.Settings_DefaultSuffix, Shown(v))
+            : v == selected ? Loc.F(Strings.Settings_ActiveSuffix, Shown(v)) : Shown(v);
+
         Rows.Add(Dropdown(Loc.F(Strings.Settings_ComponentVersion, name),
-            versions.Select(v => v == selected ? Loc.F(Strings.Settings_ActiveSuffix, v) : v)
-                .Prepend(Loc.F(Strings.Settings_DefaultSuffix, defaultVersion)).ToArray(),
-            () => selected == ComponentStore.Stock ? 0 : Array.IndexOf(versions, selected) + 1,
+            choices.Select(Label).ToArray(),
+            () => Math.Max(0, choices.IndexOf(selected)),
             index =>
             {
-                var version = index == 0 ? ComponentStore.Stock : versions[index - 1];
+                var version = choices[index];
                 store.Select(version);
-                Status = version == ComponentStore.Stock
-                    ? Loc.F(Strings.Status_ComponentDefault, name, defaultVersion)
-                    : Loc.F(Strings.Status_ComponentUsing, name, version);
+                Status = version == fallback
+                    ? Loc.F(Strings.Status_ComponentDefault, name, Shown(version))
+                    : Loc.F(Strings.Status_ComponentUsing, name, Shown(version));
                 Rebuild();
             }));
         Rows.Add(new SettingsRow(Loc.F(Strings.Settings_ImportComponent, name), () => ImportComponent(name, import))
         {
             Value = Strings.Settings_PickArchive,
-            Detail = source,
         });
-        if (selected == ComponentStore.Stock)
+        if (selected == ComponentStore.Stock || selected == store.BuiltIn)
             return;
         Rows.Add(new SettingsRow(Loc.F(Strings.Settings_RemoveComponent, name), () =>
         {
@@ -775,7 +781,7 @@ public partial class SettingsViewModel : ViewModelBase
             try
             {
                 store.Remove(selected);
-                Status = Loc.F(Strings.Status_ComponentRemoved, name, selected, defaultVersion);
+                Status = Loc.F(Strings.Status_ComponentRemoved, name, selected, Shown(fallback));
             }
             catch (Exception ex)
             {

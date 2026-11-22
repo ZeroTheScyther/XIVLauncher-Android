@@ -137,7 +137,6 @@ public class KeepAliveService : Service
     {
         var intent = new Intent(context, typeof(KeepAliveService))
             .PutExtra(ExtraTitle, XlaBoot.Localization.Strings.Notif_GameRunning)
-            .PutExtra(ExtraText, XlaBoot.Localization.Strings.Notif_GameRunningDetail)
             .PutExtra(ExtraProgress, GameSession);
         context.StartService(intent);
     }

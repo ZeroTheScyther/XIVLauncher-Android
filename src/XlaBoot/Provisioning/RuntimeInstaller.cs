@@ -34,7 +34,7 @@ public static class RuntimeInstaller
     /// adrenotools hook libs, where vkextra's are the build that renders correctly.
     /// </summary>
     private static readonly string[] Order =
-        { "wine", "prefix", "overlay", "rootfs", "vkextra", "alsa", "pulseaudio" };
+        { "wine", "prefix", "overlay", "dxvkec", "rootfs", "vkextra", "alsa", "pulseaudio" };
 
     /// <summary>
     /// The oldest runtime this build of the app works with. An install older than this is not provisioned,
@@ -42,11 +42,12 @@ public static class RuntimeInstaller
     /// it an installed runtime is never checked again and an app update cannot reach the runtime.
     /// 2: Proton 11.0-2, whose ARM64EC cooperative suspend fixes the random freeze with Dalamud.
     /// 3: Mr_Purple's Turnip T30 beside Gen8 V30 in vkextra, the Adreno 84x default (BestConfig).
+    /// 4: dxvkec, the ARM64EC DXVK build, installed as a DXVK import and selected by default.
     /// </summary>
-    public const int RequiredRuntimeVersion = 3;
+    public const int RequiredRuntimeVersion = 4;
 
     /// <summary>
-    /// The DXVK and FEXCore builds that runtime version 3 ships (scripts/bundle-runtime.sh: the overlay's DXVK
+    /// The DXVK and FEXCore builds the runtime ships (scripts/bundle-runtime.sh: the overlay's DXVK
     /// and FEX_WCP), shown as the "Stock" choice next to imported versions. Update together with the runtime.
     /// </summary>
     public const string StockDxvkVersion = "2.4.1-1-gplasync";
@@ -193,6 +194,9 @@ public static class RuntimeInstaller
                 Imports.DxvkImport.Store(filesDir).ForgetStockBackup();
             if (component.Name == "prefix")
                 Imports.FexImport.Store(filesDir).ForgetStockBackup();
+            // Players who never picked a DXVK build get the ARM64EC one; any earlier choice stays.
+            if (component.Name == "dxvkec")
+                Imports.DxvkImport.Store(filesDir).SelectDefaultIfUnset();
 
             // Recorded per component, so an interrupted run resumes at the right place.
             state.Components[component.Name] = component.Sha256;
@@ -231,6 +235,7 @@ public static class RuntimeInstaller
         "wine" => Strings.Runtime_CompWine,
         "prefix" => Strings.Runtime_CompPrefix,
         "overlay" => Strings.Runtime_CompOverlay,
+        "dxvkec" => Strings.Runtime_CompDxvkEc,
         "rootfs" => Strings.Runtime_CompRootfs,
         "vkextra" => Strings.Runtime_CompVkextra,
         "alsa" => Strings.Runtime_CompAlsa,

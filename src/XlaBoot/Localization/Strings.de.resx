@@ -409,12 +409,6 @@
   <data name="Settings_PickArchive" xml:space="preserve">
     <value>Zip/tar.gz/wcp wählen</value>
   </data>
-  <data name="Settings_DxvkSource" xml:space="preserve">
-    <value>Aus DXVK-Releases oder dem WCP Hub (auch ARM64EC-Builds). Wird beim nächsten Start angewendet.</value>
-  </data>
-  <data name="Settings_FexSource" xml:space="preserve">
-    <value>Aus dem WCP Hub oder von GameNative. Wird beim nächsten Start angewendet.</value>
-  </data>
   <data name="Settings_RemoveComponent" xml:space="preserve">
     <value>Dieses {0} entfernen</value>
   </data>
@@ -826,6 +820,9 @@
   <data name="Runtime_CompPrefix" xml:space="preserve">
     <value>Windows-Umgebung</value>
   </data>
+  <data name="Runtime_CompDxvkEc" xml:space="preserve">
+    <value>native Grafik-Übersetzungsschicht</value>
+  </data>
   <data name="Runtime_CompOverlay" xml:space="preserve">
     <value>Grafikbibliotheken und Schriftarten</value>
   </data>
@@ -855,9 +852,6 @@
   </data>
   <data name="Notif_GameRunning" xml:space="preserve">
     <value>FINAL FANTASY XIV läuft</value>
-  </data>
-  <data name="Notif_GameRunningDetail" xml:space="preserve">
-    <value>Bleibt verbunden, während du andere Apps verwendest.</value>
   </data>
   <data name="Notif_Working" xml:space="preserve">
     <value>Läuft</value>

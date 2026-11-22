@@ -409,12 +409,6 @@
   <data name="Settings_PickArchive" xml:space="preserve">
     <value>Choisir un zip/tar.gz/wcp</value>
   </data>
-  <data name="Settings_DxvkSource" xml:space="preserve">
-    <value>Depuis les versions de DXVK ou le WCP Hub (versions ARM64EC comprises). Appliqué au prochain lancement.</value>
-  </data>
-  <data name="Settings_FexSource" xml:space="preserve">
-    <value>Depuis le WCP Hub ou GameNative. Appliqué au prochain lancement.</value>
-  </data>
   <data name="Settings_RemoveComponent" xml:space="preserve">
     <value>Supprimer ce {0}</value>
   </data>
@@ -826,6 +820,9 @@
   <data name="Runtime_CompPrefix" xml:space="preserve">
     <value>environnement Windows</value>
   </data>
+  <data name="Runtime_CompDxvkEc" xml:space="preserve">
+    <value>couche de traduction graphique native</value>
+  </data>
   <data name="Runtime_CompOverlay" xml:space="preserve">
     <value>bibliothèques graphiques et polices</value>
   </data>
@@ -855,9 +852,6 @@
   </data>
   <data name="Notif_GameRunning" xml:space="preserve">
     <value>FINAL FANTASY XIV est en cours d’exécution</value>
-  </data>
-  <data name="Notif_GameRunningDetail" xml:space="preserve">
-    <value>Reste connecté pendant que vous utilisez d’autres applications.</value>
   </data>
   <data name="Notif_Working" xml:space="preserve">
     <value>En cours</value>

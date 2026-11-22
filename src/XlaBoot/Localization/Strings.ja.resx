@@ -409,12 +409,6 @@
   <data name="Settings_PickArchive" xml:space="preserve">
     <value>zip/tar.gz/wcpを選択</value>
   </data>
-  <data name="Settings_DxvkSource" xml:space="preserve">
-    <value>DXVKのリリースまたはWCP Hub（ARM64EC版も可）から。次回の起動から適用されます。</value>
-  </data>
-  <data name="Settings_FexSource" xml:space="preserve">
-    <value>WCP HubまたはGameNativeから。次回の起動から適用されます。</value>
-  </data>
   <data name="Settings_RemoveComponent" xml:space="preserve">
     <value>この{0}を削除</value>
   </data>
@@ -826,6 +820,9 @@
   <data name="Runtime_CompPrefix" xml:space="preserve">
     <value>Windows環境</value>
   </data>
+  <data name="Runtime_CompDxvkEc" xml:space="preserve">
+    <value>ネイティブのグラフィック変換レイヤー</value>
+  </data>
   <data name="Runtime_CompOverlay" xml:space="preserve">
     <value>グラフィックライブラリとフォント</value>
   </data>
@@ -855,9 +852,6 @@
   </data>
   <data name="Notif_GameRunning" xml:space="preserve">
     <value>FINAL FANTASY XIV を実行中</value>
-  </data>
-  <data name="Notif_GameRunningDetail" xml:space="preserve">
-    <value>他のアプリを使っている間も接続を維持します。</value>
   </data>
   <data name="Notif_Working" xml:space="preserve">
     <value>処理中</value>

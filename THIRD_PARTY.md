@@ -37,6 +37,7 @@ The runtime is hosted at `xivlauncher.aetherworks.uk` and described by `runtime-
 | ntsync-android | [GameNative/ntsync-android](https://github.com/GameNative/ntsync-android) @ `7ce6435` | LGPL-3.0 |
 | FEX-Emu (FEXCore 2609) | [FEX-Emu/FEX](https://github.com/FEX-Emu/FEX), as packaged by GameNative | MIT |
 | DXVK 2.4.1 (gplasync) | [doitsujin/dxvk](https://github.com/doitsujin/dxvk), [gplasync patches](https://gitlab.com/Ph42oN/dxvk-gplasync) | zlib |
+| DXVK 2.4.1 (gplasync, ARM64EC) | [doitsujin/dxvk](https://github.com/doitsujin/dxvk) @ `v2.4.1`, [gplasync patches](https://gitlab.com/Ph42oN/dxvk-gplasync) @ `04e50ed`, built by `scripts/build-dxvk-arm64ec.sh` | zlib |
 | vkd3d-proton 2.14.1 | [HansKristian-Work/vkd3d-proton](https://github.com/HansKristian-Work/vkd3d-proton) | LGPL-2.1 |
 | Mesa Turnip (Adreno Vulkan driver) | [Mesa](https://gitlab.freedesktop.org/mesa/mesa) | MIT |
 | libadrenotools | [bylaws/libadrenotools](https://github.com/bylaws/libadrenotools) @ `8fae8ce`, GameNative fork [Pipetto-crypto/libadrenotools](https://github.com/Pipetto-crypto/libadrenotools) @ `8483dfd` | BSD-2-Clause |

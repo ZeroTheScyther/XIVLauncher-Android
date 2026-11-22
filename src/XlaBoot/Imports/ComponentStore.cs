@@ -10,7 +10,7 @@ namespace XlaBoot.Imports;
 /// and stock-backup/, which run-wine.sh owns. The C# side only adds, selects and removes versions; run-wine.sh
 /// does the copying into the prefix at launch, so nothing changes while the game is running.
 /// </summary>
-public sealed class ComponentStore(string filesDir, string folder)
+public sealed class ComponentStore(string filesDir, string folder, string? builtIn = null)
 {
     public const string Stock = "stock";
     private const string Backup = "stock-backup";
@@ -19,6 +19,25 @@ public sealed class ComponentStore(string filesDir, string folder)
 
     public string Root { get; } = Path.Combine(filesDir, folder);
     private string SelectedFile => Path.Combine(Root, SelectedName);
+
+    /// <summary>
+    /// A version the runtime installs into this folder and selects for players who never picked one. It is the
+    /// default over "stock" and cannot be removed. Null when the runtime ships none.
+    /// </summary>
+    public string? BuiltIn { get; } = builtIn;
+
+    /// <summary>The version used when none is picked: the built-in one when installed, else "stock".</summary>
+    public string Default => BuiltIn != null && Versions().Contains(BuiltIn) ? BuiltIn : Stock;
+
+    /// <summary>
+    /// Selects the built-in version unless the player already picked something. run-wine.sh reads selected.txt
+    /// and treats a missing one as stock, so the default has to be written down.
+    /// </summary>
+    public void SelectDefaultIfUnset()
+    {
+        if (!File.Exists(SelectedFile) && Default != Stock)
+            Select(Default);
+    }
 
     /// <summary>The imported versions, by folder name.</summary>
     public string[] Versions()
@@ -55,13 +74,15 @@ public sealed class ComponentStore(string filesDir, string folder)
         File.WriteAllText(SelectedFile, version);
     }
 
-    /// <summary>Deletes an imported version; if it was the selected one, the next launch goes back to stock.</summary>
+    /// <summary>Deletes an imported version; if it was the selected one, the next launch goes back to the default.</summary>
     public void Remove(string version)
     {
         if (!Versions().Contains(version))
             return;
+        if (version == BuiltIn)
+            throw new InvalidOperationException($"{version} comes with the runtime.");
         if (Selected() == version)
-            Select(Stock);
+            Select(Default);
         Directory.Delete(Path.Combine(Root, version), true);
     }
 
