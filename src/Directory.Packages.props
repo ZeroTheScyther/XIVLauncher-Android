@@ -19,6 +19,10 @@
              the formats compared (xz, gzip, zstd), and needs no native library. -->
         <PackageVersion Include="ZstdSharp.Port" Version="0.8.7" />
 
+        <!-- Pure-managed xz, only for imported .wcp component packages (GameNative's are xz-compressed
+             tars; see Imports/ComponentArchive.cs). The runtime packages stay zstd. -->
+        <PackageVersion Include="SharpCompress" Version="0.50.9" />
+
         <!-- Steam login and auth session tickets, so Steam service accounts can sign in.
              Pure managed: speaks the Steam protocol directly, no Steam client and no native library. -->
         <PackageVersion Include="SteamKit2" Version="3.4.0" />

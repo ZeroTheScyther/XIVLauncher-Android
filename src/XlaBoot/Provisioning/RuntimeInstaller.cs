@@ -45,6 +45,13 @@ public static class RuntimeInstaller
     /// </summary>
     public const int RequiredRuntimeVersion = 3;
 
+    /// <summary>
+    /// The DXVK and FEXCore builds that runtime version 3 ships (scripts/bundle-runtime.sh: the overlay's DXVK
+    /// and FEX_WCP), shown as the "Stock" choice next to imported versions. Update together with the runtime.
+    /// </summary>
+    public const string StockDxvkVersion = "2.4.1-1-gplasync";
+    public const string StockFexVersion = "2609";
+
     /// <summary>Headroom over the extracted size, for the packages in the cache and the shader cache.</summary>
     private const long SpareBytes = 512L * 1024 * 1024;
 
@@ -179,11 +186,13 @@ public static class RuntimeInstaller
                 PrefixSetup.LinkBuiltins(filesDir);
             }
 
-            // The overlay just put fresh stock DXVK/vkd3d into the prefix. A backup taken from the old stock
-            // would put the old DLLs back when the player returns to stock, so the next launch with an
-            // imported build snapshots these instead.
+            // The overlay just put fresh stock DXVK/vkd3d into the prefix, and the prefix package fresh stock
+            // FEXCore DLLs. A backup taken from the old stock would put the old DLLs back when the player
+            // returns to stock, so the next launch with an imported build snapshots these instead.
             if (component.Name == "overlay")
-                ComponentImporter.ForgetStockBackup(filesDir);
+                Imports.DxvkImport.Store(filesDir).ForgetStockBackup();
+            if (component.Name == "prefix")
+                Imports.FexImport.Store(filesDir).ForgetStockBackup();
 
             // Recorded per component, so an interrupted run resumes at the right place.
             state.Components[component.Name] = component.Sha256;

@@ -84,8 +84,10 @@ public static class Icons
         [Strings.Settings_AddRepo] = Add,
         [Strings.Settings_ImportRepos] = Download,
         [Strings.Settings_ImportPluginConfigs] = Download,
-        [Strings.Settings_ImportDxvk] = Download,
-        [Strings.Settings_RemoveDxvk] = Delete,
+        [Loc.F(Strings.Settings_ImportComponent, "DXVK")] = Download,
+        [Loc.F(Strings.Settings_RemoveComponent, "DXVK")] = Delete,
+        [Loc.F(Strings.Settings_ImportComponent, "FEXCore")] = Download,
+        [Loc.F(Strings.Settings_RemoveComponent, "FEXCore")] = Delete,
     };
 
     private static Dictionary<string, Geometry>? _bySettingTitle;

@@ -104,8 +104,10 @@ public class KeepAliveService : Service
 
         if (progress >= 0)
             builder.SetProgress(100, progress, false);
-        else
+        else if (progress != GameSession)
             builder.SetProgress(0, 0, true); // indeterminate until there is something to measure
+        if (progress == GameSession)
+            builder.SetSmallIcon(global::Android.Resource.Drawable.IcMediaPlay);
 
         return builder.Build();
     }
@@ -118,6 +120,25 @@ public class KeepAliveService : Service
             .PutExtra(ExtraTitle, title)
             .PutExtra(ExtraText, text)
             .PutExtra(ExtraProgress, fraction < 0 ? -1 : (int)(fraction * 100));
+        context.StartService(intent);
+    }
+
+    /// <summary>Progress value for a running game: no progress bar.</summary>
+    private const int GameSession = -2;
+
+    /// <summary>
+    /// Keeps a game session reachable while the player is in another app. Without a foreground service the
+    /// app drops to a background process state, and newer Android (seen on 17) cuts the network for those
+    /// (netpolicy: blocked=APP_BACKGROUND, firewall rule "&lt;uid&gt;-background-default" about 5 s after
+    /// leaving), so the game loses its connection to the server. The process is replaced when the session
+    /// ends (XServerHost.exitGame), which ends the service with it.
+    /// </summary>
+    public static void StartGameSession(Context context)
+    {
+        var intent = new Intent(context, typeof(KeepAliveService))
+            .PutExtra(ExtraTitle, XlaBoot.Localization.Strings.Notif_GameRunning)
+            .PutExtra(ExtraText, XlaBoot.Localization.Strings.Notif_GameRunningDetail)
+            .PutExtra(ExtraProgress, GameSession);
         context.StartService(intent);
     }
 
