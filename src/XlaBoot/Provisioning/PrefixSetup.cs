@@ -142,6 +142,8 @@ public static class PrefixSetup
         Map(Path.Combine(dosdevices, "c:"), "../drive_c");
         Map(Path.Combine(dosdevices, "z:"), "/");
         Map(Path.Combine(dosdevices, "a:"), gamePath);
+        // Android denies listing "/", so Windows folder pickers fail at Z:\ before reaching storage.
+        Map(Path.Combine(dosdevices, "d:"), GameLocation.SharedStorage);
 
         static void Map(string link, string target)
         {

@@ -502,6 +502,9 @@
   <data name="Settings_ImportPluginConfigs" xml:space="preserve">
     <value>Import plugin configs</value>
   </data>
+  <data name="Settings_ImportPluginConfigsDetail" xml:space="preserve">
+    <value>Zip the pluginConfigs folder from %AppData%\XIVLauncher on your PC, then pick the zip.</value>
+  </data>
   <data name="Settings_PickZip" xml:space="preserve">
     <value>Pick zip</value>
   </data>

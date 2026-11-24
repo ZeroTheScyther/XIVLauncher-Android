@@ -868,6 +868,7 @@ public partial class MainViewModel : ViewModelBase
         {
             (GamePath, "A:"),
             (driveC, "C:"),
+            (GameLocation.SharedStorage, "D:"),
             ("/", "Z:"),
         };
         var (root, drive) = roots
@@ -945,18 +946,25 @@ public partial class MainViewModel : ViewModelBase
     /// </summary>
     private static void PointDriveAtGame()
     {
-        var link = Path.Combine(FilesDir, "prefix", ".wine", "dosdevices", "a:");
+        // Not fatal: Wine can still reach both through Z:, which maps the whole filesystem.
+        PointDrive("a:", GamePath);
+        // D: is also made by PrefixSetup.MapDrives; repeated here so older installs get it without reprovisioning.
+        PointDrive("d:", GameLocation.SharedStorage);
+    }
+
+    private static void PointDrive(string drive, string target)
+    {
+        var link = Path.Combine(FilesDir, "prefix", ".wine", "dosdevices", drive);
         try
         {
-            if (new FileInfo(link).LinkTarget == GamePath)
+            if (new FileInfo(link).LinkTarget == target)
                 return;
             File.Delete(link); // does nothing when there is no link there
-            Directory.CreateSymbolicLink(link, GamePath);
+            Directory.CreateSymbolicLink(link, target);
         }
         catch (Exception ex)
         {
-            // Not fatal: Wine can still reach the game through Z:, which maps the whole filesystem.
-            Console.WriteLine($"XlaLauncher: could not point A: at the game folder ({ex.GetType().Name})");
+            Console.WriteLine($"XlaLauncher: could not point {drive} at {target} ({ex.GetType().Name})");
         }
     }
 

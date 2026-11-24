@@ -502,6 +502,9 @@
   <data name="Settings_ImportPluginConfigs" xml:space="preserve">
     <value>プラグイン設定をインポート</value>
   </data>
+  <data name="Settings_ImportPluginConfigsDetail" xml:space="preserve">
+    <value>PCの%AppData%\XIVLauncher内にあるpluginConfigsフォルダーをzipにして、そのzipを選択してください。</value>
+  </data>
   <data name="Settings_PickZip" xml:space="preserve">
     <value>zipを選択</value>
   </data>

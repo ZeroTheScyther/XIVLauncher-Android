@@ -61,3 +61,8 @@
 - The Vulkan version now follows the selected driver, so 1.4 drivers get Vulkan 1.4 (by K1r0h).
 - The game stays connected while you're in another app (by K1r0h).
 - Added 16:10 resolutions and a 40 fps cap (by K1r0h).
+
+## 0.3.3-alpha
+
+- Added a D: drive that points at your phone's storage, so plugins like Penumbra can keep their files there.
+- Import plugin configs now says how to pack the zip.

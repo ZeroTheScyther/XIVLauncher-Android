@@ -42,7 +42,10 @@ public static class GameLocation
     /// top-level so it survives uninstalling the app, which is the point: nobody should lose a
     /// 100 GB download because they reinstalled a launcher.
     /// </summary>
-    public const string DefaultPath = "/storage/emulated/0/XIVLauncher/FFXIV";
+    public const string DefaultPath = SharedStorage + "/XIVLauncher/FFXIV";
+
+    /// <summary>The phone's internal shared storage, mapped into the prefix as D:.</summary>
+    public const string SharedStorage = "/storage/emulated/0";
 
     /// <summary>The folder in use: the user's choice from the settings screen, else the default.</summary>
     public static string Current => AppHost.Get("game_path", DefaultPath);

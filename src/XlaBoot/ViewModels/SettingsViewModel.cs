@@ -469,7 +469,11 @@ public partial class SettingsViewModel : ViewModelBase
             Value = Strings.Settings_PickFile,
             Detail = Strings.Settings_ImportReposDetail,
         });
-        Rows.Add(new SettingsRow(Strings.Settings_ImportPluginConfigs, ImportPluginConfigs) { Value = Strings.Settings_PickZip });
+        Rows.Add(new SettingsRow(Strings.Settings_ImportPluginConfigs, ImportPluginConfigs)
+        {
+            Value = Strings.Settings_PickZip,
+            Detail = Strings.Settings_ImportPluginConfigsDetail,
+        });
     }
 
     private void AddRepo(string config, RepoInputRow input)
