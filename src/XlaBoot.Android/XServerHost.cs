@@ -55,6 +55,13 @@ internal static class XServerHost
     public static void Stop() =>
         JNIEnv.CallStaticVoidMethod(Class, Method("stop", "()V"));
 
+    /// <summary>Kills the game, Wine and this process. For the app being swiped out of recents mid-game.</summary>
+    public static void EndSessionOnTaskRemoved(Context context)
+    {
+        var id = Method("endSessionOnTaskRemoved", "(Landroid/content/Context;)V");
+        JNIEnv.CallStaticVoidMethod(Class, id, new JValue(context));
+    }
+
     /// <summary>
     /// Regenerates files/xla-settings.sh from the stored settings. The launcher's settings screen
     /// writes the launch-time settings into SharedPreferences from C#; the Java side stays the only

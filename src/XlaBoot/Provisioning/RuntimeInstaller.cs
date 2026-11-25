@@ -43,8 +43,9 @@ public static class RuntimeInstaller
     /// 2: Proton 11.0-2, whose ARM64EC cooperative suspend fixes the random freeze with Dalamud.
     /// 3: Mr_Purple's Turnip T30 beside Gen8 V30 in vkextra, the Adreno 84x default (BestConfig).
     /// 4: dxvkec, the ARM64EC DXVK build, installed as a DXVK import and selected by default.
+    /// 5: Wine with wine-patches/0003, which never parks a suspended thread inside FEX (startup freeze).
     /// </summary>
-    public const int RequiredRuntimeVersion = 4;
+    public const int RequiredRuntimeVersion = 5;
 
     /// <summary>
     /// The DXVK and FEXCore builds the runtime ships (scripts/bundle-runtime.sh: the overlay's DXVK

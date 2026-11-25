@@ -28,6 +28,7 @@ public class KeepAliveService : Service
 
     private PowerManager.WakeLock? _wakeLock;
     private WifiManager.WifiLock? _wifiLock;
+    private bool _gameSession;
 
     public override IBinder? OnBind(Intent? intent) => null;
 
@@ -36,6 +37,8 @@ public class KeepAliveService : Service
         var title = intent?.GetStringExtra(ExtraTitle) ?? XlaBoot.Localization.Strings.Notif_Working;
         var text = intent?.GetStringExtra(ExtraText) ?? "";
         var progress = intent?.GetIntExtra(ExtraProgress, -1) ?? -1;
+        if (progress == GameSession)
+            _gameSession = true;
 
         StartForeground(NotificationId, BuildNotification(title, text, progress));
 
@@ -65,6 +68,24 @@ public class KeepAliveService : Service
         // Restarted by the system without an intent: there is nothing to resume from here, the app
         // re-checks and resumes on its own.
         return StartCommandResult.NotSticky;
+    }
+
+    /// <summary>
+    /// The app was swiped out of recents. The foreground service keeps this process (and with it Wine and the
+    /// game) alive past that, so a game session is ended here; otherwise it runs on unseen, eating the battery.
+    /// Provisioning and installs are left alone: surviving the task is what this service is for.
+    /// </summary>
+    public override void OnTaskRemoved(Intent? rootIntent)
+    {
+        if (_gameSession)
+        {
+            // Stopped first: a process killed with this service still started is brought back by Android
+            // (start reason "started-service"), notification and all.
+            StopForeground(StopForegroundFlags.Remove);
+            StopSelf();
+            XServerHost.EndSessionOnTaskRemoved(this);
+        }
+        base.OnTaskRemoved(rootIntent);
     }
 
     public override void OnDestroy()

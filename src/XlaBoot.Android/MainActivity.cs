@@ -506,11 +506,14 @@ public class MainActivity : AvaloniaMainActivity<App>
                     && described.Contains("lmk", System.StringComparison.OrdinalIgnoreCase));
             // Set by the in-game menu's Exit game (XServerHost.exitGame) just before it kills the app.
             var summary = record.GetProcessStateSummary();
-            var exitGame = summary != null
-                && System.Text.Encoding.ASCII.GetString(summary) == "exit-game";
+            var summaryText = summary != null ? System.Text.Encoding.ASCII.GetString(summary) : "";
+            var exitGame = summaryText == "exit-game";
+            // Set by KeepAliveService.OnTaskRemoved (XServerHost.endSessionOnTaskRemoved).
+            var taskRemoved = summaryText == "task-removed";
             var reason = code switch
             {
                 _ when exitGame => "the player chose Exit game",
+                _ when taskRemoved => "swiped out of recents during a game",
                 _ when outOfMemory =>
                     "Android closed the app because the phone ran out of memory. Close other apps, "
                     + "turn on RAM Plus, or lower the game resolution and texture settings.",

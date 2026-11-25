@@ -50,6 +50,8 @@ public final class XServerHost {
     private static final String TAG = "XlaXServerHost";
     /** Process state summary set by the menu's Exit game; MainActivity.RecentExits matches on it. */
     private static final String EXIT_GAME_SUMMARY = "exit-game";
+    /** Set when the app is swiped out of recents mid-game (endSessionOnTaskRemoved). */
+    private static final String TASK_REMOVED_SUMMARY = "task-removed";
     /** GameNative's DEFAULT_FPS_LIMITER_TARGET_HZ. */
     private static final int DISPLAY_FPS_LIMIT = 60;
     /**
@@ -598,6 +600,24 @@ public final class XServerHost {
         }
         killOtherProcesses(false);
         RestartActivity.restart(context, myPid());
+    }
+
+    /**
+     * Ends the session for good when the player swipes the app out of recents mid-game. The foreground service
+     * keeps the process alive past that, so without this the game, Wine and Dalamud run on with no window and
+     * nothing to stop them. Unlike exitGame there is no launcher to come back to, so this process goes too.
+     */
+    public static void endSessionOnTaskRemoved(Context context) {
+        if (returning) return;
+        returning = true;
+        Log.i(TAG, "task removed with a game running, ending the session");
+        if (Build.VERSION.SDK_INT >= 30) {
+            android.app.ActivityManager am =
+                (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) am.setProcessStateSummary(TASK_REMOVED_SUMMARY.getBytes());
+        }
+        killOtherProcesses(false);
+        android.os.Process.killProcess(myPid());
     }
 
     /**

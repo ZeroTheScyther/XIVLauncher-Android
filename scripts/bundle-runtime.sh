@@ -25,7 +25,7 @@ P="$(cd "$(dirname "$0")/.." && pwd)"
 SRCROOT="${XLA_RUNTIME_SRC:-$P/work}"
 OUT="$SRCROOT/bundle"
 # Bump together with RuntimeInstaller.RequiredRuntimeVersion when the app needs the new runtime.
-RUNTIME_VERSION=4
+RUNTIME_VERSION=5
 ZSTD_ARGS=(-19 --long=27 -T0 -q)
 
 MANIFEST_ONLY=0

@@ -66,3 +66,9 @@
 
 - Added a D: drive that points at your phone's storage, so plugins like Penumbra can keep their files there.
 - Import plugin configs now says how to pack the zip.
+
+## 0.3.4-alpha
+
+- Fixed the game sometimes freezing while Dalamud loads and then closing with "game exited early".
+- Swiping the app away during a game now closes the game. It kept running in the background after the stay-connected change.
+- The first start after updating downloads a runtime update (about 130 MB). Settings made inside Wine are reset by it.

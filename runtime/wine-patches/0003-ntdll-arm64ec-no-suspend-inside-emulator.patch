@@ -1,0 +1,102 @@
+--- a/dlls/ntdll/unix/signal_arm64.c
++++ b/dlls/ntdll/unix/signal_arm64.c
+@@ -242,6 +242,66 @@
+     return is_arm64ec() && NtCurrentTeb()->ChpeV2CpuAreaInfo && NtCurrentTeb()->ChpeV2CpuAreaInfo->SuspendDoorbell;
+ }
+ 
++/* Address range of the x64 emulator DLL (FEX's libarm64ecfex.dll, or xtajit64.dll), found on first use.
++ *
++ * A cooperative suspend must not park a thread while it runs the emulator's own code: the emulator can hold
++ * its internal locks there (FEX's LookupCache), and the suspender then deadlocks as soon as it needs the
++ * emulator to translate new code. Such a thread is left running until the emulator's next doorbell check. */
++static ULONG_PTR emulator_start, emulator_end;
++
++static BOOL is_emulator_image_name( const UNICODE_STRING *name )
++{
++    static const char * const names[] = { "\\libarm64ecfex.dll", "\\xtajit64.dll" };
++    unsigned int i, j, len = name->Length / sizeof(WCHAR);
++
++    for (i = 0; i < ARRAY_SIZE(names); i++)
++    {
++        unsigned int n = strlen( names[i] );
++        if (len < n) continue;
++        for (j = 0; j < n; j++)
++        {
++            WCHAR c = name->Buffer[len - n + j];
++            if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
++            if (c == '/') c = '\\';
++            if (c != (unsigned char)names[i][j]) break;
++        }
++        if (j == n) return TRUE;
++    }
++    return FALSE;
++}
++
++/* Signal-safe: only consults the cached range. */
++static BOOL is_cached_emulator_pc( ULONG_PTR pc )
++{
++    ULONG_PTR end = __atomic_load_n( &emulator_end, __ATOMIC_ACQUIRE );
++    return end && pc >= emulator_start && pc < end;
++}
++
++/* Not signal-safe (queries the virtual memory map); fills the cache on the first emulator address it sees. */
++static BOOL is_emulator_pc( ULONG_PTR pc )
++{
++    char buffer[sizeof(MEMORY_SECTION_NAME) + 1024 * sizeof(WCHAR)];
++    MEMORY_SECTION_NAME *name = (MEMORY_SECTION_NAME *)buffer;
++    MEMORY_BASIC_INFORMATION mbi;
++    const IMAGE_DOS_HEADER *dos;
++    const IMAGE_NT_HEADERS64 *nt;
++
++    if (__atomic_load_n( &emulator_end, __ATOMIC_ACQUIRE )) return is_cached_emulator_pc( pc );
++    if (NtQueryVirtualMemory( GetCurrentProcess(), (void *)pc, MemoryBasicInformation, &mbi, sizeof(mbi), NULL ))
++        return FALSE;
++    if (mbi.Type != MEM_IMAGE || !mbi.AllocationBase) return FALSE;
++    if (NtQueryVirtualMemory( GetCurrentProcess(), mbi.AllocationBase, MemoryMappedFilenameInformation,
++                              name, sizeof(buffer), NULL ))
++        return FALSE;
++    if (!is_emulator_image_name( &name->SectionFileName )) return FALSE;
++
++    dos = mbi.AllocationBase;
++    nt = (const IMAGE_NT_HEADERS64 *)((const char *)dos + dos->e_lfanew);
++    emulator_start = (ULONG_PTR)mbi.AllocationBase;
++    __atomic_store_n( &emulator_end, emulator_start + nt->OptionalHeader.SizeOfImage, __ATOMIC_RELEASE );
++    return TRUE;
++}
++
+ /***********************************************************************
+  *           syscall_frame_fixup_for_fastpath
+  *
+@@ -351,8 +411,10 @@
+     struct arm64_thread_data *arm64_data = arm64_thread_data();
+     CHPE_V2_CPU_AREA_INFO *cpu_area = NtCurrentTeb()->ChpeV2CpuAreaInfo;
+     NTSTATUS status;
++    /* resuming into the emulator's own code: leave the suspend pending for its next doorbell check */
++    BOOL defer = arm64_data->suspend_pending && is_emulator_pc( context->Pc );
+ 
+-    if (arm64_data->suspend_pending && !cpu_area->InSyscallCallback && !cpu_area->InSimulation)
++    if (arm64_data->suspend_pending && !defer && !cpu_area->InSyscallCallback && !cpu_area->InSimulation)
+     {
+         sigset_t old_set;
+         pthread_sigmask( SIG_BLOCK, &server_block_set, &old_set );
+@@ -364,7 +426,7 @@
+     }
+     else status = NtSetContextThread( GetCurrentThread(), context );
+ 
+-    if (is_arm64ec_suspend_doorbell_valid() && arm64_thread_data()->suspend_pending)
++    if (!defer && is_arm64ec_suspend_doorbell_valid() && arm64_thread_data()->suspend_pending)
+     {
+         CONTEXT suspend_context;
+         *NtCurrentTeb()->ChpeV2CpuAreaInfo->SuspendDoorbell = 0;
+@@ -1367,7 +1429,10 @@
+     CONTEXT context;
+ 
+     if ((chpe = NtCurrentTeb()->ChpeV2CpuAreaInfo) && chpe->SuspendDoorbell &&
+-             (chpe->InSimulation || chpe->InSyscallCallback))
++             (chpe->InSimulation || chpe->InSyscallCallback ||
++              /* a syscall made by the emulator itself: it may hold its locks, so suspend cooperatively */
++              (is_inside_syscall( SP_sig(ucontext) ) &&
++               (is_cached_emulator_pc( get_syscall_frame()->pc ) || is_cached_emulator_pc( get_syscall_frame()->lr )))))
+     {
+         NTSTATUS status = server_select( NULL, 0, SELECT_INTERRUPTIBLE | SELECT_COOPERATIVE_SUSPEND,
+                                          0, NULL, NULL );
